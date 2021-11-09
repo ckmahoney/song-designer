@@ -10,13 +10,19 @@
 
 <body>
 
-<div id="root"></div>
+<div id="main-root"></div>
+<div id="instrument-root"></div>
+<div id="color-picker-root"></div>
 <pre id="elm"></pre>
 
 
 <script src="elm-out.js"></script>
 <script>
-var component = Elm.Instrument.init({ node: document.getElementById("root") });
+[ Elm.Main.init({ node: document.getElementById("main-root") })
+, Elm.Instrument.init({ node: document.getElementById("instrument-root") })
+, Elm.ColorPicker.init({ node: document.getElementById("color-picker-root") })
+]
+
 </script>
 </body>
 </html>

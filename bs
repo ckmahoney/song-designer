@@ -1,1 +1,0 @@
-browser-sync start --proxy localhost:8000 --files * --no-notify --reload-delay 1000

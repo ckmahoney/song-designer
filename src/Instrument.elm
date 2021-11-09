@@ -1,4 +1,4 @@
-module Instrument exposing (main)
+module Instrument exposing (SynthPreset, Duty, Msg(..), viewOut, p1, p2, p3, p4)
 
 import Components 
 import Browser
@@ -60,6 +60,46 @@ type alias SynthPreset =
   , complexity : Int
   }
 
+p1 : SynthPreset
+p1 =
+  { duty = Structure
+  , role = (Bass, "bass")
+  , title = "Big Bass"
+  , voice = 1
+  , density = 1
+  , complexity = 1
+  }
+
+p2 : SynthPreset
+p2 =
+  { duty = Structure
+  , role = (Kick, "kick")
+  , title = "Kick Drum"
+  , voice = 0
+  , density = 0
+  , complexity = 0
+  }
+
+p3 : SynthPreset
+p3 =
+  { duty = Expression
+  , role = (Melody, "lead")
+  , title = "Soaring Melody"
+  , voice = 4
+  , density = 1
+  , complexity = 2
+  }
+
+p4 : SynthPreset
+p4 =
+  { duty = Structure
+  , role = (Hat, "hat")
+  , title = "Hat Drum"
+  , voice = 6
+  , density = 1
+  , complexity = 2
+  }
+
 type alias Model = SynthPreset
 
 
@@ -79,6 +119,7 @@ editDuty current =
     [ button [class "button is-info", onClick (DutyChange Structure) ] [dutyString Structure  |> text]
     , button [class "button is-success", onClick (DutyChange Expression)] [dutyString Expression |> text]
     ]
+
 
 init : Model
 init =
@@ -205,6 +246,13 @@ view2 model =
 
 view : Model -> Html Msg
 view model =
-  div [Html.Attributes.class "level"] 
-    (List.map (\x ->
-      div [] [Components.card  <| dutyString model.duty, editDuty  model.duty] ) [0,1,2,3,4])
+  div [] []
+ -- [Components.card (dutyString model.duty) ("Preset") 
+  -- , editDuty model.duty
+  -- ]
+
+
+viewOut : (msgA, msgB) -> String -> String ->  Html msgB
+viewOut (m1,m2) label title =
+  Components.card label title m2
+

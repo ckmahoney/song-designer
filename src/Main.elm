@@ -9,11 +9,6 @@ import Html.Events exposing (onClick)
 -- MAIN
 
 
-main =
-  Browser.sandbox { init = init, update = update, view = view }
-
-
-
 -- MODEL
 
 
@@ -85,3 +80,9 @@ view model =
     [ intField "Density" "density" (toInt (Dict.get "density" model))
     , intField "Complexity" "complexity" (toInt (Dict.get "complexity" model))
     ]
+
+
+main =
+  Browser.sandbox { init = init, update = update, view = view }
+
+
