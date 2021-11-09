@@ -1,0 +1,43 @@
+;; -*- mode: emacs-lisp; lexical-binding:t; coding: utf-8-emacs; -*-
+;; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
+;; Created Mon Nov  8 23:36:04 2021
+;; Desktop file format version 208
+;; Emacs version 27.1
+
+;; Global section:
+(setq desktop-saved-frameset [frameset 1 (24969 64180 544162 183000) (desktop . "208") "naltroc@engraver" nil nil ((((minibuffer . t) (undecorated) (override-redirect) (font . "-DAMA-Ubuntu Mono-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1") (font-parameter) (border-width . 0) (internal-border-width . 0) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#eaeaea") (background-color . "#000000") (mouse-color . "black") (border-color . "#2a2a2a") (screen-gamma) (line-spacing) (left-fringe . 8) (right-fringe . 8) (no-special-glyphs) (scroll-bar-foreground) (scroll-bar-background) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 48) (tool-bar-lines . 1) (title) (wait-for-wm . t) (tool-bar-position . top) (inhibit-double-buffering) (icon-type . t) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 16) (scroll-bar-height . 16) (alpha) (no-focus-on-map) (no-accept-focus) (fullscreen . fullheight) (visibility . t) (skip-taskbar) (z-group) (display-type . color) (background-mode . dark) (cursor-color . "#d54e53") (sticky) (environment) (last-focus-update . t) (frameset--id . "B237-F5B4-6558-4BE7") (frameset--mini t . t) (width . 101) (modeline . t) (unsplittable) (left . 884) (top . 19) (icon-name) (display . ":0") (explicit-name)) ((min-height . 4) (min-width . 10) (min-height-ignore . 2) (min-width-ignore . 7) (min-height-safe . 1) (min-width-safe . 2) (min-pixel-height . 80) (min-pixel-width . 100) (min-pixel-height-ignore . 40) (min-pixel-width-ignore . 70) (min-pixel-height-safe . 20) (min-pixel-width-safe . 20)) leaf (pixel-width . 1026) (pixel-height . 955) (total-width . 102) (total-height . 47) (normal-height . 1.0) (normal-width . 1.0) (buffer "Instrument.elm" (selected . t) (hscroll . 0) (fringes 8 8 nil nil) (margins 3) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 331) (start . 1)) (prev-buffers ("Main.elm" 459 1444) ("Instrument.elm" 1 1) ("*scratch*" 1 147))))])
+(setq desktop-missing-file-warning nil)
+(setq tags-file-name nil)
+(setq tags-table-list nil)
+(setq search-ring nil)
+(setq regexp-search-ring '(#("getRole" 0 7 (isearch-case-fold-search nil)) #("n" 0 1 (isearch-case-fold-search t)) #("role" 0 4 (isearch-case-fold-search t)) #("Assi" 0 4 (isearch-case-fold-search nil)) #("Role" 0 4 (isearch-case-fold-search nil)) #("if " 0 3 (isearch-case-fold-search t)) #("roles" 0 5 (isearch-case-fold-search t)) #("select" 0 6 (isearch-case-fold-search t)) #("map" 0 3 (isearch-case-fold-search t)) #("sele" 0 4 (isearch-case-fold-search t)) #("rolef" 0 5 (isearch-case-fold-search t)) #("voice" 0 5 (isearch-case-fold-search t)) #("recChange" 0 9 (isearch-case-fold-search nil)) #("insert" 0 6 (isearch-case-fold-search t)) #("recField" 0 8 (isearch-case-fold-search nil)) #("name" 0 4 (isearch-case-fold-search t))))
+(setq register-alist nil)
+(setq file-name-history '("/home/naltroc/song-designer/src/Instrument.elm" "/home/naltroc/song-designer/src/Main.elm" "/home/naltroc/sandbox/elm-spa-example/src/Author.elm" "/home/naltroc/sandbox/elm-spa-example/src/Page/Article.elm" "~/.emacs.d/ido.last" "~/sandbox/elm-spa-example/src/Page/Article.elm" "~/sandbox/elm-spa-example/src/Page/Login.elm" "~/sandbox/elm-spa-example/src/Main.elm" "~/sandbox/elmwood/src/Main.elm" "~/develop/resources/public/index.html" "~/develop/resources/index.html" "~/develop/src/synthony/cljs/song_store/core.cljs" "~/develop/project.clj" "~/develop/deps.edn" "~/develop/src/synthony/cljs/song_store/account.cljs" "~/sandbox/ghost/content/themes/casper/default.hbs" "~/sandbox/ghost/config.development.json" "~/Documents/content/notes.md" "~/Documents/content/starting-from-nothing.md" "~/Documents/content/voices-and-roles.md" "~/Documents/content/creating-structure.md" "~/Documents/content/when-is-it-done.md" "~/Documents/content/picking-sound.md" "~/develop/scores/render"))
+
+;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 208
+  "/home/naltroc/song-designer/src/Instrument.elm"
+  "Instrument.elm"
+  'elm-mode
+  '(eldoc-mode elm-indent-mode projectile-mode linum-mode)
+  331
+  '(2692 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-display-time 24969 64175 434539 466000) (buffer-file-coding-system . utf-8-unix))
+  '((mark-ring (1155 1580 767 679 1 1564 2659 2658 2756 2358 2431 2431 429 1 737 331))))
+
+(desktop-create-buffer 208
+  "/home/naltroc/song-designer/src/Main.elm"
+  "Main.elm"
+  'elm-mode
+  '(eldoc-mode elm-indent-mode projectile-mode linum-mode text-scale-mode)
+  1444
+  '(1 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-display-time 24969 58510 565075 43000) (buffer-file-coding-system . utf-8-unix))
+  '((mark-ring (909 713 1294 909 592 1 850 843 290 1 647 1359 1294 1153 1072 112))))
+

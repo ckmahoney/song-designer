@@ -1,9 +1,10 @@
 module Instrument exposing (main)
 
+import Components 
 import Browser
-import Dict
+import List
 import Html exposing (Html, h1, button, div, text, label, p, input, select, option)
-import Html.Attributes exposing (placeholder, value)
+import Html.Attributes exposing (placeholder, value, class)
 import Html.Events exposing (onClick, onInput)
 
 
@@ -16,6 +17,9 @@ main =
 
 -- MODEL
 
+type Duty
+  = Structure
+  | Expression
 
 
 type Role
@@ -47,8 +51,34 @@ type alias Instrument =
   , title : String
   }
 
-type alias Model = Instrument
+type alias SynthPreset =
+  { duty : Duty
+  , role : (Role, String)
+  , title : String
+  , voice : Int
+  , density : Int
+  , complexity : Int
+  }
 
+type alias Model = SynthPreset
+
+
+dutyString : Duty -> String
+dutyString duty = 
+  case duty of 
+    Structure ->
+      "structure"
+
+    Expression ->
+      "expression"
+
+
+editDuty : Duty -> Html Msg
+editDuty current =
+  div [] 
+    [ button [class "button is-info", onClick (DutyChange Structure) ] [dutyString Structure  |> text]
+    , button [class "button is-success", onClick (DutyChange Expression)] [dutyString Expression |> text]
+    ]
 
 init : Model
 init =
@@ -57,6 +87,7 @@ init =
   , density = 0
   , complexity = 0
   , title = "Synthy"
+  , duty = Structure
   }
 
 
@@ -82,9 +113,8 @@ type ParamChange
   | Assignment (Role, String)
 
 type Msg
-  =
-   Update ParamChange
-
+  = Update ParamChange
+  | DutyChange Duty
 
 recChange : ParamChange -> Model -> Model
 recChange sig model =
@@ -107,9 +137,10 @@ recChange sig model =
 update : Msg -> Model -> Model
 update msg model =
   case msg of
-
     Update param ->
       recChange param model
+    DutyChange d ->
+      { model | duty = d }
       
 
 -- VIEW
@@ -160,8 +191,8 @@ roleField selected =
     ] 
 
 
-view : Model -> Html Msg
-view model =
+view2 : Model -> Html Msg
+view2 model =
   div []
     [ h1 [] [text "Synth Designer"]
     , titleField model.title
@@ -170,3 +201,10 @@ view model =
     , recField "Density" Density (.density model)  
     , recField "Complexity" Complexity (.complexity model)  
     ]
+
+
+view : Model -> Html Msg
+view model =
+  div [Html.Attributes.class "level"] 
+    (List.map (\x ->
+      div [] [Components.card  <| dutyString model.duty, editDuty  model.duty] ) [0,1,2,3,4])

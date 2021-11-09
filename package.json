@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "bulma": "^0.9.3"
+  }, 
+  "scripts" : {
+    "dev" : "elm-live src/*.elm --start-page=elm-index.html -- --output=elm-out.js"
+  }
+}
