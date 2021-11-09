@@ -75,7 +75,7 @@ dutyString duty =
 
 editDuty : Duty -> Html Msg
 editDuty current =
-  div [] 
+  div [class "level"] 
     [ button [class "button is-info", onClick (DutyChange Structure) ] [dutyString Structure  |> text]
     , button [class "button is-success", onClick (DutyChange Expression)] [dutyString Expression |> text]
     ]
