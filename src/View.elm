@@ -110,9 +110,13 @@ buttonOpt role msg =
   button [] [text (Tuple.first (D.roleLabel role))]
 
 
-savePresetButton : T.SynthPreset -> Html U.UpdateMsg
-savePresetButton synth =
-  button [onClick (U.SavePreset synth)] [text "Save this Preset"]
+saveButton : T.SynthPreset -> Html U.UpdateMsg
+saveButton synth =
+  button [onClick (U.SavePreset synth)] [text "Save"]
+
+killButton : T.SynthPreset -> Html U.UpdateMsg
+killButton synth =
+  button [onClick (U.KillPreset synth)] [text "Delete"]
 
 synthCardContent : T.SynthPreset -> Html U.UpdateMsg
 synthCardContent synth = 
@@ -128,7 +132,8 @@ synthCardContent synth =
       , div [class "content"] 
           [ text "Update your Synth"
           , editTexture synth ] 
-      , savePresetButton synth ]
+      , saveButton synth 
+      , killButton synth ]
 
 
 synthCard : T.SynthPreset -> Html U.UpdateMsg

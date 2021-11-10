@@ -12,6 +12,7 @@ type UpdateMsg
   = UpdateSynthRole T.SynthPreset T.SynthRole  
   | NewID Int
   | SavePreset T.SynthPreset
+  | KillPreset T.SynthPreset
   | ChangeSelection T.SynthPreset
   | RemoveSynth T.SynthPreset 
   | UpdateDensity Int
@@ -71,7 +72,9 @@ update msg model =
 
       SavePreset preset ->
        ({ model | presets = preset ::  model.presets }, genID)
-        -- (model, genID)
+
+      KillPreset preset ->
+       ({ model | presets = remove preset model.presets }, Cmd.none)
   
       ChangeSelection preset ->
         noCmd <| { model | current = preset }
