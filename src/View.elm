@@ -44,6 +44,7 @@ cardContent role title content =
              , p [class "subtitle is-6"] [text title] ] ]
       , div [class "content"] [text content] ]
 
+
 card : T.SynthRole -> String ->  String ->  Html msg
 card role label title  = 
   div [class "column card"]
@@ -65,13 +66,57 @@ roleCard role =
   let 
     text = D.roleLabel role
   in
-  card role (Tuple.second text) ("Role for " ++ (Tuple.first text))
+  card role (Tuple.second text) (" " ++ (Tuple.first text))
+  
+
+
+editInt : String -> String -> Int -> (Int -> msg) -> Html msg
+editInt title name val toMsg =
+  div []
+    [ label [] [text name]
+    , b [] [text <| String.fromInt val]
+    , button [onClick (toMsg <| val - 1)] [text <| "Less " ++ name]
+    , button [onClick (toMsg <| val + 1)] [text <| "More " ++ name]]
+
+
+editTexture : T.SynthPreset -> Html U.UpdateMsg
+editTexture preset =
+  let 
+    textD = D.textureLabel T.Density
+    textC = D.textureLabel T.Complexity
+  in 
+  div []
+    [ editInt (Tuple.second textD) (Tuple.first textD) preset.density U.UpdateDensity 
+    , editInt (Tuple.second textC) (Tuple.first textC) preset.complexity U.UpdateComplexity
+    ]
 
 
 buttonOpt : T.SynthRole -> msg -> Html msg
 buttonOpt role msg =
-  button [onClick msg] [text (Tuple.first (D.roleLabel role))]
+  button [] [text (Tuple.first (D.roleLabel role))]
 
 
-main =
+synthCardContent : T.SynthPreset -> Html U.UpdateMsg
+synthCardContent synth = 
+  div [class "card-content"]
+    [ div [class "media"]
+      [ div [class "media-left"]
+         [ figure [class "image is-48x48"] [roleIcon synth.role]]
+
+         , div [class "media-content"]
+             [ p [class "title is-4"] [text synth.title]
+             , p [class "subtitle is-6"] [text synth.title] ] ]
+
+      , div [class "content"] 
+          [ text "Update your Synth"
+          , editTexture synth ] ]
+
+
+synthCard : T.SynthPreset -> Html U.UpdateMsg
+synthCard preset =
+  div [class "column card"]
+    [ cardTitle "Synth Design"
+    , synthCardContent preset ]
+
+main  =
   Html.text ""

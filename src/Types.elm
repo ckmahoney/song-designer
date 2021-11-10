@@ -7,6 +7,10 @@ import Html
 type Msg
   = ButtonClick
 
+type Texture
+  = Density
+  | Complexity
+
 type SynthDuty
   = Structure
   | Expression

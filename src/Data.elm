@@ -56,13 +56,13 @@ roleLabel : SynthRole -> (String, String)
 roleLabel role =
   case role of
     Kick ->
-      ("kick", "Deep beat")
+      ("kick", "Deep")
     
     Perc ->
       ("perc", "Hits")
     
     Hat ->
-      ("hat", "Groove beat")
+      ("hat", "Groove")
     
     Bass ->
       ("bass", "Bassline")
@@ -72,6 +72,17 @@ roleLabel role =
     
     Melody ->
       ("melody", "Melody")
+
+
+textureLabel : Texture -> (String, String)
+textureLabel texture = 
+  case texture of 
+    Density ->
+      ("density", "Density")
+
+    Complexity ->
+      ("complexity", "Complexity")
+
 
 roleDuty: SynthRole -> SynthDuty
 roleDuty role =
