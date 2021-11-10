@@ -137,7 +137,7 @@ buttonOpt role msg =
 
 saveButton : T.SynthPreset -> Html U.UpdateMsg
 saveButton synth =
-  button [class "button", onClick (U.SavePreset synth)] [text "Save"]
+  button [class "button", onClick (U.SavePreset synth)] [text "Clone"]
 
 killButton : T.SynthPreset -> Html U.UpdateMsg
 killButton synth =

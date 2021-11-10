@@ -3,6 +3,7 @@ module Update exposing (..)
 import Html
 import Random
 import Debug exposing (log)
+import Array 
 
 import Types as T
 import Data as D
@@ -11,13 +12,16 @@ import Data as D
 type UpdateMsg
   = UpdateSynthRole T.SynthPreset T.SynthRole  
   | NewID Int
+  | NewPreset Int
   | SavePreset T.SynthPreset
   | KillPreset T.SynthPreset
   | ChangeSelection T.SynthPreset
-  | RemoveSynth T.SynthPreset 
   | UpdateDensity Int
   | UpdateComplexity Int
 
+
+conj x xs =
+  List.reverse <| x :: xs
 
 
 rint : Random.Generator Int
@@ -29,11 +33,23 @@ genID : Cmd UpdateMsg
 genID = 
   Random.generate NewID rint
 
+genPreset : Cmd UpdateMsg
+genPreset = 
+  Random.generate NewPreset rint
+
 
 uuid : Random.Generator Int
 uuid = 
   Random.int 1 100000000000000000000
-  
+
+
+createPreset : Int -> T.SynthPreset
+createPreset id_ =   
+  let 
+    ref = D.p1
+  in
+  { ref | id = id_ }
+
 
 remove : a -> List a -> List a
 remove x xs =
@@ -54,6 +70,7 @@ noCmd x =
   (x, Cmd.none)
 
 
+
 update : UpdateMsg -> T.State T.SynthPreset -> (T.State T.SynthPreset, Cmd UpdateMsg)
 update msg model =
     let 
@@ -67,11 +84,17 @@ update msg model =
           prev = model.current
           presets = remove prev model.presets
           next = { prev | id = int } 
-        in
+       in
         noCmd { model | current = next} 
+ 
+      NewPreset id ->
+       let
+         next = createPreset id
+       in      
+       noCmd <| ({ model | current = next, presets = next :: model.presets })      
 
       SavePreset preset ->
-       ({ model | presets = preset ::  model.presets }, genID)
+       ({ model | presets = conj preset model.presets }, genID)
 
       KillPreset preset ->
        ({ model | presets = remove preset model.presets }, Cmd.none)
@@ -83,14 +106,12 @@ update msg model =
         let 
           prev = model.current
           next = { prev | role = r, title = (Tuple.second <| D.roleLabel r)}
-          presets = List.map (\x -> if x == preset then next else x) model.presets
+          index = D.findIndex prev model.presets
+          presets = Array.toList <| Array.set index next <| Array.fromList model.presets
         in 
         noCmd <|
           { current = next
           , presets = presets }
-
-      RemoveSynth preset ->
-        noCmd <| {model | presets = remove preset model.presets }
 
       UpdateDensity val ->
         let 

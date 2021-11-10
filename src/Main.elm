@@ -20,7 +20,7 @@ type alias Model =
 init : T.State T.SynthPreset
 init =
    { current = p1
-   , presets = [p1, p2, p3, p4]
+   , presets = []
    }
 
 
@@ -41,7 +41,7 @@ initFromFlags ini =
   in
   case ini of 
     _ ->
-      (init, U.genID)
+      (init, U.genPreset)
 
 
 subs : Model -> Sub msg
