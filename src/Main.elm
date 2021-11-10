@@ -30,9 +30,7 @@ toInt x =
 
 view : Model -> Html U.UpdateMsg
 view model =
-  div [] 
-    [ div [] [View.synthCard model.current]
-    , div [Attr.class "columns"] (List.map View.roleCard Data.roles) ]
+  View.synthCard model.current
 
 
 

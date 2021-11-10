@@ -1,6 +1,7 @@
 module Update exposing (..)
 
 import Types as T
+import Data as D
 import Html
 
 
@@ -25,9 +26,12 @@ update msg model =
 
       UpdateSynthRole preset r ->
         let 
-          updated = { model | presets = List.map (\x -> if x == preset then { preset | role = r } else x) model.presets }
+          prev = model.current
+          next = { prev | role = r, title = (Tuple.second <| D.roleLabel r)}
+          presets = List.map (\x -> if x == preset then next else x) model.presets
         in 
-        updated
+        { current = next
+        , presets = presets } 
 
       RemoveSynth preset ->
         {model | presets = remove preset model.presets }

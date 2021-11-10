@@ -51,14 +51,29 @@ card role label title  =
     [ cardTitle label
     , cardContent role title ""]
 
+
 roleIcon : T.SynthRole -> Html msg
 roleIcon role =
   img [width 50, height 50, src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] []
 
 
+roleIconButton : (T.SynthRole -> U.UpdateMsg) -> T.SynthRole -> Html U.UpdateMsg
+roleIconButton update role =
+  img [ width 50
+      , height 50
+      , onClick (update role)
+      , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] []
+
+
 roleRow : Html msg
 roleRow = 
   div [] (List.map roleIcon D.roles)
+
+
+rolePicker : (T.SynthRole -> U.UpdateMsg) -> Html U.UpdateMsg
+rolePicker update =
+  div [] 
+    <| List.map (roleIconButton update) D.roles
 
 
 roleCard : T.SynthRole -> Html msg
@@ -68,7 +83,6 @@ roleCard role =
   in
   card role (Tuple.second text) (" " ++ (Tuple.first text))
   
-
 
 editInt : String -> String -> Int -> (Int -> msg) -> Html msg
 editInt title name val toMsg =
@@ -116,7 +130,9 @@ synthCard : T.SynthPreset -> Html U.UpdateMsg
 synthCard preset =
   div [class "column card"]
     [ cardTitle "Synth Design"
-    , synthCardContent preset ]
+    , synthCardContent preset
+    , rolePicker (U.UpdateSynthRole preset) ]
+
 
 main  =
   Html.text ""
