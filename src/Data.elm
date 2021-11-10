@@ -47,26 +47,31 @@ p4 =
   }
 
 
+roles : List SynthRole
+roles =
+  [Kick, Perc, Hat, Bass, Chords, Melody]
+
+
 roleLabel : SynthRole -> (String, String)
 roleLabel role =
   case role of
     Kick ->
-      ("kick", "Kick Drum")
+      ("kick", "Deep beat")
     
     Perc ->
-      ("perc", "Percussion")
+      ("perc", "Hits")
     
     Hat ->
-      ("hats", "Hat set")
+      ("hat", "Groove beat")
     
     Bass ->
-      ("bass", "Bass")
+      ("bass", "Bassline")
     
     Chords ->
-      ("chords", "Accompaniment")
+      ("chords", "Chords")
     
     Melody ->
-      ("melody", "Lead")
+      ("melody", "Melody")
 
 roleDuty: SynthRole -> SynthDuty
 roleDuty role =

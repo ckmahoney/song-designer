@@ -4854,7 +4854,6 @@ var $author$project$Model$main = $elm$html$Html$text('');
 var $author$project$Types$Bass = {$: 'Bass'};
 var $author$project$Types$Structure = {$: 'Structure'};
 var $author$project$Data$p1 = {complexity: 1, density: 1, duty: $author$project$Types$Structure, role: $author$project$Types$Bass, title: 'Big Bass', voice: 1};
-var $author$project$Main$init = $author$project$Data$p1;
 var $elm$browser$Browser$External = function (a) {
 	return {$: 'External', a: a};
 };
@@ -5213,17 +5212,17 @@ var $elm$html$Html$Events$onClick = function (msg) {
 var $author$project$Data$roleLabel = function (role) {
 	switch (role.$) {
 		case 'Kick':
-			return _Utils_Tuple2('kick', 'Kick Drum');
+			return _Utils_Tuple2('kick', 'Deep beat');
 		case 'Perc':
-			return _Utils_Tuple2('perc', 'Percussion');
+			return _Utils_Tuple2('perc', 'Hits');
 		case 'Hat':
-			return _Utils_Tuple2('hats', 'Hat set');
+			return _Utils_Tuple2('hat', 'Groove beat');
 		case 'Bass':
-			return _Utils_Tuple2('bass', 'Bass');
+			return _Utils_Tuple2('bass', 'Bassline');
 		case 'Chords':
-			return _Utils_Tuple2('chords', 'Accompaniment');
+			return _Utils_Tuple2('chords', 'Chords');
 		default:
-			return _Utils_Tuple2('melody', 'Lead');
+			return _Utils_Tuple2('melody', 'Melody');
 	}
 };
 var $author$project$View$buttonOpt = F2(
@@ -5240,11 +5239,166 @@ var $author$project$View$buttonOpt = F2(
 					$author$project$Data$roleLabel(role).a)
 				]));
 	});
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$figure = _VirtualDom_node('figure');
+var $elm$html$Html$p = _VirtualDom_node('p');
+var $elm$html$Html$Attributes$height = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'height',
+		$elm$core$String$fromInt(n));
+};
+var $elm$html$Html$img = _VirtualDom_node('img');
+var $elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
+var $elm$html$Html$Attributes$width = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'width',
+		$elm$core$String$fromInt(n));
+};
+var $author$project$View$roleIcon = function (role) {
+	return A2(
+		$elm$html$Html$img,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$width(50),
+				$elm$html$Html$Attributes$height(50),
+				$elm$html$Html$Attributes$src(
+				'/svg/' + ($author$project$Data$roleLabel(role).a + '.svg'))
+			]),
+		_List_Nil);
+};
+var $author$project$View$cardContent = F3(
+	function (role, title, content) {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('card-content')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('media')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('media-left')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$figure,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('image is-48x48')
+										]),
+									_List_fromArray(
+										[
+											$author$project$View$roleIcon(role)
+										]))
+								])),
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('media-content')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$p,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('title is-4')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(title)
+										])),
+									A2(
+									$elm$html$Html$p,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('subtitle is-6')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(title)
+										]))
+								]))
+						])),
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('content')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(content)
+						]))
+				]));
+	});
+var $author$project$View$cardTitle = function (title) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('is-size-3')
+			]),
+		_List_fromArray(
+			[
+				$elm$html$Html$text(title)
+			]));
+};
+var $author$project$View$card = F3(
+	function (role, label, title) {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('column card')
+				]),
+			_List_fromArray(
+				[
+					$author$project$View$cardTitle(label),
+					A3($author$project$View$cardContent, role, title, '')
+				]));
+	});
 var $elm$core$Tuple$second = function (_v0) {
 	var y = _v0.b;
 	return y;
 };
+var $author$project$View$roleCard = function (role) {
+	var text = $author$project$Data$roleLabel(role);
+	return A3($author$project$View$card, role, text.b, 'Role for ' + text.a);
+};
+var $author$project$Types$Chords = {$: 'Chords'};
+var $author$project$Types$Melody = {$: 'Melody'};
+var $author$project$Data$roles = _List_fromArray(
+	[$author$project$Types$Kick, $author$project$Types$Perc, $author$project$Types$Hat, $author$project$Types$Bass, $author$project$Types$Chords, $author$project$Types$Melody]);
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -5254,12 +5408,11 @@ var $author$project$Main$view = function (model) {
 				[
 					A2(
 					$elm$html$Html$div,
-					_List_Nil,
 					_List_fromArray(
 						[
-							$elm$html$Html$text(
-							$author$project$Data$roleLabel(model.role).b)
-						]))
+							$elm$html$Html$Attributes$class('columns')
+						]),
+					A2($elm$core$List$map, $author$project$View$roleCard, $author$project$Data$roles))
 				]),
 			A2(
 				$elm$core$List$map,
@@ -5273,7 +5426,7 @@ var $author$project$Main$view = function (model) {
 					[$author$project$Types$Kick, $author$project$Types$Perc, $author$project$Types$Hat]))));
 };
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
-	{init: $author$project$Main$init, update: $author$project$Main$update, view: $author$project$Main$view});
+	{init: $author$project$Data$p1, update: $author$project$Main$update, view: $author$project$Main$view});
 var $author$project$Data$main = $elm$html$Html$text('');
 var $author$project$Components$main = $elm$html$Html$text('');
 var $the_sett$elm_color$Color$rgb = F3(
@@ -5312,14 +5465,6 @@ var $elm$core$Basics$composeL = F3(
 			f(x));
 	});
 var $elm$html$Html$input = _VirtualDom_node('input');
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$string(string));
-	});
 var $elm$html$Html$Attributes$max = $elm$html$Html$Attributes$stringProperty('max');
 var $elm$html$Html$Attributes$min = $elm$html$Html$Attributes$stringProperty('min');
 var $elm$html$Html$Attributes$name = $elm$html$Html$Attributes$stringProperty('name');
@@ -5356,7 +5501,6 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			$elm$html$Html$Events$alwaysStop,
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
-var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$span = _VirtualDom_node('span');
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
