@@ -3,12 +3,14 @@ module Data exposing (..)
 import Types exposing (..)
 import Html
 
+
 -- child moodule of Types
 -- providing helpers for humanizing as data
 
 p1 : SynthPreset
 p1 =
-  { duty = Structure
+  { id = 0
+  , duty = Structure
   , role = Bass
   , title = "Big Bass"
   , voice = 1
@@ -18,7 +20,8 @@ p1 =
 
 p2 : SynthPreset
 p2 =
-  { duty = Structure
+  { id = 1
+  , duty = Structure
   , role = Kick
   , title = "Kick Drum"
   , voice = 0
@@ -28,7 +31,8 @@ p2 =
 
 p3 : SynthPreset
 p3 =
-  { duty = Expression
+  { id = 2
+  , duty = Expression
   , role = Melody
   , title = "Soaring Melody"
   , voice = 4
@@ -38,7 +42,8 @@ p3 =
 
 p4 : SynthPreset
 p4 =
-  { duty = Structure
+  { id = 3
+  , duty = Structure
   , role = Hat
   , title = "Hat Drum"
   , voice = 6

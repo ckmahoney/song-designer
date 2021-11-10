@@ -4,16 +4,23 @@ module Types exposing (..)
 import Html
 
 
+type alias UUID 
+  = Int
+
+
 type Msg
   = ButtonClick
+
 
 type Texture
   = Density
   | Complexity
 
+
 type SynthDuty
   = Structure
   | Expression
+
 
 type SynthRole
   = Kick
@@ -23,11 +30,13 @@ type SynthRole
   | Chords
   | Melody
 
+
 type alias SynthLabel
   = (SynthRole, String)
 
 type alias SynthPreset =
-  { duty : SynthDuty
+  { id : Int
+  , duty : SynthDuty
   , role : SynthRole
   , title : String
   , voice : Int

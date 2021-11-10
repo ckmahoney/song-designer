@@ -110,6 +110,10 @@ buttonOpt role msg =
   button [] [text (Tuple.first (D.roleLabel role))]
 
 
+savePresetButton : T.SynthPreset -> Html U.UpdateMsg
+savePresetButton synth =
+  button [onClick (U.SavePreset synth)] [text "Save this Preset"]
+
 synthCardContent : T.SynthPreset -> Html U.UpdateMsg
 synthCardContent synth = 
   div [class "card-content"]
@@ -123,7 +127,8 @@ synthCardContent synth =
 
       , div [class "content"] 
           [ text "Update your Synth"
-          , editTexture synth ] ]
+          , editTexture synth ] 
+      , savePresetButton synth ]
 
 
 synthCard : T.SynthPreset -> Html U.UpdateMsg
@@ -132,6 +137,25 @@ synthCard preset =
     [ cardTitle "Synth Design"
     , synthCardContent preset
     , rolePicker (U.UpdateSynthRole preset) ]
+
+
+presetIcon : T.SynthPreset -> Html U.UpdateMsg
+presetIcon preset = 
+  div [onClick (U.ChangeSelection preset)] 
+    [roleIcon preset.role]
+
+
+presetRow : List T.SynthPreset -> Html U.UpdateMsg
+presetRow presets =
+  div [class "level"] 
+    <| List.map presetIcon presets
+
+
+synthEditor : T.State T.SynthPreset -> Html U.UpdateMsg
+synthEditor model =
+  div []
+    [ synthCard model.current
+    , presetRow model.presets ]
 
 
 main  =
