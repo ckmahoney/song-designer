@@ -2,80 +2,128 @@
 ;; --------------------------------------------------------------------------
 ;; Desktop File for Emacs
 ;; --------------------------------------------------------------------------
-;; Created Tue Nov  9 17:39:55 2021
+;; Created Tue Nov  9 19:11:15 2021
 ;; Desktop file format version 208
 ;; Emacs version 27.1
 
 ;; Global section:
-(setq desktop-saved-frameset [frameset 1 (24970 63675 181535 149000) (desktop . "208") "naltroc@engraver" nil nil ((((minibuffer . t) (undecorated) (override-redirect) (font . "-DAMA-Ubuntu Mono-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1") (font-parameter) (border-width . 0) (internal-border-width . 0) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#eaeaea") (background-color . "#000000") (mouse-color . "black") (border-color . "#2a2a2a") (screen-gamma) (line-spacing) (left-fringe . 8) (right-fringe . 8) (no-special-glyphs) (scroll-bar-foreground) (scroll-bar-background) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 50) (tool-bar-lines . 1) (title) (wait-for-wm . t) (tool-bar-position . top) (inhibit-double-buffering) (icon-type . t) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 16) (scroll-bar-height . 16) (alpha) (no-focus-on-map) (no-accept-focus) (fullscreen . fullheight) (visibility . t) (skip-taskbar) (z-group) (display-type . color) (background-mode . dark) (cursor-color . "#d54e53") (sticky) (environment) (last-focus-update . t) (frameset--id . "B237-F5B4-6558-4BE7") (frameset--mini t . t) (modeline . t) (unsplittable) (icon-name) (display . ":0") (explicit-name) (user-size . t) (width . 101) (left . 874) (top + -8)) ((min-height . 8) (min-width . 10) (min-height-ignore . 4) (min-width-ignore . 7) (min-height-safe . 2) (min-width-safe . 2) (min-pixel-height . 160) (min-pixel-width . 100) (min-pixel-height-ignore . 80) (min-pixel-width-ignore . 70) (min-pixel-height-safe . 40) (min-pixel-width-safe . 20)) vc (pixel-width . 1026) (pixel-height . 982) (total-width . 102) (total-height . 49) (normal-height . 1.0) (normal-width . 1.0) (combination-limit) (leaf (pixel-width . 1026) (pixel-height . 482) (total-width . 102) (total-height . 24) (normal-height . 0.5) (normal-width . 1.0) (buffer "Update.elm" (selected) (hscroll . 0) (fringes 8 8 nil nil) (margins 2) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 82) (start . 1)) (prev-buffers ("Model.elm" 1 64) ("Main.elm" 639 1162) ("View.elm" 1 537) ("Update.elm" 1 316) ("Instrument.elm" 1 331) ("*scratch*" 1 146))) (leaf (last . t) (pixel-width . 1026) (pixel-height . 500) (total-width . 102) (total-height . 25) (normal-height . 0.5) (normal-width . 1.0) (buffer "ColorPicker.elm" (selected . t) (hscroll . 0) (fringes 8 8 nil nil) (margins 3) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 12) (start . 1)) (prev-buffers ("View.elm" 1 209) ("Model.elm" 1 113) ("Update.elm" 1 28) ("Main.elm" 1 1) ("Components.elm" 1 1) ("ColorPicker.elm" 2881 2881) ("elm-index.html" 126 591) ("Instrument.elm" 4253 4528)))))])
+(setq desktop-saved-frameset [frameset 1 (24971 3619 341035 980000) (desktop . "208") "naltroc@engraver" nil nil ((((minibuffer . t) (undecorated) (override-redirect) (font . "-DAMA-Ubuntu Mono-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1") (font-parameter) (border-width . 0) (internal-border-width . 0) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#eaeaea") (background-color . "#000000") (mouse-color . "black") (border-color . "#2a2a2a") (screen-gamma) (line-spacing) (left-fringe . 8) (right-fringe . 8) (no-special-glyphs) (scroll-bar-foreground) (scroll-bar-background) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 50) (tool-bar-lines . 1) (title) (wait-for-wm . t) (tool-bar-position . top) (inhibit-double-buffering) (icon-type . t) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 16) (scroll-bar-height . 16) (alpha) (no-focus-on-map) (no-accept-focus) (fullscreen . fullheight) (visibility . t) (skip-taskbar) (z-group) (display-type . color) (background-mode . dark) (cursor-color . "#d54e53") (sticky) (environment) (last-focus-update) (frameset--id . "B237-F5B4-6558-4BE7") (frameset--mini t . t) (modeline . t) (unsplittable) (icon-name) (display . ":0") (explicit-name) (user-size . t) (width . 101) (left . 874) (top + -8)) ((min-height . 4) (min-width . 20) (min-height-ignore . 2) (min-width-ignore . 13) (min-height-safe . 1) (min-width-safe . 4) (min-pixel-height . 80) (min-pixel-width . 200) (min-pixel-height-ignore . 40) (min-pixel-width-ignore . 130) (min-pixel-height-safe . 20) (min-pixel-width-safe . 40)) hc (pixel-width . 1026) (pixel-height . 982) (total-width . 103) (total-height . 49) (normal-height . 1.0) (normal-width . 1.0) (combination-limit) (leaf (pixel-width . 516) (pixel-height . 982) (total-width . 52) (total-height . 49) (normal-height . 1.0) (normal-width . 0.5) (buffer "Main.elm" (selected . t) (hscroll . 0) (fringes 8 8 nil nil) (margins 3) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 509) (start . 1)) (prev-buffers ("Types.elm" 130 459) ("Main.elm" 1 272) ("Data.elm" 693 1326) ("View.elm" 1 560) ("elm-index.html" 126 607) ("Model.elm" 1 82) ("*scratch*" 1 146))) (leaf (last . t) (pixel-width . 510) (pixel-height . 982) (total-width . 51) (total-height . 49) (normal-height . 1.0) (normal-width . 0.5) (buffer "Update.elm" (selected) (hscroll . 0) (fringes 8 8 nil nil) (margins 2) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 60) (start . 1)) (prev-buffers ("View.elm" 1 586) ("Types.elm" 115 115) ("Data.elm" 1 54) ("Main.elm" 1007 1333) ("Model.elm" 1 49)))))])
 (setq desktop-missing-file-warning nil)
 (setq tags-file-name nil)
 (setq tags-table-list nil)
 (setq search-ring nil)
-(setq regexp-search-ring '(#("update" 0 6 (isearch-case-fold-search t)) #("Msg" 0 3 (isearch-case-fold-search nil)) #("buttonClick" 0 11 (isearch-case-fold-search nil)) #("main" 0 4 (isearch-case-fold-search t)) #("view" 0 4 (isearch-case-fold-search t)) #("initialModel" 0 12 (isearch-case-fold-search nil)) #("hell" 0 4 (isearch-case-fold-search t)) #("init" 0 4 (isearch-case-fold-search t)) #("toSt" 0 4 (isearch-case-fold-search nil)) #("!" 0 1 (isearch-case-fold-search t)) #("getRole" 0 7 (isearch-case-fold-search nil)) #("n" 0 1 (isearch-case-fold-search t)) #("role" 0 4 (isearch-case-fold-search t)) #("Assi" 0 4 (isearch-case-fold-search nil)) #("Role" 0 4 (isearch-case-fold-search nil)) #("if " 0 3 (isearch-case-fold-search t))))
+(setq regexp-search-ring '(#("Model" 0 5 (isearch-case-fold-search nil)) #("Types" 0 5 (isearch-case-fold-search nil)) #("p4" 0 2 (isearch-case-fold-search t)) #("Msg" 0 3 (isearch-case-fold-search nil)) #("SynthPre" 0 8 (isearch-case-fold-search nil)) #("SynthPreset" 0 11 (isearch-case-fold-search nil)) #("State" 0 5 (isearch-case-fold-search nil)) #("Upadte" 0 6 (isearch-case-fold-search nil)) #("Label" 0 5 (isearch-case-fold-search nil)) #("record" 0 6 (isearch-case-fold-search t)) #("prestes" 0 7 (isearch-case-fold-search t)) #("Synth" 0 5 (isearch-case-fold-search nil)) #("Rr" 0 2 (isearch-case-fold-search nil)) #("ynt" 0 3 (isearch-case-fold-search t)) #("Duty" 0 4 (isearch-case-fold-search nil)) #("type " 0 5 (isearch-case-fold-search t))))
 (setq register-alist nil)
-(setq file-name-history '("/home/naltroc/song-designer/src/Update.elm" "/home/naltroc/song-designer/src/Model.elm" "/home/naltroc/song-designer/src/View.elm" "/home/naltroc/song-designer/src/Model.elm" "/home/naltroc/song-designer/src/Main.elm" "/home/naltroc/song-designer/src/Components.elm" "/home/naltroc/song-designer/elm-index.html" "/home/naltroc/song-designer/src/ColorPicker.elm" "/home/naltroc/song-designer/src/View.elm" "/home/naltroc/song-designer/src/Update.elm" "/home/naltroc/song-designer/src/Instrument.elm" "/home/naltroc/song-designer/src/Main.elm" "/home/naltroc/sandbox/elm-spa-example/src/Author.elm" "/home/naltroc/sandbox/elm-spa-example/src/Page/Article.elm" "~/.emacs.d/ido.last" "~/sandbox/elm-spa-example/src/Page/Article.elm" "~/sandbox/elm-spa-example/src/Page/Login.elm" "~/sandbox/elm-spa-example/src/Main.elm" "~/sandbox/elmwood/src/Main.elm" "~/develop/resources/public/index.html" "~/develop/resources/index.html" "~/develop/src/synthony/cljs/song_store/core.cljs" "~/develop/project.clj" "~/develop/deps.edn" "~/develop/src/synthony/cljs/song_store/account.cljs" "~/sandbox/ghost/content/themes/casper/default.hbs" "~/sandbox/ghost/config.development.json" "~/Documents/content/notes.md" "~/Documents/content/starting-from-nothing.md" "~/Documents/content/voices-and-roles.md" "~/Documents/content/creating-structure.md" "~/Documents/content/when-is-it-done.md" "~/Documents/content/picking-sound.md" "~/develop/scores/render"))
+(setq file-name-history '("/home/naltroc/song-designer/Instrument.elm" "/home/naltroc/song-designer/src/Instrument.elm" "/home/naltroc/song-designer/src/View.elm" "/home/naltroc/song-designer/src/Data.elm" "/home/naltroc/song-designer/src/Types.elm" "/home/naltroc/song-designer/src/Update.elm" "/home/naltroc/song-designer/src/Model.elm" "/home/naltroc/song-designer/src/View.elm" "/home/naltroc/song-designer/src/Model.elm" "/home/naltroc/song-designer/src/Main.elm" "/home/naltroc/song-designer/src/Components.elm" "/home/naltroc/song-designer/elm-index.html" "/home/naltroc/song-designer/src/ColorPicker.elm" "/home/naltroc/song-designer/src/View.elm" "/home/naltroc/song-designer/src/Update.elm" "/home/naltroc/song-designer/src/Instrument.elm" "/home/naltroc/song-designer/src/Main.elm" "/home/naltroc/sandbox/elm-spa-example/src/Author.elm" "/home/naltroc/sandbox/elm-spa-example/src/Page/Article.elm" "~/.emacs.d/ido.last" "~/sandbox/elm-spa-example/src/Page/Article.elm" "~/sandbox/elm-spa-example/src/Page/Login.elm" "~/sandbox/elm-spa-example/src/Main.elm" "~/sandbox/elmwood/src/Main.elm" "~/develop/resources/public/index.html" "~/develop/resources/index.html" "~/develop/src/synthony/cljs/song_store/core.cljs" "~/develop/project.clj" "~/develop/deps.edn" "~/develop/src/synthony/cljs/song_store/account.cljs" "~/sandbox/ghost/content/themes/casper/default.hbs" "~/sandbox/ghost/config.development.json" "~/Documents/content/notes.md" "~/Documents/content/starting-from-nothing.md" "~/Documents/content/voices-and-roles.md" "~/Documents/content/creating-structure.md" "~/Documents/content/when-is-it-done.md" "~/Documents/content/picking-sound.md" "~/develop/scores/render"))
 
 ;; Buffer section -- buffers listed in same order as in buffer list:
 (desktop-create-buffer 208
-  "/home/naltroc/song-designer/src/ColorPicker.elm"
-  "ColorPicker.elm"
+  "/home/naltroc/song-designer/src/Main.elm"
+  "Main.elm"
   'elm-mode
-  '(eldoc-mode elm-indent-mode projectile-mode linum-mode)
-  12
-  '(2881 nil)
+  '(eldoc-mode elm-indent-mode projectile-mode linum-mode text-scale-mode)
+  509
+  '(454 nil)
   nil
   nil
-  '((indent-tabs-mode) (buffer-display-time 24970 63541 663618 124000) (buffer-file-coding-system . undecided-unix))
-  '((mark-ring (2881 1 2881 2881 2881 2881 2881 2881 2881 2881 2881 2881 2881 1 2881 12))))
-
-(desktop-create-buffer 208
-  "/home/naltroc/song-designer/src/View.elm"
-  "View.elm"
-  'elm-mode
-  '(eldoc-mode elm-indent-mode projectile-mode linum-mode)
-  209
-  '(462 nil)
-  nil
-  nil
-  '((indent-tabs-mode) (buffer-display-time 24970 63540 402949 73000) (buffer-file-coding-system . undecided-unix))
-  '((mark-ring (175 537 515 1 378 406 361 514 537))))
+  '((indent-tabs-mode) (buffer-display-time 24971 3530 990328 754000) (buffer-file-coding-system . utf-8-unix))
+  '((mark-ring (510 510 510 510 326 326 617 309 307 272 645 1 965 1460 1386 1625))))
 
 (desktop-create-buffer 208
   "/home/naltroc/song-designer/src/Update.elm"
   "Update.elm"
   'elm-mode
+  '(eldoc-mode elm-indent-mode projectile-mode linum-mode text-scale-mode)
+  60
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-display-time 24971 3531 717989 426000) (buffer-file-coding-system . undecided-unix))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/home/naltroc/song-designer/src/View.elm"
+  "View.elm"
+  'elm-mode
+  '(eldoc-mode elm-indent-mode projectile-mode linum-mode text-scale-mode)
+  586
+  '(560 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-display-time 24971 3530 990331 687000) (buffer-file-coding-system . undecided-unix))
+  '((mark-ring (548 524 109 76 39 612 189 612 417 180 612 590 1 362 376 586))))
+
+(desktop-create-buffer 208
+  "/home/naltroc/song-designer/src/Types.elm"
+  "Types.elm"
+  'elm-mode
   '(eldoc-mode elm-indent-mode projectile-mode linum-mode)
-  82
-  '(316 nil)
+  459
+  '(381 nil)
   nil
   nil
-  '((indent-tabs-mode) (buffer-display-time 24970 63540 402946 629000) (buffer-file-coding-system . undecided-unix))
-  '((mark-ring (316 71 334 312 1))))
+  '((indent-tabs-mode) (buffer-display-time 24971 3225 467993 771000) (buffer-file-coding-system . utf-8-unix))
+  '((mark-ring (556 354 175 44 1 138 461 461 461 461 461 188 1 235 235 534))))
+
+(desktop-create-buffer 208
+  "/home/naltroc/song-designer/src/Data.elm"
+  "Data.elm"
+  'elm-mode
+  '(eldoc-mode elm-indent-mode projectile-mode linum-mode text-scale-mode)
+  1326
+  '(1214 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-display-time 24971 2808 614427 0) (buffer-file-coding-system . utf-8-unix))
+  '((mark-ring (1181 1109 1098 1033 693 693 693 693 693 93 693 35 1 693 693 1326))))
+
+(desktop-create-buffer 208
+  "/home/naltroc/song-designer/Instrument.elm"
+  "Instrument.elm"
+  'elm-mode
+  '(eldoc-mode elm-indent-mode projectile-mode linum-mode text-scale-mode)
+  1977
+  '(1977 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-display-time 24971 2127 437886 948000) (buffer-file-coding-system . undecided-unix))
+  '((mark-ring (1989 2101 2140 2140 2072 1989))))
+
+(desktop-create-buffer 208
+  "/home/naltroc/song-designer/elm-index.html"
+  "elm-index.html"
+  'js-mode
+  '(projectile-mode linum-mode subword-mode text-scale-mode)
+  607
+  '(607 t)
+  nil
+  nil
+  '((buffer-display-time 24971 1586 87746 603000) (buffer-file-coding-system . utf-8-unix))
+  '((mark-ring (526 447 281 248 1 604 607))))
 
 (desktop-create-buffer 208
   "/home/naltroc/song-designer/src/Model.elm"
   "Model.elm"
   'elm-mode
   '(eldoc-mode elm-indent-mode projectile-mode linum-mode)
-  64
-  '(113 nil)
+  49
+  '(131 nil)
   nil
   nil
-  '((indent-tabs-mode) (buffer-display-time 24970 63483 560119 58000) (buffer-file-coding-system . undecided-unix))
-  '((mark-ring (32 113 113))))
+  '((indent-tabs-mode) (buffer-display-time 24970 65093 402968 171000) (buffer-file-coding-system . undecided-unix))
+  '((mark-ring (50 131 131))))
 
 (desktop-create-buffer 208
-  "/home/naltroc/song-designer/src/Main.elm"
-  "Main.elm"
+  "/home/naltroc/song-designer/src/ColorPicker.elm"
+  "ColorPicker.elm"
   'elm-mode
-  '(eldoc-mode elm-indent-mode projectile-mode linum-mode)
-  1162
-  '(1445 nil)
+  '(eldoc-mode elm-indent-mode projectile-mode linum-mode text-scale-mode)
+  2871
+  '(179 nil)
   nil
   nil
-  '((indent-tabs-mode) (buffer-display-time 24970 63474 545059 314000) (buffer-file-coding-system . utf-8-unix))
-  '((mark-ring (1371 163 163 1162 734 310 12 1166 154 1369 1369 1 1 1369 1369 1))))
+  '((indent-tabs-mode) (buffer-display-time 24970 64149 180492 986000) (buffer-file-coding-system . undecided-unix))
+  '((mark-ring (2881 2881 1 2881 2881 2881 2881 2881 2881 2881 2881 2881 2881 2881 1 2881))))
 
 (desktop-create-buffer 208
   "/home/naltroc/song-designer/src/Components.elm"
@@ -88,28 +136,4 @@
   nil
   '((indent-tabs-mode) (buffer-display-time 24970 63381 179934 354000) (buffer-file-coding-system . undecided-unix))
   '((mark-ring (1))))
-
-(desktop-create-buffer 208
-  "/home/naltroc/song-designer/elm-index.html"
-  "elm-index.html"
-  'js-mode
-  '(projectile-mode linum-mode subword-mode)
-  591
-  '(523 nil)
-  nil
-  nil
-  '((buffer-display-time 24970 63352 61989 201000) (buffer-file-coding-system . utf-8-unix))
-  '((mark-ring (447 281 248 1))))
-
-(desktop-create-buffer 208
-  "/home/naltroc/song-designer/src/Instrument.elm"
-  "Instrument.elm"
-  'elm-mode
-  '(eldoc-mode elm-indent-mode projectile-mode linum-mode)
-  4528
-  '(3693 nil)
-  nil
-  nil
-  '((indent-tabs-mode) (buffer-display-time 24970 63288 66316 60000) (buffer-file-coding-system . utf-8-unix))
-  '((mark-ring (331 2692 1155 1580 767 679 1 1564 2659 2658 2756 2358 2431 2431 429 4528))))
 

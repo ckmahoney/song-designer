@@ -1,4 +1,4 @@
-module Instrument exposing (SynthPreset, Duty, Msg(..), viewOut, p1, p2, p3, p4)
+module Instrument exposing (main)
 
 import Components 
 import Browser
@@ -17,21 +17,6 @@ main =
 
 -- MODEL
 
-type Duty
-  = Structure
-  | Expression
-
-
-type Role
-  = Kick
-  | Perc
-  | Hat
-  | Bass
-  | Chords
-  | Melody
-
-type alias RRole
-  = (Role, String)
 
 roles : List RRole
 roles = 
@@ -42,65 +27,6 @@ roles =
   , (Chords, "Chords")
   , (Melody, "Melody")
   ]
-
-type alias Instrument =
-  { voice : Int
-  , role : (Role, String)
-  , density : Int
-  , complexity : Int
-  , title : String
-  }
-
-type alias SynthPreset =
-  { duty : Duty
-  , role : (Role, String)
-  , title : String
-  , voice : Int
-  , density : Int
-  , complexity : Int
-  }
-
-p1 : SynthPreset
-p1 =
-  { duty = Structure
-  , role = (Bass, "bass")
-  , title = "Big Bass"
-  , voice = 1
-  , density = 1
-  , complexity = 1
-  }
-
-p2 : SynthPreset
-p2 =
-  { duty = Structure
-  , role = (Kick, "kick")
-  , title = "Kick Drum"
-  , voice = 0
-  , density = 0
-  , complexity = 0
-  }
-
-p3 : SynthPreset
-p3 =
-  { duty = Expression
-  , role = (Melody, "lead")
-  , title = "Soaring Melody"
-  , voice = 4
-  , density = 1
-  , complexity = 2
-  }
-
-p4 : SynthPreset
-p4 =
-  { duty = Structure
-  , role = (Hat, "hat")
-  , title = "Hat Drum"
-  , voice = 6
-  , density = 1
-  , complexity = 2
-  }
-
-type alias Model = SynthPreset
 
 
 dutyString : Duty -> String

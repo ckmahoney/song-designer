@@ -1,24 +1,34 @@
-module View exposing (main, view)
+module View exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Model exposing (Model)
-import Update
+import Types as T
+import Data as D
+import Update as U
 
 
-view : Model -> Html Update.Msg
+
+
+view : T.State T.SynthPreset -> Html U.UpdateMsg
 view model =
     div []
         [ h1 [] [ text "SPA in Elm" ]
         , div []
             [ text "Button pushed in this screen: "
-            , text <| String.fromInt  model.counter
+
             ]
         , div []
-            [ button [ onClick Update.ButtonClick ] [ text "++" ]
+            [ button [  ] [ text "++" ]
             ]
         ]
+
+
+buttonOpt : T.SynthRole -> msg -> Html msg
+buttonOpt role msg =
+  button [onClick msg] [text (Tuple.first (D.roleLabel role))]
+
+
 
 main =
   Html.text ""

@@ -1,7 +1,10 @@
 module Main exposing (main)
 
+import View
 import Browser
 import Dict
+import Types as T
+import Data exposing (p1)
 import Html exposing (Html, button, div, text, label, p)
 import Html.Events exposing (onClick)
 
@@ -12,22 +15,33 @@ import Html.Events exposing (onClick)
 -- MODEL
 
 
-type alias Model = Dict.Dict String Int
+type alias Model = 
+  T.SynthPreset
 
 
-type alias ScoreMeta =
-  { cps : Float
-  , root : Float
-  , nCycles : Int
-  }
+
+
+type Msg
+  = Done
+  | UpdateSynth T.SynthRole
 
 
 init : Model
 init =
-  Dict.fromList
-    [ ("density", 0)
-    , ("complexity", 0)
-    ]
+   p1
+
+
+-- UPDATE
+
+
+
+update : Msg -> Model -> Model 
+update msg model =
+  case msg of
+    Done ->
+      model
+    UpdateSynth r ->
+      {model | role = r}
 
 
 toInt : Maybe Int ->  Int
@@ -42,44 +56,20 @@ toInt x =
 -- UPDATE
 
 
-type Msg
-  = InsertInt String Int
-  | ChangeNum String (Maybe Int)
-
-
-update : Msg -> Model -> Model
-update msg model =
-  case msg of
-    ChangeNum field x ->
-      case x of 
-        Nothing ->
-          model
-        Just n ->
-          update (InsertInt field n) model
-
-    InsertInt field n ->
-      Dict.insert field n model
-
-
 -- VIEW
 
-
-intField : String -> String -> Int -> Html Msg
-intField name field val = 
-  div []
-    [ label [] [ text name ]
-    , p [] [text (String.fromInt val)]
-    , button [ onClick (InsertInt field (val + 1)) ] [ "Less " ++ name |> text ]
-    , button [ onClick (InsertInt field (val - 1)) ] [ "More " ++ name |> text ]
-    ]
 
 
 view : Model -> Html Msg
 view model =
-  div []
-    [ intField "Density" "density" (toInt (Dict.get "density" model))
-    , intField "Complexity" "complexity" (toInt (Dict.get "complexity" model))
-    ]
+  div [] 
+    ([div [] [text (Tuple.second <| Data.roleLabel model.role)]] 
+     ++ (List.map (\r -> View.buttonOpt r (UpdateSynth r)) [T.Kick, T.Perc, T.Hat]))
+
+    -- [ intField "Density" "density" (toInt (Dict.get "density" model))
+    -- , intField "Complexity" "complexity" (toInt (Dict.get "complexity" model))
+    -- , 
+    -- ] 
 
 
 main =

@@ -4849,136 +4849,12 @@ var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$View$main = $elm$html$Html$text('');
 var $author$project$Update$main = $elm$html$Html$text('');
+var $author$project$Types$main = $elm$html$Html$text('');
 var $author$project$Model$main = $elm$html$Html$text('');
-var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
-var $elm$core$Dict$Black = {$: 'Black'};
-var $elm$core$Dict$RBNode_elm_builtin = F5(
-	function (a, b, c, d, e) {
-		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
-	});
-var $elm$core$Dict$Red = {$: 'Red'};
-var $elm$core$Dict$balance = F5(
-	function (color, key, value, left, right) {
-		if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Red')) {
-			var _v1 = right.a;
-			var rK = right.b;
-			var rV = right.c;
-			var rLeft = right.d;
-			var rRight = right.e;
-			if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
-				var _v3 = left.a;
-				var lK = left.b;
-				var lV = left.c;
-				var lLeft = left.d;
-				var lRight = left.e;
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Red,
-					key,
-					value,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, lK, lV, lLeft, lRight),
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, rK, rV, rLeft, rRight));
-			} else {
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					color,
-					rK,
-					rV,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, left, rLeft),
-					rRight);
-			}
-		} else {
-			if ((((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) && (left.d.$ === 'RBNode_elm_builtin')) && (left.d.a.$ === 'Red')) {
-				var _v5 = left.a;
-				var lK = left.b;
-				var lV = left.c;
-				var _v6 = left.d;
-				var _v7 = _v6.a;
-				var llK = _v6.b;
-				var llV = _v6.c;
-				var llLeft = _v6.d;
-				var llRight = _v6.e;
-				var lRight = left.e;
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Red,
-					lK,
-					lV,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, llK, llV, llLeft, llRight),
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, lRight, right));
-			} else {
-				return A5($elm$core$Dict$RBNode_elm_builtin, color, key, value, left, right);
-			}
-		}
-	});
-var $elm$core$Basics$compare = _Utils_compare;
-var $elm$core$Dict$insertHelp = F3(
-	function (key, value, dict) {
-		if (dict.$ === 'RBEmpty_elm_builtin') {
-			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
-		} else {
-			var nColor = dict.a;
-			var nKey = dict.b;
-			var nValue = dict.c;
-			var nLeft = dict.d;
-			var nRight = dict.e;
-			var _v1 = A2($elm$core$Basics$compare, key, nKey);
-			switch (_v1.$) {
-				case 'LT':
-					return A5(
-						$elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						A3($elm$core$Dict$insertHelp, key, value, nLeft),
-						nRight);
-				case 'EQ':
-					return A5($elm$core$Dict$RBNode_elm_builtin, nColor, nKey, value, nLeft, nRight);
-				default:
-					return A5(
-						$elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						nLeft,
-						A3($elm$core$Dict$insertHelp, key, value, nRight));
-			}
-		}
-	});
-var $elm$core$Dict$insert = F3(
-	function (key, value, dict) {
-		var _v0 = A3($elm$core$Dict$insertHelp, key, value, dict);
-		if ((_v0.$ === 'RBNode_elm_builtin') && (_v0.a.$ === 'Red')) {
-			var _v1 = _v0.a;
-			var k = _v0.b;
-			var v = _v0.c;
-			var l = _v0.d;
-			var r = _v0.e;
-			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, k, v, l, r);
-		} else {
-			var x = _v0;
-			return x;
-		}
-	});
-var $elm$core$Dict$fromList = function (assocs) {
-	return A3(
-		$elm$core$List$foldl,
-		F2(
-			function (_v0, dict) {
-				var key = _v0.a;
-				var value = _v0.b;
-				return A3($elm$core$Dict$insert, key, value, dict);
-			}),
-		$elm$core$Dict$empty,
-		assocs);
-};
-var $author$project$Main$init = $elm$core$Dict$fromList(
-	_List_fromArray(
-		[
-			_Utils_Tuple2('density', 0),
-			_Utils_Tuple2('complexity', 0)
-		]));
+var $author$project$Types$Bass = {$: 'Bass'};
+var $author$project$Types$Structure = {$: 'Structure'};
+var $author$project$Data$p1 = {complexity: 1, density: 1, duty: $author$project$Types$Structure, role: $author$project$Types$Bass, title: 'Big Bass', voice: 1};
+var $author$project$Main$init = $author$project$Data$p1;
 var $elm$browser$Browser$External = function (a) {
 	return {$: 'External', a: a};
 };
@@ -5299,68 +5175,24 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
-var $author$project$Main$InsertInt = F2(
-	function (a, b) {
-		return {$: 'InsertInt', a: a, b: b};
-	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		update:
-		while (true) {
-			if (msg.$ === 'ChangeNum') {
-				var field = msg.a;
-				var x = msg.b;
-				if (x.$ === 'Nothing') {
-					return model;
-				} else {
-					var n = x.a;
-					var $temp$msg = A2($author$project$Main$InsertInt, field, n),
-						$temp$model = model;
-					msg = $temp$msg;
-					model = $temp$model;
-					continue update;
-				}
-			} else {
-				var field = msg.a;
-				var n = msg.b;
-				return A3($elm$core$Dict$insert, field, n, model);
-			}
+		if (msg.$ === 'Done') {
+			return model;
+		} else {
+			var r = msg.a;
+			return _Utils_update(
+				model,
+				{role: r});
 		}
 	});
-var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return $elm$core$Maybe$Nothing;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
-				switch (_v1.$) {
-					case 'LT':
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 'EQ':
-						return $elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-				}
-			}
-		}
-	});
+var $author$project$Types$Hat = {$: 'Hat'};
+var $author$project$Types$Kick = {$: 'Kick'};
+var $author$project$Types$Perc = {$: 'Perc'};
+var $author$project$Main$UpdateSynth = function (a) {
+	return {$: 'UpdateSynth', a: a};
+};
 var $elm$html$Html$button = _VirtualDom_node('button');
-var $elm$html$Html$label = _VirtualDom_node('label');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -5378,146 +5210,71 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		$elm$json$Json$Decode$succeed(msg));
 };
-var $elm$html$Html$p = _VirtualDom_node('p');
-var $author$project$Main$intField = F3(
-	function (name, field, val) {
+var $author$project$Data$roleLabel = function (role) {
+	switch (role.$) {
+		case 'Kick':
+			return _Utils_Tuple2('kick', 'Kick Drum');
+		case 'Perc':
+			return _Utils_Tuple2('perc', 'Percussion');
+		case 'Hat':
+			return _Utils_Tuple2('hats', 'Hat set');
+		case 'Bass':
+			return _Utils_Tuple2('bass', 'Bass');
+		case 'Chords':
+			return _Utils_Tuple2('chords', 'Accompaniment');
+		default:
+			return _Utils_Tuple2('melody', 'Lead');
+	}
+};
+var $author$project$View$buttonOpt = F2(
+	function (role, msg) {
 		return A2(
-			$elm$html$Html$div,
-			_List_Nil,
+			$elm$html$Html$button,
 			_List_fromArray(
 				[
-					A2(
-					$elm$html$Html$label,
-					_List_Nil,
-					_List_fromArray(
-						[
-							$elm$html$Html$text(name)
-						])),
-					A2(
-					$elm$html$Html$p,
-					_List_Nil,
-					_List_fromArray(
-						[
-							$elm$html$Html$text(
-							$elm$core$String$fromInt(val))
-						])),
-					A2(
-					$elm$html$Html$button,
-					_List_fromArray(
-						[
-							$elm$html$Html$Events$onClick(
-							A2($author$project$Main$InsertInt, field, val + 1))
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text('Less ' + name)
-						])),
-					A2(
-					$elm$html$Html$button,
-					_List_fromArray(
-						[
-							$elm$html$Html$Events$onClick(
-							A2($author$project$Main$InsertInt, field, val - 1))
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text('More ' + name)
-						]))
+					$elm$html$Html$Events$onClick(msg)
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text(
+					$author$project$Data$roleLabel(role).a)
 				]));
 	});
-var $author$project$Main$toInt = function (x) {
-	if (x.$ === 'Nothing') {
-		return 0;
-	} else {
-		var i = x.a;
-		return i;
-	}
+var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
 };
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
 		_List_Nil,
-		_List_fromArray(
-			[
-				A3(
-				$author$project$Main$intField,
-				'Density',
-				'density',
-				$author$project$Main$toInt(
-					A2($elm$core$Dict$get, 'density', model))),
-				A3(
-				$author$project$Main$intField,
-				'Complexity',
-				'complexity',
-				$author$project$Main$toInt(
-					A2($elm$core$Dict$get, 'complexity', model)))
-			]));
+		_Utils_ap(
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text(
+							$author$project$Data$roleLabel(model.role).b)
+						]))
+				]),
+			A2(
+				$elm$core$List$map,
+				function (r) {
+					return A2(
+						$author$project$View$buttonOpt,
+						r,
+						$author$project$Main$UpdateSynth(r));
+				},
+				_List_fromArray(
+					[$author$project$Types$Kick, $author$project$Types$Perc, $author$project$Types$Hat]))));
 };
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$Main$init, update: $author$project$Main$update, view: $author$project$Main$view});
-var $author$project$Instrument$Melody = {$: 'Melody'};
-var $author$project$Instrument$Structure = {$: 'Structure'};
-var $author$project$Instrument$init = {
-	complexity: 0,
-	density: 0,
-	duty: $author$project$Instrument$Structure,
-	role: _Utils_Tuple2($author$project$Instrument$Melody, 'Melody'),
-	title: 'Synthy',
-	voice: 1
-};
-var $author$project$Instrument$recChange = F2(
-	function (sig, model) {
-		switch (sig.$) {
-			case 'Numeric':
-				var field = sig.a;
-				var val = sig.b;
-				switch (field.$) {
-					case 'Voice':
-						return _Utils_update(
-							model,
-							{voice: val});
-					case 'Density':
-						return _Utils_update(
-							model,
-							{density: val});
-					default:
-						return _Utils_update(
-							model,
-							{complexity: val});
-				}
-			case 'Title':
-				var val = sig.a;
-				return _Utils_update(
-					model,
-					{title: val});
-			default:
-				var _v2 = sig.a;
-				var r = _v2.a;
-				var n = _v2.b;
-				return _Utils_update(
-					model,
-					{
-						role: _Utils_Tuple2(r, n)
-					});
-		}
-	});
-var $author$project$Instrument$update = F2(
-	function (msg, model) {
-		if (msg.$ === 'Update') {
-			var param = msg.a;
-			return A2($author$project$Instrument$recChange, param, model);
-		} else {
-			var d = msg.a;
-			return _Utils_update(
-				model,
-				{duty: d});
-		}
-	});
-var $author$project$Instrument$view = function (model) {
-	return A2($elm$html$Html$div, _List_Nil, _List_Nil);
-};
-var $author$project$Instrument$main = $elm$browser$Browser$sandbox(
-	{init: $author$project$Instrument$init, update: $author$project$Instrument$update, view: $author$project$Instrument$view});
+var $author$project$Data$main = $elm$html$Html$text('');
 var $author$project$Components$main = $elm$html$Html$text('');
 var $the_sett$elm_color$Color$rgb = F3(
 	function (r, g, b) {
@@ -5599,6 +5356,7 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			$elm$html$Html$Events$alwaysStop,
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
+var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$span = _VirtualDom_node('span');
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
@@ -5745,6 +5503,5 @@ var $author$project$ColorPicker$view = function (model) {
 var $author$project$ColorPicker$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$ColorPicker$initialModel, update: $author$project$ColorPicker$update, view: $author$project$ColorPicker$view});
 _Platform_export({'ColorPicker':{'init':$author$project$ColorPicker$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)},'View':{'init':_VirtualDom_init($author$project$View$main)(0)(0)},'Update':{'init':_VirtualDom_init($author$project$Update$main)(0)(0)},'Model':{'init':_VirtualDom_init($author$project$Model$main)(0)(0)},'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)},'Instrument':{'init':$author$project$Instrument$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)},'Components':{'init':_VirtualDom_init($author$project$Components$main)(0)(0)}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)},'View':{'init':_VirtualDom_init($author$project$View$main)(0)(0)},'Update':{'init':_VirtualDom_init($author$project$Update$main)(0)(0)},'Types':{'init':_VirtualDom_init($author$project$Types$main)(0)(0)},'Model':{'init':_VirtualDom_init($author$project$Model$main)(0)(0)},'Main':{'init':$author$project$Main$main(
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)},'Data':{'init':_VirtualDom_init($author$project$Data$main)(0)(0)},'Components':{'init':_VirtualDom_init($author$project$Components$main)(0)(0)}});}(this));
