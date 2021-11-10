@@ -37,7 +37,7 @@ cardContent role title content =
   div [class "card-content"]
     [ div [class "media"]
       [ div [class "media-left"]
-         [ figure [class "image is-48x48"] [roleIcon role]]
+         [ figure [class "image is-96x96"] [roleIcon role]]
 
          , div [class "media-content"]
              [ p [class "title is-4"] [text title]
@@ -52,18 +52,45 @@ card role label title  =
     , cardContent role title ""]
 
 
+backgroundInvert : String -> Html msg -> Html msg
+backgroundInvert color el =
+  div [style "background" color]
+    [ div [style "filter" "invert(1)"] 
+      [ el ] ]
+
+
 roleIcon : T.SynthRole -> Html msg
 roleIcon role =
-  img [width 50, height 50, src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] []
+  img [ width 50
+      , height 50
+      , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] []
+
+presetIcon : T.SynthRole -> Html msg
+presetIcon role =
+  div [class "box m-5", style "background" (D.roleColor role)]
+  [ div [class "p-6"] [
+      img [ width 50
+          , height 50
+          , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ] ]
+
+roleThumb : T.SynthRole -> Html msg
+roleThumb role =
+  div [class "p-3 box", style "background" <| D.roleColor role]
+    [ img [ style "filter" "invert(1)"
+           , width 250
+           , height 250
+           , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ]
 
 
 roleIconButton : (T.SynthRole -> U.UpdateMsg) -> T.SynthRole -> Html U.UpdateMsg
 roleIconButton update role =
-  img [ width 50
-      , height 50
-      , onClick (update role)
-      , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] []
-
+  div [class "column columns is-centered is-one-third "]
+   [ div [class "box"]
+     [ div [class "image is-48x48"]
+       [ img  [ width 50
+               , height 50
+               , onClick (update role)
+               , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ] ] ]
 
 roleRow : Html msg
 roleRow = 
@@ -72,8 +99,7 @@ roleRow =
 
 rolePicker : (T.SynthRole -> U.UpdateMsg) -> Html U.UpdateMsg
 rolePicker update =
-  div [] 
-    <| List.map (roleIconButton update) D.roles
+  div [class "mt-3 columns is-multiline is-centered margin-auto"] <| List.map (roleIconButton update) D.roles
 
 
 roleCard : T.SynthRole -> Html msg
@@ -86,11 +112,10 @@ roleCard role =
 
 editInt : String -> String -> Int -> (Int -> msg) -> Html msg
 editInt title name val toMsg =
-  div []
-    [ label [] [text name]
-    , b [] [text <| String.fromInt val]
-    , button [onClick (toMsg <| val - 1)] [text <| "Less " ++ name]
-    , button [onClick (toMsg <| val + 1)] [text <| "More " ++ name]]
+  div [class "level"]
+    [ button [class "button", onClick (toMsg <| val - 1)] [text  "-" ]
+    , label [] [text name, b [] [" " ++ String.fromInt val |> text]]
+    , button [class "button", onClick (toMsg <| val + 1)] [text  "+ "]]
 
 
 editTexture : T.SynthPreset -> Html U.UpdateMsg
@@ -99,7 +124,7 @@ editTexture preset =
     textD = D.textureLabel T.Density
     textC = D.textureLabel T.Complexity
   in 
-  div []
+  div [class "is-two-thirds"]
     [ editInt (Tuple.second textD) (Tuple.first textD) preset.density U.UpdateDensity 
     , editInt (Tuple.second textC) (Tuple.first textC) preset.complexity U.UpdateComplexity
     ]
@@ -112,53 +137,63 @@ buttonOpt role msg =
 
 saveButton : T.SynthPreset -> Html U.UpdateMsg
 saveButton synth =
-  button [onClick (U.SavePreset synth)] [text "Save"]
+  button [class "button", onClick (U.SavePreset synth)] [text "Save"]
 
 killButton : T.SynthPreset -> Html U.UpdateMsg
 killButton synth =
-  button [onClick (U.KillPreset synth)] [text "Delete"]
+  button [class "button", onClick (U.KillPreset synth)] [text "Delete"]
+
+
+crudButtons preset =
+  div [class "column is-flex is-justify-content-space-between" ]
+    [ killButton preset
+    , saveButton preset ]
+
+
+synthDescription preset =
+  div [class "column media-left"]
+    [ div [class "media-content"]
+    [ p [class "title is-4"] [text preset.title]
+    , p [class "content is-6"] [text <| D.roleDescription preset.role] ] ]
+
+
+texEdit preset =
+  div [class "texture-editor column is-two-thirds mx-auto is-centered"] 
+    [ editTexture preset ] 
+
 
 synthCardContent : T.SynthPreset -> Html U.UpdateMsg
-synthCardContent synth = 
-  div [class "card-content"]
-    [ div [class "media"]
-      [ div [class "media-left"]
-         [ figure [class "image is-48x48"] [roleIcon synth.role]]
-
-         , div [class "media-content"]
-             [ p [class "title is-4"] [text synth.title]
-             , p [class "subtitle is-6"] [text synth.title] ] ]
-
-      , div [class "content"] 
-          [ text "Update your Synth"
-          , editTexture synth ] 
-      , saveButton synth 
-      , killButton synth ]
+synthCardContent preset = 
+  div [class "column card-content has-background-white "]
+    [ div [class "column media is-centered p-3"]
+      [ figure [class "image mx-auto is-96x96"] [roleThumb preset.role]]
+      , synthDescription preset 
+      , rolePicker (U.UpdateSynthRole preset) 
+      , texEdit preset
+      , crudButtons preset ]
 
 
 synthCard : T.SynthPreset -> Html U.UpdateMsg
 synthCard preset =
-  div [class "column card"]
-    [ cardTitle "Synth Design"
-    , synthCardContent preset
-    , rolePicker (U.UpdateSynthRole preset) ]
+  div [class "column card is-one-third px-6 py-4" ,style  "background" (D.roleColor preset.role)]
+    [ synthCardContent preset]
 
 
-presetIcon : T.SynthPreset -> Html U.UpdateMsg
-presetIcon preset = 
-  div [onClick (U.ChangeSelection preset)] 
-    [roleIcon preset.role]
+presetButton : T.SynthPreset -> Html U.UpdateMsg
+presetButton preset = 
+  div [ onClick (U.ChangeSelection preset) ] 
+    [ presetIcon preset.role ]
 
 
 presetRow : List T.SynthPreset -> Html U.UpdateMsg
 presetRow presets =
   div [class "level"] 
-    <| List.map presetIcon presets
+    <| List.map presetButton presets
 
 
 synthEditor : T.State T.SynthPreset -> Html U.UpdateMsg
 synthEditor model =
-  div []
+  div [class "columns"]
     [ synthCard model.current
     , presetRow model.presets ]
 

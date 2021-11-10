@@ -31,6 +31,9 @@ type SynthRole
   | Melody
 
 
+type alias Palette = List String
+
+
 type alias SynthLabel
   = (SynthRole, String)
 

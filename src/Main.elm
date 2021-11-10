@@ -8,7 +8,7 @@ import Dict
 import Debug
 
 import Types as T
-import Data exposing (p1)
+import Data exposing (p1, p2, p3, p4)
 import Update as U
 import View
 
@@ -20,7 +20,7 @@ type alias Model =
 init : T.State T.SynthPreset
 init =
    { current = p1
-   , presets = []
+   , presets = [p1, p2, p3, p4]
    }
 
 
