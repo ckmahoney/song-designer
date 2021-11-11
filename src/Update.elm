@@ -25,7 +25,7 @@ type UpdateMsg
   | ChangeSelection (Maybe T.SynthPreset)
   | UpdateDensity Int
   | UpdateComplexity Int
-
+  | ChangePreset T.PresetKit
 
 
 ptoInt : Time.Posix -> Int
@@ -194,6 +194,9 @@ update msg model =
              next = { prev | complexity = val }
            in
            noCmd { model | current = Just next }
+
+      ChangePreset kit ->
+       noCmd { model | presets = kit }
 
 main =
   Html.text ""

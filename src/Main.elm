@@ -21,8 +21,8 @@ type alias Model =
 init : T.State T.SynthPreset
 init =
    { time = 0
-   , current = Nothing
-   , presets = []
+   , current = Just p1
+   , presets = Data.kitAll
    }
 
 
@@ -33,7 +33,7 @@ toInt x =
 
 view : Model -> Html U.UpdateMsg
 view model =
-  div [Attr.class "main"] 
+  div [Attr.class "syn-main section"] 
     [ View.presetMenu Data.kits
     , View.synthEditor model
     ]

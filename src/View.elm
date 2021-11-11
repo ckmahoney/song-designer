@@ -57,7 +57,7 @@ roleIcon role =
 
 presetIcon : T.SynthRole -> Html msg
 presetIcon role =
-  div [class "box m-5", style "background" (D.roleColor role)]
+  div [class "box", style "background" (D.roleColor role)]
   [ div [class "p-6"] [
       img [ width 50
           , height 50
@@ -192,7 +192,8 @@ texEdit preset =
 synthCardContent : T.SynthPreset -> Html U.UpdateMsg
 synthCardContent preset = 
   div [class "column card-content has-background-white "]
-    [ div [class "column media is-centered p-3"]
+    [ button [onClick (U.ChangeSelection Nothing), class "delete is-large"] []
+    , div [class "column media is-centered p-3"]
       [ figure [class "image mx-auto is-96x96"] [roleThumb preset.role]]
       , synthDescription preset 
       , rolePicker (U.UpdateSynthRole preset) 
@@ -202,13 +203,14 @@ synthCardContent preset =
 
 editPreset : T.SynthPreset -> Html U.UpdateMsg
 editPreset preset =
-  div [class "column card is-one-third px-6 py-4" ,style  "background" (D.roleColor preset.role)]
+  div [class "column card  is-half px-6 py-4" ,style  "background" (D.roleColor preset.role)]
     [ synthCardContent preset]
 
 
 changePresetButton : T.SynthPreset -> Html U.UpdateMsg
 changePresetButton preset = 
-  div [ onClick (U.ChangeSelection (Just preset)) ] 
+  div [ onClick (U.ChangeSelection (Just preset))
+      , class "my-5" ] 
     [ presetIcon preset.role ]
 
 
@@ -251,15 +253,15 @@ carousel time children =
 
 kitRow : (Maybe T.SynthPreset) -> List T.SynthPreset -> Html U.UpdateMsg
 kitRow curr presets =
-  div [class "level"] 
-    <| List.map changePresetButton presets
+  div [class "column level"] 
+    <| [ h5 [class "title" ] [ text "Instruments" ] ]
+    ++ List.map changePresetButton presets
 
 
 testCarousel : Int -> Html U.UpdateMsg
 testCarousel time =
   let 
     items = (List.map roleThumb D.roles)
-    -- items2 = List.map changePresetButton ( D.presets ++ D.presets ++ D.presets)
     moreItems = items ++ items ++ items
   in 
   carousel 0 items
@@ -273,34 +275,53 @@ synthEditor model =
   case model.current of 
     Nothing -> 
       div [class "columns"] 
-        [ button [onClick U.RequestPreset] [text "Create a Preset"]
-        , kitRow model.current model.presets ]
+        [ kitRow model.current model.presets
+        , button [ onClick U.RequestPreset
+                 , class "button" ] [text "Create a Preset"]
+         ]
     -- [testCarousel model.time]
     
     Just preset ->
-      div [] 
-        [ editPreset preset
-        , kitRow model.current model.presets ]
+      div [class "columns is-centered"] 
+        [ kitRow model.current model.presets 
+        , editPreset preset ]
+
+
+csv : List String -> String
+csv strs = 
+  let 
+    s = List.foldl (\str all -> all ++ str ++ "," )  "" strs 
+  in
+  String.slice 0 ((String.length s) - 1) s
+
+
+backgroundGradient : List String -> Attribute msg
+backgroundGradient colors = 
+  style "background" 
+    <| "linear-gradient(" ++ (csv colors) ++ ")"
 
 
 kitItem : T.SynthPreset -> Html msg
 kitItem preset =
-  div [class "column is-half is-centered has-text-centered"]
-    [ h5 [class "subtitle"] [text preset.title]
-    , roleIcon preset.role ]
+  div [ class "is-hidden-mobile column is-half is-centered has-text-centered" ]
+    [ h5 [ class "subtitle has-text-black"] [ text preset.title ]
+    , span [style "filter" "invert(1)"] [ roleIcon preset.role ] ]
 
 
-presetRow : T.NPresetKit -> Html msg
+presetRow : T.NPresetKit -> Html U.UpdateMsg
 presetRow (name, kit) =
-  div [ class "my-3 box column columns is-multiline is-one-quarter is-centered" ]
-    <| [ h3 [class "title"] [text name] ]
-    ++ List.map kitItem kit
+  div [ onClick (U.ChangePreset kit)
+      , class "is-clickable my-3 box column columns is-centered is-multiline is-one-quarter "
+      , backgroundGradient ["cyan", "magenta"]] 
+     [ h3 [class "column is-full title has-text-centered"] [text name] 
+      , div [ class "columns column is-centered is-multiline is-mobile" ] <| List.map kitItem kit ]
 
 
-presetMenu : List T.NPresetKit -> Html msg
+
+presetMenu : List T.NPresetKit -> Html U.UpdateMsg
 presetMenu kits =
   div [] <|
-    [ h2 [] [text  "Presets"]
+    [ h5 [class "title" ] [ text "Presets" ] 
     , div [ class "columns is-multiline is-mobile mx-auto is-centered is-flex is-justify-content-space-around py-3"
       ] <| List.map presetRow kits
     ]

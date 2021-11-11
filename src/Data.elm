@@ -33,7 +33,31 @@ rangeComplexity : (Int, Int)
 rangeComplexity = (minComplexity, maxComplexity)
 
 
-palette : Palette
+
+
+
+paletteTrio : Palette
+paletteTrio =
+  [ "#E5210F"
+  , "#0FE521"
+  , "#210FE5"
+  ]
+
+
+paletteTrioDark : Palette
+paletteTrioDark =
+  [ "#B81A0C"
+  , "#0CB81A"
+  , "#1A0CB8"
+  ]
+
+paletteTrioLight : Palette
+paletteTrioLight =
+  [ "#F24738"
+  , "#38F247"
+  , "#4738F2"
+  ]
+
 palette =
   [ "#ffa822"
   , "#227bff"
@@ -41,6 +65,15 @@ palette =
   , "#00e5ff"
   , "#11ff00"
   , "#ee00ff"
+  ]
+
+palette3 = 
+  [ "#B81A0C"
+  , "#F24738"
+  , "#0CB81A"
+  , "#38f247"
+  , "#1a0cb8"
+  , "#4738f2"
   ]
 
 
@@ -125,8 +158,8 @@ kitSynth =
 
 kits : List NPresetKit
 kits = 
-  [ ("One of Everything", kitAll)
-  , ("The beats", kitBeat)
+  [ ("The beats", kitBeat)
+  , ("One of Everything", kitAll) 
   , ("The synths", kitSynth)
   ]
 

@@ -4355,6 +4355,89 @@ function _Browser_load(url)
 		}
 	}));
 }
+
+
+
+function _Time_now(millisToPosix)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		callback(_Scheduler_succeed(millisToPosix(Date.now())));
+	});
+}
+
+var _Time_setInterval = F2(function(interval, task)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		var id = setInterval(function() { _Scheduler_rawSpawn(task); }, interval);
+		return function() { clearInterval(id); };
+	});
+});
+
+function _Time_here()
+{
+	return _Scheduler_binding(function(callback)
+	{
+		callback(_Scheduler_succeed(
+			A2($elm$time$Time$customZone, -(new Date().getTimezoneOffset()), _List_Nil)
+		));
+	});
+}
+
+
+function _Time_getZoneName()
+{
+	return _Scheduler_binding(function(callback)
+	{
+		try
+		{
+			var name = $elm$time$Time$Name(Intl.DateTimeFormat().resolvedOptions().timeZone);
+		}
+		catch (e)
+		{
+			var name = $elm$time$Time$Offset(new Date().getTimezoneOffset());
+		}
+		callback(_Scheduler_succeed(name));
+	});
+}
+
+
+
+var _Bitwise_and = F2(function(a, b)
+{
+	return a & b;
+});
+
+var _Bitwise_or = F2(function(a, b)
+{
+	return a | b;
+});
+
+var _Bitwise_xor = F2(function(a, b)
+{
+	return a ^ b;
+});
+
+function _Bitwise_complement(a)
+{
+	return ~a;
+};
+
+var _Bitwise_shiftLeftBy = F2(function(offset, a)
+{
+	return a << offset;
+});
+
+var _Bitwise_shiftRightBy = F2(function(offset, a)
+{
+	return a >> offset;
+});
+
+var _Bitwise_shiftRightZfBy = F2(function(offset, a)
+{
+	return a >>> offset;
+});
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
@@ -4851,9 +4934,6 @@ var $author$project$View$main = $elm$html$Html$text('');
 var $author$project$Update$main = $elm$html$Html$text('');
 var $author$project$Types$main = $elm$html$Html$text('');
 var $author$project$Model$main = $elm$html$Html$text('');
-var $author$project$Types$Bass = {$: 'Bass'};
-var $author$project$Types$Structure = {$: 'Structure'};
-var $author$project$Data$p1 = {complexity: 1, density: 1, duty: $author$project$Types$Structure, role: $author$project$Types$Bass, title: 'Big Bass', voice: 1};
 var $elm$browser$Browser$External = function (a) {
 	return {$: 'External', a: a};
 };
@@ -5152,71 +5232,790 @@ var $elm$core$Task$perform = F2(
 			$elm$core$Task$Perform(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $elm$browser$Browser$sandbox = function (impl) {
-	return _Browser_element(
-		{
-			init: function (_v0) {
-				return _Utils_Tuple2(impl.init, $elm$core$Platform$Cmd$none);
-			},
-			subscriptions: function (_v1) {
-				return $elm$core$Platform$Sub$none;
-			},
-			update: F2(
-				function (msg, model) {
-					return _Utils_Tuple2(
-						A2(impl.update, msg, model),
-						$elm$core$Platform$Cmd$none);
-				}),
-			view: impl.view
-		});
-};
-var $author$project$Main$update = F2(
-	function (msg, model) {
-		if (msg.$ === 'Done') {
-			return model;
-		} else {
-			var r = msg.a;
-			return _Utils_update(
-				model,
-				{role: r});
-		}
-	});
+var $elm$browser$Browser$element = _Browser_element;
+var $author$project$Types$Bass = {$: 'Bass'};
+var $author$project$Types$Chords = {$: 'Chords'};
 var $author$project$Types$Hat = {$: 'Hat'};
 var $author$project$Types$Kick = {$: 'Kick'};
+var $author$project$Types$Melody = {$: 'Melody'};
 var $author$project$Types$Perc = {$: 'Perc'};
-var $author$project$Main$UpdateSynth = function (a) {
-	return {$: 'UpdateSynth', a: a};
-};
-var $elm$html$Html$button = _VirtualDom_node('button');
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
+var $author$project$Types$Structure = {$: 'Structure'};
+var $author$project$Types$SynthPreset = F7(
+	function (id, duty, role, title, voice, density, complexity) {
+		return {complexity: complexity, density: density, duty: duty, id: id, role: role, title: title, voice: voice};
 	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
+var $author$project$Data$kitAll = _List_fromArray(
+	[
+		A7($author$project$Types$SynthPreset, 0, $author$project$Types$Structure, $author$project$Types$Kick, 'clock', 1, 1, 0),
+		A7($author$project$Types$SynthPreset, 1, $author$project$Types$Structure, $author$project$Types$Perc, 'clap', 3, 2, 0),
+		A7($author$project$Types$SynthPreset, 2, $author$project$Types$Structure, $author$project$Types$Hat, 'offbeat', 5, 3, 1),
+		A7($author$project$Types$SynthPreset, 3, $author$project$Types$Structure, $author$project$Types$Bass, 'pedal', 5, 3, 1),
+		A7($author$project$Types$SynthPreset, 4, $author$project$Types$Structure, $author$project$Types$Chords, 'hook', 5, 3, 1),
+		A7($author$project$Types$SynthPreset, 5, $author$project$Types$Structure, $author$project$Types$Melody, 'phrase', 5, 3, 1)
+	]);
+var $elm$core$Basics$negate = function (n) {
+	return -n;
 };
+var $author$project$Data$p1 = {complexity: 1, density: 1, duty: $author$project$Types$Structure, id: -1, role: $author$project$Types$Bass, title: 'Bass', voice: 1};
+var $author$project$Main$init = {
+	current: $elm$core$Maybe$Just($author$project$Data$p1),
+	presets: $author$project$Data$kitAll,
+	time: 0
+};
+var $elm$core$Debug$log = _Debug_log;
+var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $author$project$Main$initFromFlags = function (ini) {
+	var w = A2($elm$core$Debug$log, 'initializing: ', ini);
+	return _Utils_Tuple2($author$project$Main$init, $elm$core$Platform$Cmd$none);
+};
+var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $elm$json$Json$Decode$null = _Json_decodeNull;
+var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $author$project$Update$Tick = function (a) {
+	return {$: 'Tick', a: a};
+};
+var $elm$time$Time$Every = F2(
+	function (a, b) {
+		return {$: 'Every', a: a, b: b};
+	});
+var $elm$time$Time$State = F2(
+	function (taggers, processes) {
+		return {processes: processes, taggers: taggers};
+	});
+var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
+var $elm$time$Time$init = $elm$core$Task$succeed(
+	A2($elm$time$Time$State, $elm$core$Dict$empty, $elm$core$Dict$empty));
+var $elm$core$Basics$compare = _Utils_compare;
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
+	});
+var $elm$core$Dict$Black = {$: 'Black'};
+var $elm$core$Dict$RBNode_elm_builtin = F5(
+	function (a, b, c, d, e) {
+		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
+	});
+var $elm$core$Dict$Red = {$: 'Red'};
+var $elm$core$Dict$balance = F5(
+	function (color, key, value, left, right) {
+		if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Red')) {
+			var _v1 = right.a;
+			var rK = right.b;
+			var rV = right.c;
+			var rLeft = right.d;
+			var rRight = right.e;
+			if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
+				var _v3 = left.a;
+				var lK = left.b;
+				var lV = left.c;
+				var lLeft = left.d;
+				var lRight = left.e;
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Red,
+					key,
+					value,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					color,
+					rK,
+					rV,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, left, rLeft),
+					rRight);
+			}
+		} else {
+			if ((((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) && (left.d.$ === 'RBNode_elm_builtin')) && (left.d.a.$ === 'Red')) {
+				var _v5 = left.a;
+				var lK = left.b;
+				var lV = left.c;
+				var _v6 = left.d;
+				var _v7 = _v6.a;
+				var llK = _v6.b;
+				var llV = _v6.c;
+				var llLeft = _v6.d;
+				var llRight = _v6.e;
+				var lRight = left.e;
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Red,
+					lK,
+					lV,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, llK, llV, llLeft, llRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, lRight, right));
+			} else {
+				return A5($elm$core$Dict$RBNode_elm_builtin, color, key, value, left, right);
+			}
+		}
+	});
+var $elm$core$Dict$insertHelp = F3(
+	function (key, value, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
+		} else {
+			var nColor = dict.a;
+			var nKey = dict.b;
+			var nValue = dict.c;
+			var nLeft = dict.d;
+			var nRight = dict.e;
+			var _v1 = A2($elm$core$Basics$compare, key, nKey);
+			switch (_v1.$) {
+				case 'LT':
+					return A5(
+						$elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						A3($elm$core$Dict$insertHelp, key, value, nLeft),
+						nRight);
+				case 'EQ':
+					return A5($elm$core$Dict$RBNode_elm_builtin, nColor, nKey, value, nLeft, nRight);
+				default:
+					return A5(
+						$elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						nLeft,
+						A3($elm$core$Dict$insertHelp, key, value, nRight));
+			}
+		}
+	});
+var $elm$core$Dict$insert = F3(
+	function (key, value, dict) {
+		var _v0 = A3($elm$core$Dict$insertHelp, key, value, dict);
+		if ((_v0.$ === 'RBNode_elm_builtin') && (_v0.a.$ === 'Red')) {
+			var _v1 = _v0.a;
+			var k = _v0.b;
+			var v = _v0.c;
+			var l = _v0.d;
+			var r = _v0.e;
+			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, k, v, l, r);
+		} else {
+			var x = _v0;
+			return x;
+		}
+	});
+var $elm$time$Time$addMySub = F2(
+	function (_v0, state) {
+		var interval = _v0.a;
+		var tagger = _v0.b;
+		var _v1 = A2($elm$core$Dict$get, interval, state);
+		if (_v1.$ === 'Nothing') {
+			return A3(
+				$elm$core$Dict$insert,
+				interval,
+				_List_fromArray(
+					[tagger]),
+				state);
+		} else {
+			var taggers = _v1.a;
+			return A3(
+				$elm$core$Dict$insert,
+				interval,
+				A2($elm$core$List$cons, tagger, taggers),
+				state);
+		}
+	});
+var $elm$core$Process$kill = _Scheduler_kill;
+var $elm$core$Dict$foldl = F3(
+	function (func, acc, dict) {
+		foldl:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return acc;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$func = func,
+					$temp$acc = A3(
+					func,
+					key,
+					value,
+					A3($elm$core$Dict$foldl, func, acc, left)),
+					$temp$dict = right;
+				func = $temp$func;
+				acc = $temp$acc;
+				dict = $temp$dict;
+				continue foldl;
+			}
+		}
+	});
+var $elm$core$Dict$merge = F6(
+	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
+		var stepState = F3(
+			function (rKey, rValue, _v0) {
+				stepState:
+				while (true) {
+					var list = _v0.a;
+					var result = _v0.b;
+					if (!list.b) {
+						return _Utils_Tuple2(
+							list,
+							A3(rightStep, rKey, rValue, result));
+					} else {
+						var _v2 = list.a;
+						var lKey = _v2.a;
+						var lValue = _v2.b;
+						var rest = list.b;
+						if (_Utils_cmp(lKey, rKey) < 0) {
+							var $temp$rKey = rKey,
+								$temp$rValue = rValue,
+								$temp$_v0 = _Utils_Tuple2(
+								rest,
+								A3(leftStep, lKey, lValue, result));
+							rKey = $temp$rKey;
+							rValue = $temp$rValue;
+							_v0 = $temp$_v0;
+							continue stepState;
+						} else {
+							if (_Utils_cmp(lKey, rKey) > 0) {
+								return _Utils_Tuple2(
+									list,
+									A3(rightStep, rKey, rValue, result));
+							} else {
+								return _Utils_Tuple2(
+									rest,
+									A4(bothStep, lKey, lValue, rValue, result));
+							}
+						}
+					}
+				}
+			});
+		var _v3 = A3(
+			$elm$core$Dict$foldl,
+			stepState,
+			_Utils_Tuple2(
+				$elm$core$Dict$toList(leftDict),
+				initialResult),
+			rightDict);
+		var leftovers = _v3.a;
+		var intermediateResult = _v3.b;
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v4, result) {
+					var k = _v4.a;
+					var v = _v4.b;
+					return A3(leftStep, k, v, result);
+				}),
+			intermediateResult,
+			leftovers);
+	});
+var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
+var $elm$time$Time$Name = function (a) {
+	return {$: 'Name', a: a};
+};
+var $elm$time$Time$Offset = function (a) {
+	return {$: 'Offset', a: a};
+};
+var $elm$time$Time$Zone = F2(
+	function (a, b) {
+		return {$: 'Zone', a: a, b: b};
+	});
+var $elm$time$Time$customZone = $elm$time$Time$Zone;
+var $elm$time$Time$setInterval = _Time_setInterval;
+var $elm$core$Process$spawn = _Scheduler_spawn;
+var $elm$time$Time$spawnHelp = F3(
+	function (router, intervals, processes) {
+		if (!intervals.b) {
+			return $elm$core$Task$succeed(processes);
+		} else {
+			var interval = intervals.a;
+			var rest = intervals.b;
+			var spawnTimer = $elm$core$Process$spawn(
+				A2(
+					$elm$time$Time$setInterval,
+					interval,
+					A2($elm$core$Platform$sendToSelf, router, interval)));
+			var spawnRest = function (id) {
+				return A3(
+					$elm$time$Time$spawnHelp,
+					router,
+					rest,
+					A3($elm$core$Dict$insert, interval, id, processes));
+			};
+			return A2($elm$core$Task$andThen, spawnRest, spawnTimer);
+		}
+	});
+var $elm$time$Time$onEffects = F3(
+	function (router, subs, _v0) {
+		var processes = _v0.processes;
+		var rightStep = F3(
+			function (_v6, id, _v7) {
+				var spawns = _v7.a;
+				var existing = _v7.b;
+				var kills = _v7.c;
+				return _Utils_Tuple3(
+					spawns,
+					existing,
+					A2(
+						$elm$core$Task$andThen,
+						function (_v5) {
+							return kills;
+						},
+						$elm$core$Process$kill(id)));
+			});
+		var newTaggers = A3($elm$core$List$foldl, $elm$time$Time$addMySub, $elm$core$Dict$empty, subs);
+		var leftStep = F3(
+			function (interval, taggers, _v4) {
+				var spawns = _v4.a;
+				var existing = _v4.b;
+				var kills = _v4.c;
+				return _Utils_Tuple3(
+					A2($elm$core$List$cons, interval, spawns),
+					existing,
+					kills);
+			});
+		var bothStep = F4(
+			function (interval, taggers, id, _v3) {
+				var spawns = _v3.a;
+				var existing = _v3.b;
+				var kills = _v3.c;
+				return _Utils_Tuple3(
+					spawns,
+					A3($elm$core$Dict$insert, interval, id, existing),
+					kills);
+			});
+		var _v1 = A6(
+			$elm$core$Dict$merge,
+			leftStep,
+			bothStep,
+			rightStep,
+			newTaggers,
+			processes,
+			_Utils_Tuple3(
+				_List_Nil,
+				$elm$core$Dict$empty,
+				$elm$core$Task$succeed(_Utils_Tuple0)));
+		var spawnList = _v1.a;
+		var existingDict = _v1.b;
+		var killTask = _v1.c;
+		return A2(
+			$elm$core$Task$andThen,
+			function (newProcesses) {
+				return $elm$core$Task$succeed(
+					A2($elm$time$Time$State, newTaggers, newProcesses));
+			},
+			A2(
+				$elm$core$Task$andThen,
+				function (_v2) {
+					return A3($elm$time$Time$spawnHelp, router, spawnList, existingDict);
+				},
+				killTask));
+	});
+var $elm$time$Time$Posix = function (a) {
+	return {$: 'Posix', a: a};
+};
+var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
+var $elm$time$Time$now = _Time_now($elm$time$Time$millisToPosix);
+var $elm$time$Time$onSelfMsg = F3(
+	function (router, interval, state) {
+		var _v0 = A2($elm$core$Dict$get, interval, state.taggers);
+		if (_v0.$ === 'Nothing') {
+			return $elm$core$Task$succeed(state);
+		} else {
+			var taggers = _v0.a;
+			var tellTaggers = function (time) {
+				return $elm$core$Task$sequence(
+					A2(
+						$elm$core$List$map,
+						function (tagger) {
+							return A2(
+								$elm$core$Platform$sendToApp,
+								router,
+								tagger(time));
+						},
+						taggers));
+			};
+			return A2(
+				$elm$core$Task$andThen,
+				function (_v1) {
+					return $elm$core$Task$succeed(state);
+				},
+				A2($elm$core$Task$andThen, tellTaggers, $elm$time$Time$now));
+		}
+	});
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $elm$time$Time$subMap = F2(
+	function (f, _v0) {
+		var interval = _v0.a;
+		var tagger = _v0.b;
+		return A2(
+			$elm$time$Time$Every,
+			interval,
+			A2($elm$core$Basics$composeL, f, tagger));
+	});
+_Platform_effectManagers['Time'] = _Platform_createManager($elm$time$Time$init, $elm$time$Time$onEffects, $elm$time$Time$onSelfMsg, 0, $elm$time$Time$subMap);
+var $elm$time$Time$subscription = _Platform_leaf('Time');
+var $elm$time$Time$every = F2(
+	function (interval, tagger) {
+		return $elm$time$Time$subscription(
+			A2($elm$time$Time$Every, interval, tagger));
+	});
+var $author$project$Main$subs = function (model) {
+	return A2($elm$time$Time$every, 1000, $author$project$Update$Tick);
+};
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $author$project$Update$conj = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$append,
+			xs,
+			_List_fromArray(
+				[x]));
+	});
+var $author$project$Update$createPreset = function (id_) {
+	var ref = $author$project$Data$p1;
+	return _Utils_update(
+		ref,
+		{id: id_});
+};
+var $author$project$Update$NewPreset = function (a) {
+	return {$: 'NewPreset', a: a};
+};
+var $elm$random$Random$Generate = function (a) {
+	return {$: 'Generate', a: a};
+};
+var $elm$random$Random$Seed = F2(
+	function (a, b) {
+		return {$: 'Seed', a: a, b: b};
+	});
+var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var $elm$random$Random$next = function (_v0) {
+	var state0 = _v0.a;
+	var incr = _v0.b;
+	return A2($elm$random$Random$Seed, ((state0 * 1664525) + incr) >>> 0, incr);
+};
+var $elm$random$Random$initialSeed = function (x) {
+	var _v0 = $elm$random$Random$next(
+		A2($elm$random$Random$Seed, 0, 1013904223));
+	var state1 = _v0.a;
+	var incr = _v0.b;
+	var state2 = (state1 + x) >>> 0;
+	return $elm$random$Random$next(
+		A2($elm$random$Random$Seed, state2, incr));
+};
+var $elm$time$Time$posixToMillis = function (_v0) {
+	var millis = _v0.a;
+	return millis;
+};
+var $elm$random$Random$init = A2(
+	$elm$core$Task$andThen,
+	function (time) {
+		return $elm$core$Task$succeed(
+			$elm$random$Random$initialSeed(
+				$elm$time$Time$posixToMillis(time)));
+	},
+	$elm$time$Time$now);
+var $elm$random$Random$step = F2(
+	function (_v0, seed) {
+		var generator = _v0.a;
+		return generator(seed);
+	});
+var $elm$random$Random$onEffects = F3(
+	function (router, commands, seed) {
+		if (!commands.b) {
+			return $elm$core$Task$succeed(seed);
+		} else {
+			var generator = commands.a.a;
+			var rest = commands.b;
+			var _v1 = A2($elm$random$Random$step, generator, seed);
+			var value = _v1.a;
+			var newSeed = _v1.b;
+			return A2(
+				$elm$core$Task$andThen,
+				function (_v2) {
+					return A3($elm$random$Random$onEffects, router, rest, newSeed);
+				},
+				A2($elm$core$Platform$sendToApp, router, value));
+		}
+	});
+var $elm$random$Random$onSelfMsg = F3(
+	function (_v0, _v1, seed) {
+		return $elm$core$Task$succeed(seed);
+	});
+var $elm$random$Random$Generator = function (a) {
+	return {$: 'Generator', a: a};
+};
+var $elm$random$Random$map = F2(
+	function (func, _v0) {
+		var genA = _v0.a;
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var _v1 = genA(seed0);
+				var a = _v1.a;
+				var seed1 = _v1.b;
+				return _Utils_Tuple2(
+					func(a),
+					seed1);
+			});
+	});
+var $elm$random$Random$cmdMap = F2(
+	function (func, _v0) {
+		var generator = _v0.a;
+		return $elm$random$Random$Generate(
+			A2($elm$random$Random$map, func, generator));
+	});
+_Platform_effectManagers['Random'] = _Platform_createManager($elm$random$Random$init, $elm$random$Random$onEffects, $elm$random$Random$onSelfMsg, $elm$random$Random$cmdMap);
+var $elm$random$Random$command = _Platform_leaf('Random');
+var $elm$random$Random$generate = F2(
+	function (tagger, generator) {
+		return $elm$random$Random$command(
+			$elm$random$Random$Generate(
+				A2($elm$random$Random$map, tagger, generator)));
+	});
+var $elm$core$Bitwise$and = _Bitwise_and;
+var $elm$core$Bitwise$xor = _Bitwise_xor;
+var $elm$random$Random$peel = function (_v0) {
+	var state = _v0.a;
+	var word = (state ^ (state >>> ((state >>> 28) + 4))) * 277803737;
+	return ((word >>> 22) ^ word) >>> 0;
+};
+var $elm$random$Random$int = F2(
+	function (a, b) {
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var _v0 = (_Utils_cmp(a, b) < 0) ? _Utils_Tuple2(a, b) : _Utils_Tuple2(b, a);
+				var lo = _v0.a;
+				var hi = _v0.b;
+				var range = (hi - lo) + 1;
+				if (!((range - 1) & range)) {
+					return _Utils_Tuple2(
+						(((range - 1) & $elm$random$Random$peel(seed0)) >>> 0) + lo,
+						$elm$random$Random$next(seed0));
+				} else {
+					var threshhold = (((-range) >>> 0) % range) >>> 0;
+					var accountForBias = function (seed) {
+						accountForBias:
+						while (true) {
+							var x = $elm$random$Random$peel(seed);
+							var seedN = $elm$random$Random$next(seed);
+							if (_Utils_cmp(x, threshhold) < 0) {
+								var $temp$seed = seedN;
+								seed = $temp$seed;
+								continue accountForBias;
+							} else {
+								return _Utils_Tuple2((x % range) + lo, seedN);
+							}
+						}
+					};
+					return accountForBias(seed0);
+				}
+			});
+	});
+var $author$project$Update$rint = A2($elm$random$Random$int, 1, 1000);
+var $author$project$Update$genPreset = A2($elm$random$Random$generate, $author$project$Update$NewPreset, $author$project$Update$rint);
+var $author$project$Update$noCmd = function (x) {
+	return _Utils_Tuple2(x, $elm$core$Platform$Cmd$none);
+};
+var $author$project$Update$ptoInt = function (t) {
+	return $elm$time$Time$posixToMillis(t);
+};
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Update$remove = F2(
+	function (x, xs) {
+		if (x.$ === 'Nothing') {
+			return xs;
+		} else {
+			var jx = x.a;
+			return A2(
+				$elm$core$List$filter,
+				function (a) {
+					return !_Utils_eq(jx, a);
+				},
+				xs);
+		}
+	});
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $author$project$Data$findIndex = F2(
+	function (x, xs) {
+		var i = $elm$core$List$head(
+			A2(
+				$elm$core$List$filter,
+				function (j) {
+					return !_Utils_eq(j, -1);
+				},
+				A2(
+					$elm$core$List$indexedMap,
+					F2(
+						function (j, a) {
+							return _Utils_eq(x, a) ? j : (-1);
+						}),
+					xs)));
+		if (i.$ === 'Nothing') {
+			return -1;
+		} else {
+			var y = i.a;
+			return y;
+		}
+	});
+var $elm$core$Array$fromListHelp = F3(
+	function (list, nodeList, nodeListSize) {
+		fromListHelp:
+		while (true) {
+			var _v0 = A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, list);
+			var jsArray = _v0.a;
+			var remainingItems = _v0.b;
+			if (_Utils_cmp(
+				$elm$core$Elm$JsArray$length(jsArray),
+				$elm$core$Array$branchFactor) < 0) {
+				return A2(
+					$elm$core$Array$builderToArray,
+					true,
+					{nodeList: nodeList, nodeListSize: nodeListSize, tail: jsArray});
+			} else {
+				var $temp$list = remainingItems,
+					$temp$nodeList = A2(
+					$elm$core$List$cons,
+					$elm$core$Array$Leaf(jsArray),
+					nodeList),
+					$temp$nodeListSize = nodeListSize + 1;
+				list = $temp$list;
+				nodeList = $temp$nodeList;
+				nodeListSize = $temp$nodeListSize;
+				continue fromListHelp;
+			}
+		}
+	});
+var $elm$core$Array$fromList = function (list) {
+	if (!list.b) {
+		return $elm$core$Array$empty;
+	} else {
+		return A3($elm$core$Array$fromListHelp, list, _List_Nil, 0);
+	}
+};
+var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
+var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var $elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
+var $elm$core$Array$setHelp = F4(
+	function (shift, index, value, tree) {
+		var pos = $elm$core$Array$bitMask & (index >>> shift);
+		var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+		if (_v0.$ === 'SubTree') {
+			var subTree = _v0.a;
+			var newSub = A4($elm$core$Array$setHelp, shift - $elm$core$Array$shiftStep, index, value, subTree);
+			return A3(
+				$elm$core$Elm$JsArray$unsafeSet,
+				pos,
+				$elm$core$Array$SubTree(newSub),
+				tree);
+		} else {
+			var values = _v0.a;
+			var newLeaf = A3($elm$core$Elm$JsArray$unsafeSet, $elm$core$Array$bitMask & index, value, values);
+			return A3(
+				$elm$core$Elm$JsArray$unsafeSet,
+				pos,
+				$elm$core$Array$Leaf(newLeaf),
+				tree);
+		}
+	});
+var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var $elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
+var $elm$core$Array$set = F3(
+	function (index, value, array) {
+		var len = array.a;
+		var startShift = array.b;
+		var tree = array.c;
+		var tail = array.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? array : ((_Utils_cmp(
+			index,
+			$elm$core$Array$tailIndex(len)) > -1) ? A4(
+			$elm$core$Array$Array_elm_builtin,
+			len,
+			startShift,
+			tree,
+			A3($elm$core$Elm$JsArray$unsafeSet, $elm$core$Array$bitMask & index, value, tail)) : A4(
+			$elm$core$Array$Array_elm_builtin,
+			len,
+			startShift,
+			A4($elm$core$Array$setHelp, startShift, index, value, tree),
+			tail));
+	});
+var $author$project$Update$replace = F3(
+	function (prev, next, xs) {
+		var arr = $elm$core$Array$fromList(xs);
+		return $elm$core$Array$toList(
+			A3(
+				$elm$core$Array$set,
+				A2($author$project$Data$findIndex, prev, xs),
+				next,
+				arr));
+	});
 var $author$project$Data$roleLabel = function (role) {
 	switch (role.$) {
 		case 'Kick':
-			return _Utils_Tuple2('kick', 'Deep beat');
+			return _Utils_Tuple2('kick', 'Deep');
 		case 'Perc':
 			return _Utils_Tuple2('perc', 'Hits');
 		case 'Hat':
-			return _Utils_Tuple2('hat', 'Groove beat');
+			return _Utils_Tuple2('hat', 'Groove');
 		case 'Bass':
 			return _Utils_Tuple2('bass', 'Bassline');
 		case 'Chords':
@@ -5225,19 +6024,184 @@ var $author$project$Data$roleLabel = function (role) {
 			return _Utils_Tuple2('melody', 'Melody');
 	}
 };
-var $author$project$View$buttonOpt = F2(
-	function (role, msg) {
-		return A2(
-			$elm$html$Html$button,
-			_List_fromArray(
-				[
-					$elm$html$Html$Events$onClick(msg)
-				]),
-			_List_fromArray(
-				[
-					$elm$html$Html$text(
-					$author$project$Data$roleLabel(role).a)
-				]));
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $author$project$Update$update = F2(
+	function (msg, model) {
+		switch (msg.$) {
+			case 'Tick':
+				var ptime = msg.a;
+				return $author$project$Update$noCmd(
+					_Utils_update(
+						model,
+						{
+							time: $author$project$Update$ptoInt(ptime)
+						}));
+			case 'RequestPreset':
+				return _Utils_Tuple2(model, $author$project$Update$genPreset);
+			case 'NewID':
+				var _int = msg.a;
+				var _v1 = model.current;
+				if (_v1.$ === 'Nothing') {
+					return $author$project$Update$noCmd(
+						_Utils_update(
+							model,
+							{
+								current: $elm$core$Maybe$Just(
+									$author$project$Update$createPreset(_int))
+							}));
+				} else {
+					var prev = _v1.a;
+					var next = _Utils_update(
+						prev,
+						{id: _int});
+					var presets = A3($author$project$Update$replace, prev, next, model.presets);
+					return $author$project$Update$noCmd(
+						_Utils_update(
+							model,
+							{
+								current: $elm$core$Maybe$Just(next)
+							}));
+				}
+			case 'NewPreset':
+				var id = msg.a;
+				var next = $author$project$Update$createPreset(id);
+				return $author$project$Update$noCmd(
+					_Utils_update(
+						model,
+						{
+							current: $elm$core$Maybe$Just(next)
+						}));
+			case 'AddPreset':
+				var preset = msg.a;
+				return $author$project$Update$noCmd(
+					_Utils_update(
+						model,
+						{
+							presets: A2($author$project$Update$conj, preset, model.presets)
+						}));
+			case 'UpdatePreset':
+				var next = msg.a;
+				return $author$project$Update$noCmd(
+					_Utils_update(
+						model,
+						{current: next}));
+			case 'KillPreset':
+				var preset = msg.a;
+				var yy = A2($elm$core$Debug$log, 'presets:', model.presets);
+				return $author$project$Update$noCmd(
+					_Utils_update(
+						model,
+						{
+							current: $elm$core$Maybe$Nothing,
+							presets: A2(
+								$author$project$Update$remove,
+								$elm$core$Maybe$Just(preset),
+								model.presets)
+						}));
+			case 'ChangeSelection':
+				var next = msg.a;
+				var _v2 = model.current;
+				if (_v2.$ === 'Nothing') {
+					if (next.$ === 'Nothing') {
+						return $author$project$Update$noCmd(model);
+					} else {
+						var n = next.a;
+						return $author$project$Update$noCmd(
+							_Utils_update(
+								model,
+								{
+									current: next,
+									presets: A2(
+										$author$project$Update$remove,
+										$elm$core$Maybe$Just(n),
+										model.presets)
+								}));
+					}
+				} else {
+					var prev = _v2.a;
+					var ps = A2(
+						$elm$core$List$append,
+						model.presets,
+						_List_fromArray(
+							[prev]));
+					if (next.$ === 'Nothing') {
+						return $author$project$Update$noCmd(
+							_Utils_update(
+								model,
+								{current: next, presets: ps}));
+					} else {
+						var n = next.a;
+						return $author$project$Update$noCmd(
+							_Utils_update(
+								model,
+								{
+									current: next,
+									presets: A2(
+										$author$project$Update$remove,
+										$elm$core$Maybe$Just(n),
+										ps)
+								}));
+					}
+				}
+			case 'UpdateSynthRole':
+				var curr = msg.a;
+				var r = msg.b;
+				var next = _Utils_update(
+					curr,
+					{
+						role: r,
+						title: $author$project$Data$roleLabel(r).b
+					});
+				return $author$project$Update$noCmd(
+					_Utils_update(
+						model,
+						{
+							current: $elm$core$Maybe$Just(next)
+						}));
+			case 'UpdateDensity':
+				var val = msg.a;
+				var _v5 = model.current;
+				if (_v5.$ === 'Nothing') {
+					return $author$project$Update$noCmd(model);
+				} else {
+					var prev = _v5.a;
+					var next = _Utils_update(
+						prev,
+						{density: val});
+					return $author$project$Update$noCmd(
+						_Utils_update(
+							model,
+							{
+								current: $elm$core$Maybe$Just(next)
+							}));
+				}
+			case 'UpdateComplexity':
+				var val = msg.a;
+				var _v6 = model.current;
+				if (_v6.$ === 'Nothing') {
+					return $author$project$Update$noCmd(model);
+				} else {
+					var prev = _v6.a;
+					var next = _Utils_update(
+						prev,
+						{complexity: val});
+					return $author$project$Update$noCmd(
+						_Utils_update(
+							model,
+							{
+								current: $elm$core$Maybe$Just(next)
+							}));
+				}
+			default:
+				var kit = msg.a;
+				return $author$project$Update$noCmd(
+					_Utils_update(
+						model,
+						{presets: kit}));
+		}
 	});
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
@@ -5249,8 +6213,52 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$html$Html$figure = _VirtualDom_node('figure');
-var $elm$html$Html$p = _VirtualDom_node('p');
+var $author$project$Data$kitBeat = _List_fromArray(
+	[
+		A7($author$project$Types$SynthPreset, 0, $author$project$Types$Structure, $author$project$Types$Kick, 'clock', 1, 1, 0),
+		A7($author$project$Types$SynthPreset, 1, $author$project$Types$Structure, $author$project$Types$Perc, 'clap', 3, 2, 0),
+		A7($author$project$Types$SynthPreset, 2, $author$project$Types$Structure, $author$project$Types$Hat, 'offbeat', 5, 3, 1)
+	]);
+var $author$project$Data$kitSynth = _List_fromArray(
+	[
+		A7($author$project$Types$SynthPreset, 0, $author$project$Types$Structure, $author$project$Types$Bass, 'pedal', 5, 3, 1),
+		A7($author$project$Types$SynthPreset, 1, $author$project$Types$Structure, $author$project$Types$Chords, 'hook', 5, 3, 1),
+		A7($author$project$Types$SynthPreset, 2, $author$project$Types$Structure, $author$project$Types$Melody, 'phrase', 5, 3, 1)
+	]);
+var $author$project$Data$kits = _List_fromArray(
+	[
+		_Utils_Tuple2('The beats', $author$project$Data$kitBeat),
+		_Utils_Tuple2('One of Everything', $author$project$Data$kitAll),
+		_Utils_Tuple2('The synths', $author$project$Data$kitSynth)
+	]);
+var $elm$html$Html$h5 = _VirtualDom_node('h5');
+var $author$project$Update$ChangePreset = function (a) {
+	return {$: 'ChangePreset', a: a};
+};
+var $author$project$View$csv = function (strs) {
+	var s = A3(
+		$elm$core$List$foldl,
+		F2(
+			function (str, all) {
+				return all + (str + ',');
+			}),
+		'',
+		strs);
+	return A3(
+		$elm$core$String$slice,
+		0,
+		$elm$core$String$length(s) - 1,
+		s);
+};
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
+var $author$project$View$backgroundGradient = function (colors) {
+	return A2(
+		$elm$html$Html$Attributes$style,
+		'background',
+		'linear-gradient(' + ($author$project$View$csv(colors) + ')'));
+};
+var $elm$html$Html$h3 = _VirtualDom_node('h3');
 var $elm$html$Html$Attributes$height = function (n) {
 	return A2(
 		_VirtualDom_attribute,
@@ -5282,151 +6290,680 @@ var $author$project$View$roleIcon = function (role) {
 			]),
 		_List_Nil);
 };
-var $author$project$View$cardContent = F3(
-	function (role, title, content) {
-		return A2(
-			$elm$html$Html$div,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$class('card-content')
-				]),
-			_List_fromArray(
-				[
-					A2(
-					$elm$html$Html$div,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$class('media')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$div,
-							_List_fromArray(
-								[
-									$elm$html$Html$Attributes$class('media-left')
-								]),
-							_List_fromArray(
-								[
-									A2(
-									$elm$html$Html$figure,
-									_List_fromArray(
-										[
-											$elm$html$Html$Attributes$class('image is-48x48')
-										]),
-									_List_fromArray(
-										[
-											$author$project$View$roleIcon(role)
-										]))
-								])),
-							A2(
-							$elm$html$Html$div,
-							_List_fromArray(
-								[
-									$elm$html$Html$Attributes$class('media-content')
-								]),
-							_List_fromArray(
-								[
-									A2(
-									$elm$html$Html$p,
-									_List_fromArray(
-										[
-											$elm$html$Html$Attributes$class('title is-4')
-										]),
-									_List_fromArray(
-										[
-											$elm$html$Html$text(title)
-										])),
-									A2(
-									$elm$html$Html$p,
-									_List_fromArray(
-										[
-											$elm$html$Html$Attributes$class('subtitle is-6')
-										]),
-									_List_fromArray(
-										[
-											$elm$html$Html$text(title)
-										]))
-								]))
-						])),
-					A2(
-					$elm$html$Html$div,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$class('content')
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text(content)
-						]))
-				]));
-	});
-var $author$project$View$cardTitle = function (title) {
+var $elm$html$Html$span = _VirtualDom_node('span');
+var $author$project$View$kitItem = function (preset) {
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('is-size-3')
+				$elm$html$Html$Attributes$class('is-hidden-mobile column is-half is-centered has-text-centered')
 			]),
 		_List_fromArray(
 			[
-				$elm$html$Html$text(title)
+				A2(
+				$elm$html$Html$h5,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('subtitle has-text-black')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(preset.title)
+					])),
+				A2(
+				$elm$html$Html$span,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'filter', 'invert(1)')
+					]),
+				_List_fromArray(
+					[
+						$author$project$View$roleIcon(preset.role)
+					]))
 			]));
 };
-var $author$project$View$card = F3(
-	function (role, label, title) {
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $author$project$View$presetRow = function (_v0) {
+	var name = _v0.a;
+	var kit = _v0.b;
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Events$onClick(
+				$author$project$Update$ChangePreset(kit)),
+				$elm$html$Html$Attributes$class('is-clickable my-3 box column columns is-centered is-multiline is-one-quarter '),
+				$author$project$View$backgroundGradient(
+				_List_fromArray(
+					['cyan', 'magenta']))
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$h3,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('column is-full title has-text-centered')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(name)
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('columns column is-centered is-multiline is-mobile')
+					]),
+				A2($elm$core$List$map, $author$project$View$kitItem, kit))
+			]));
+};
+var $author$project$View$presetMenu = function (kits) {
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$h5,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('title')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Presets')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('columns is-multiline is-mobile mx-auto is-centered is-flex is-justify-content-space-around py-3')
+					]),
+				A2($elm$core$List$map, $author$project$View$presetRow, kits))
+			]));
+};
+var $author$project$Update$RequestPreset = {$: 'RequestPreset'};
+var $elm$html$Html$button = _VirtualDom_node('button');
+var $author$project$Data$palette = _List_fromArray(
+	['#ffa822', '#227bff', '#ff1900', '#00e5ff', '#11ff00', '#ee00ff']);
+var $elm$core$Array$getHelp = F3(
+	function (shift, index, tree) {
+		getHelp:
+		while (true) {
+			var pos = $elm$core$Array$bitMask & (index >>> shift);
+			var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (_v0.$ === 'SubTree') {
+				var subTree = _v0.a;
+				var $temp$shift = shift - $elm$core$Array$shiftStep,
+					$temp$index = index,
+					$temp$tree = subTree;
+				shift = $temp$shift;
+				index = $temp$index;
+				tree = $temp$tree;
+				continue getHelp;
+			} else {
+				var values = _v0.a;
+				return A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, values);
+			}
+		}
+	});
+var $elm$core$Array$get = F2(
+	function (index, _v0) {
+		var len = _v0.a;
+		var startShift = _v0.b;
+		var tree = _v0.c;
+		var tail = _v0.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? $elm$core$Maybe$Nothing : ((_Utils_cmp(
+			index,
+			$elm$core$Array$tailIndex(len)) > -1) ? $elm$core$Maybe$Just(
+			A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, tail)) : $elm$core$Maybe$Just(
+			A3($elm$core$Array$getHelp, startShift, index, tree)));
+	});
+var $author$project$Data$get = F2(
+	function (i, xs) {
+		if (_Utils_cmp(
+			$elm$core$List$length(xs),
+			i) < 0) {
+			return $elm$core$Maybe$Nothing;
+		} else {
+			var tmp = $elm$core$Array$fromList(xs);
+			return A2($elm$core$Array$get, i, tmp);
+		}
+	});
+var $author$project$Data$relate = F3(
+	function (x, xs, ys) {
+		return A2(
+			$author$project$Data$get,
+			A2($author$project$Data$findIndex, x, xs),
+			ys);
+	});
+var $author$project$Data$roles = _List_fromArray(
+	[$author$project$Types$Kick, $author$project$Types$Perc, $author$project$Types$Hat, $author$project$Types$Bass, $author$project$Types$Chords, $author$project$Types$Melody]);
+var $author$project$Data$roleColor = function (role) {
+	var _v0 = A3($author$project$Data$relate, role, $author$project$Data$roles, $author$project$Data$palette);
+	if (_v0.$ === 'Nothing') {
+		return '';
+	} else {
+		var color = _v0.a;
+		return color;
+	}
+};
+var $author$project$Update$ChangeSelection = function (a) {
+	return {$: 'ChangeSelection', a: a};
+};
+var $author$project$Update$UpdateSynthRole = F2(
+	function (a, b) {
+		return {$: 'UpdateSynthRole', a: a, b: b};
+	});
+var $author$project$Update$KillPreset = function (a) {
+	return {$: 'KillPreset', a: a};
+};
+var $author$project$View$killButton = function (synth) {
+	return A2(
+		$elm$html$Html$button,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('button'),
+				$elm$html$Html$Events$onClick(
+				$author$project$Update$KillPreset(synth))
+			]),
+		_List_fromArray(
+			[
+				$elm$html$Html$text('Delete')
+			]));
+};
+var $author$project$Update$AddPreset = function (a) {
+	return {$: 'AddPreset', a: a};
+};
+var $author$project$View$saveButton = function (synth) {
+	return A2(
+		$elm$html$Html$button,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('button'),
+				$elm$html$Html$Events$onClick(
+				$author$project$Update$AddPreset(synth))
+			]),
+		_List_fromArray(
+			[
+				$elm$html$Html$text('Save')
+			]));
+};
+var $author$project$View$crudButtons = function (preset) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('column is-flex is-justify-content-space-between')
+			]),
+		_List_fromArray(
+			[
+				$author$project$View$killButton(preset),
+				$author$project$View$saveButton(preset)
+			]));
+};
+var $elm$html$Html$figure = _VirtualDom_node('figure');
+var $author$project$View$roleIconButton = F2(
+	function (update, role) {
 		return A2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('column card')
+					$elm$html$Html$Attributes$class('column columns is-centered is-one-third mb-0')
 				]),
-			_List_fromArray(
-				[
-					$author$project$View$cardTitle(label),
-					A3($author$project$View$cardContent, role, title, '')
-				]));
-	});
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
-};
-var $author$project$View$roleCard = function (role) {
-	var text = $author$project$Data$roleLabel(role);
-	return A3($author$project$View$card, role, text.b, 'Role for ' + text.a);
-};
-var $author$project$Types$Chords = {$: 'Chords'};
-var $author$project$Types$Melody = {$: 'Melody'};
-var $author$project$Data$roles = _List_fromArray(
-	[$author$project$Types$Kick, $author$project$Types$Perc, $author$project$Types$Hat, $author$project$Types$Bass, $author$project$Types$Chords, $author$project$Types$Melody]);
-var $author$project$Main$view = function (model) {
-	return A2(
-		$elm$html$Html$div,
-		_List_Nil,
-		_Utils_ap(
 			_List_fromArray(
 				[
 					A2(
 					$elm$html$Html$div,
 					_List_fromArray(
 						[
-							$elm$html$Html$Attributes$class('columns')
+							$elm$html$Html$Attributes$class('box')
 						]),
-					A2($elm$core$List$map, $author$project$View$roleCard, $author$project$Data$roles))
-				]),
-			A2(
-				$elm$core$List$map,
-				function (r) {
-					return A2(
-						$author$project$View$buttonOpt,
-						r,
-						$author$project$Main$UpdateSynth(r));
-				},
-				_List_fromArray(
-					[$author$project$Types$Kick, $author$project$Types$Perc, $author$project$Types$Hat]))));
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('image is-48x48'),
+									A2(
+									$elm$html$Html$Attributes$style,
+									'box-shadow',
+									'0px 0px 30px ' + $author$project$Data$roleColor(role))
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$img,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$width(50),
+											$elm$html$Html$Attributes$height(50),
+											$elm$html$Html$Events$onClick(
+											update(role)),
+											$elm$html$Html$Attributes$src(
+											'/svg/' + ($author$project$Data$roleLabel(role).a + '.svg'))
+										]),
+									_List_Nil)
+								]))
+						]))
+				]));
+	});
+var $author$project$View$rolePicker = function (update) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('mt-3 columns is-multiline is-centered margin-auto')
+			]),
+		A2(
+			$elm$core$List$map,
+			$author$project$View$roleIconButton(update),
+			$author$project$Data$roles));
 };
-var $author$project$Main$main = $elm$browser$Browser$sandbox(
-	{init: $author$project$Data$p1, update: $author$project$Main$update, view: $author$project$Main$view});
+var $author$project$View$roleThumb = function (role) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('p-3 box'),
+				A2(
+				$elm$html$Html$Attributes$style,
+				'background',
+				$author$project$Data$roleColor(role))
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'filter', 'invert(1)'),
+						$elm$html$Html$Attributes$width(250),
+						$elm$html$Html$Attributes$height(250),
+						$elm$html$Html$Attributes$src(
+						'/svg/' + ($author$project$Data$roleLabel(role).a + '.svg'))
+					]),
+				_List_Nil)
+			]));
+};
+var $elm$html$Html$p = _VirtualDom_node('p');
+var $author$project$Data$roleDescription = function (role) {
+	switch (role.$) {
+		case 'Kick':
+			return 'The low drum in a beat. Usually sounds deep or punchy, but can also be smooth and clean.';
+		case 'Perc':
+			return 'Any percussive element that is not a kick or hat. Claps, snare, toms, cowbell, Pringles... the list goes on.';
+		case 'Hat':
+			return 'The high drum in a beat. Usually sounds bright or sharp, and played with short notes. Great for complex rhythms that sound clean.';
+		case 'Bass':
+			return 'The lowest instrument voice. It is the most important for setting up harmony.';
+		case 'Chords':
+			return 'Instruments that play more than one note. It tells a story through changing harmony.';
+		default:
+			return 'The most free and expressive instrument. This has the most variety of results.';
+	}
+};
+var $author$project$View$synthDescription = function (preset) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('column media-left')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('media-content')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$p,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('title is-4')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(preset.title)
+							])),
+						A2(
+						$elm$html$Html$p,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('content is-6')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								$author$project$Data$roleDescription(preset.role))
+							]))
+					]))
+			]));
+};
+var $author$project$Types$Complexity = {$: 'Complexity'};
+var $author$project$Types$Density = {$: 'Density'};
+var $author$project$Update$UpdateComplexity = function (a) {
+	return {$: 'UpdateComplexity', a: a};
+};
+var $author$project$Update$UpdateDensity = function (a) {
+	return {$: 'UpdateDensity', a: a};
+};
+var $elm$html$Html$b = _VirtualDom_node('b');
+var $elm$html$Html$label = _VirtualDom_node('label');
+var $author$project$View$noClickButton = A2(
+	$elm$html$Html$button,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('m-0 button image is-48x48 has-background-black'),
+			A2($elm$html$Html$Attributes$style, 'border-radius', '50%'),
+			A2($elm$html$Html$Attributes$style, 'cursor', 'initial')
+		]),
+	_List_Nil);
+var $author$project$View$editBoundInt = F5(
+	function (title, name, _v0, val, toMsg) {
+		var min = _v0.a;
+		var max = _v0.b;
+		var more = _Utils_eq(max, val) ? $author$project$View$noClickButton : A2(
+			$elm$html$Html$button,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('image button is-48x48'),
+					$elm$html$Html$Events$onClick(
+					toMsg(val + 1))
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('+ ')
+				]));
+		var less = _Utils_eq(min, val) ? $author$project$View$noClickButton : A2(
+			$elm$html$Html$button,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('image button is-48x48'),
+					$elm$html$Html$Events$onClick(
+					toMsg(val - 1))
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('-')
+				]));
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('level')
+				]),
+			_List_fromArray(
+				[
+					less,
+					A2(
+					$elm$html$Html$label,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text(name),
+							A2(
+							$elm$html$Html$b,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text(
+									' ' + $elm$core$String$fromInt(val))
+								]))
+						])),
+					more
+				]));
+	});
+var $author$project$Data$maxComplexity = 6;
+var $author$project$Data$minComplexity = 0;
+var $author$project$Data$rangeComplexity = _Utils_Tuple2($author$project$Data$minComplexity, $author$project$Data$maxComplexity);
+var $author$project$Data$maxDensity = 4;
+var $author$project$Data$minDensity = 1;
+var $author$project$Data$rangeDensity = _Utils_Tuple2($author$project$Data$minDensity, $author$project$Data$maxDensity);
+var $author$project$Data$textureLabel = function (texture) {
+	if (texture.$ === 'Density') {
+		return _Utils_Tuple2('density', 'Density');
+	} else {
+		return _Utils_Tuple2('complexity', 'Complexity');
+	}
+};
+var $author$project$View$editTexture = function (preset) {
+	var textD = $author$project$Data$textureLabel($author$project$Types$Density);
+	var textC = $author$project$Data$textureLabel($author$project$Types$Complexity);
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('is-two-thirds')
+			]),
+		_List_fromArray(
+			[
+				A5($author$project$View$editBoundInt, textD.b, textD.a, $author$project$Data$rangeDensity, preset.density, $author$project$Update$UpdateDensity),
+				A5($author$project$View$editBoundInt, textC.b, textC.a, $author$project$Data$rangeComplexity, preset.complexity, $author$project$Update$UpdateComplexity)
+			]));
+};
+var $author$project$View$texEdit = function (preset) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('texture-editor column is-two-thirds mx-auto is-centered')
+			]),
+		_List_fromArray(
+			[
+				$author$project$View$editTexture(preset)
+			]));
+};
+var $author$project$View$synthCardContent = function (preset) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('column card-content has-background-white ')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$button,
+				_List_fromArray(
+					[
+						$elm$html$Html$Events$onClick(
+						$author$project$Update$ChangeSelection($elm$core$Maybe$Nothing)),
+						$elm$html$Html$Attributes$class('delete is-large')
+					]),
+				_List_Nil),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('column media is-centered p-3')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$figure,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('image mx-auto is-96x96')
+							]),
+						_List_fromArray(
+							[
+								$author$project$View$roleThumb(preset.role)
+							]))
+					])),
+				$author$project$View$synthDescription(preset),
+				$author$project$View$rolePicker(
+				$author$project$Update$UpdateSynthRole(preset)),
+				$author$project$View$texEdit(preset),
+				$author$project$View$crudButtons(preset)
+			]));
+};
+var $author$project$View$editPreset = function (preset) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('column card  is-half px-6 py-4'),
+				A2(
+				$elm$html$Html$Attributes$style,
+				'background',
+				$author$project$Data$roleColor(preset.role))
+			]),
+		_List_fromArray(
+			[
+				$author$project$View$synthCardContent(preset)
+			]));
+};
+var $author$project$View$presetIcon = function (role) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('box'),
+				A2(
+				$elm$html$Html$Attributes$style,
+				'background',
+				$author$project$Data$roleColor(role))
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('p-6')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$img,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$width(50),
+								$elm$html$Html$Attributes$height(50),
+								$elm$html$Html$Attributes$src(
+								'/svg/' + ($author$project$Data$roleLabel(role).a + '.svg'))
+							]),
+						_List_Nil)
+					]))
+			]));
+};
+var $author$project$View$changePresetButton = function (preset) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Events$onClick(
+				$author$project$Update$ChangeSelection(
+					$elm$core$Maybe$Just(preset))),
+				$elm$html$Html$Attributes$class('my-5')
+			]),
+		_List_fromArray(
+			[
+				$author$project$View$presetIcon(preset.role)
+			]));
+};
+var $author$project$View$kitRow = F2(
+	function (curr, presets) {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('column level')
+				]),
+			_Utils_ap(
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$h5,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('title')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Instruments')
+							]))
+					]),
+				A2($elm$core$List$map, $author$project$View$changePresetButton, presets)));
+	});
+var $author$project$View$synthEditor = function (model) {
+	var yy = A2($elm$core$Debug$log, 'model : ', model);
+	var _v0 = model.current;
+	if (_v0.$ === 'Nothing') {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('columns')
+				]),
+			_List_fromArray(
+				[
+					A2($author$project$View$kitRow, model.current, model.presets),
+					A2(
+					$elm$html$Html$button,
+					_List_fromArray(
+						[
+							$elm$html$Html$Events$onClick($author$project$Update$RequestPreset),
+							$elm$html$Html$Attributes$class('button')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('Create a Preset')
+						]))
+				]));
+	} else {
+		var preset = _v0.a;
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('columns is-centered')
+				]),
+			_List_fromArray(
+				[
+					A2($author$project$View$kitRow, model.current, model.presets),
+					$author$project$View$editPreset(preset)
+				]));
+	}
+};
+var $author$project$Main$view = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('syn-main section')
+			]),
+		_List_fromArray(
+			[
+				$author$project$View$presetMenu($author$project$Data$kits),
+				$author$project$View$synthEditor(model)
+			]));
+};
+var $author$project$Main$main = $elm$browser$Browser$element(
+	{init: $author$project$Main$initFromFlags, subscriptions: $author$project$Main$subs, update: $author$project$Update$update, view: $author$project$Main$view});
 var $author$project$Data$main = $elm$html$Html$text('');
 var $author$project$Components$main = $elm$html$Html$text('');
 var $the_sett$elm_color$Color$rgb = F3(
@@ -5435,6 +6972,26 @@ var $the_sett$elm_color$Color$rgb = F3(
 	});
 var $author$project$ColorPicker$initialModel = {
 	color: A3($the_sett$elm_color$Color$rgb, 50, 200, 100)
+};
+var $elm$core$Platform$Sub$batch = _Platform_batch;
+var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $elm$browser$Browser$sandbox = function (impl) {
+	return _Browser_element(
+		{
+			init: function (_v0) {
+				return _Utils_Tuple2(impl.init, $elm$core$Platform$Cmd$none);
+			},
+			subscriptions: function (_v1) {
+				return $elm$core$Platform$Sub$none;
+			},
+			update: F2(
+				function (msg, model) {
+					return _Utils_Tuple2(
+						A2(impl.update, msg, model),
+						$elm$core$Platform$Cmd$none);
+				}),
+			view: impl.view
+		});
 };
 var $the_sett$elm_color$Color$toRgb = $elm$core$Basics$identity;
 var $author$project$ColorPicker$update = F2(
@@ -5458,11 +7015,6 @@ var $author$project$ColorPicker$blueToColour = F2(
 		var green = _v0.green;
 		var blue = _v0.blue;
 		return A3($the_sett$elm_color$Color$rgb, red, green, newBlue);
-	});
-var $elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
 	});
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$Attributes$max = $elm$html$Html$Attributes$stringProperty('max');
@@ -5501,7 +7053,6 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			$elm$html$Html$Events$alwaysStop,
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
-var $elm$html$Html$span = _VirtualDom_node('span');
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
@@ -5577,8 +7128,6 @@ var $author$project$ColorPicker$redToColour = F2(
 		var blue = _v0.blue;
 		return A3($the_sett$elm_color$Color$rgb, newRed, green, blue);
 	});
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $author$project$ColorPicker$toColorCss = function (color) {
 	var _v0 = $the_sett$elm_color$Color$toRgb(color);
 	var red = _v0.red;
@@ -5648,4 +7197,9 @@ var $author$project$ColorPicker$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$ColorPicker$initialModel, update: $author$project$ColorPicker$update, view: $author$project$ColorPicker$view});
 _Platform_export({'ColorPicker':{'init':$author$project$ColorPicker$main(
 	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)},'View':{'init':_VirtualDom_init($author$project$View$main)(0)(0)},'Update':{'init':_VirtualDom_init($author$project$Update$main)(0)(0)},'Types':{'init':_VirtualDom_init($author$project$Types$main)(0)(0)},'Model':{'init':_VirtualDom_init($author$project$Model$main)(0)(0)},'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)},'Data':{'init':_VirtualDom_init($author$project$Data$main)(0)(0)},'Components':{'init':_VirtualDom_init($author$project$Components$main)(0)(0)}});}(this));
+	$elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				$elm$json$Json$Decode$null($elm$core$Maybe$Nothing),
+				A2($elm$json$Json$Decode$map, $elm$core$Maybe$Just, $elm$json$Json$Decode$int)
+			])))(0)},'Data':{'init':_VirtualDom_init($author$project$Data$main)(0)(0)},'Components':{'init':_VirtualDom_init($author$project$Components$main)(0)(0)}});}(this));
