@@ -9,7 +9,6 @@ import Data as D
 import Update as U
 
 
-
 cardTitle : String -> Html a
 cardTitle title =
   div [class "is-size-3"] [text title]
@@ -20,6 +19,7 @@ cardImage fp =
   div [class "card-image"]
     [ figure [class "image is-4by3"] 
        [ img [src fp, alt ""] [] ] ]
+
 
 cardContent : T.SynthRole -> String -> String-> Html a
 cardContent role title content = 
@@ -54,6 +54,7 @@ roleIcon role =
       , height 50
       , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] []
 
+
 presetIcon : T.SynthRole -> Html msg
 presetIcon role =
   div [class "box m-5", style "background" (D.roleColor role)]
@@ -61,6 +62,7 @@ presetIcon role =
       img [ width 50
           , height 50
           , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ] ]
+
 
 roleThumb : T.SynthRole -> Html msg
 roleThumb role =
@@ -178,22 +180,36 @@ carouselItem : Float -> Int -> Html msg -> Html msg
 carouselItem dTheta i el =
   let 
     rotation = "rotate3d(0, 1, 0," ++ (String.fromFloat <| (toFloat i) * dTheta) ++ "deg)"
-    fff = Debug.log "rotation:" rotation
   in 
   div [class <| String.fromInt i, style "transform" rotation ] [el]
 
 
-carousel : List (Html msg) -> Html msg
-carousel children =
+spiralItem : Int -> Float -> Int -> Html msg -> Html msg
+spiralItem time dTheta i el =
   let 
-    dTheta = 360.0 / (toFloat (List.length children))
+    rotation = "rotate3d(0, 1, 0," ++ (String.fromFloat <| (toFloat i) * dTheta) ++ "deg)"
+    amount =  100.0 + (100.0 * sin (toFloat (time // 100)))
+    translation = String.replace "%" (String.fromFloat amount) "translate3d(0px,%px,0px)" 
+    styleString = rotation ++ " " ++ translation
+  in 
+  div [ class <| String.fromInt i
+      , style "transform" styleString ] [el]
+
+
+modulateInt : Int -> Float
+modulateInt time =
+  sin <| ((toFloat time) / 1000)
+
+
+carousel : Int -> List (Html msg) -> Html msg
+carousel time children =
+  let 
+    dTheta = (modulateInt time) + 360.0 / (toFloat (List.length children))
+    yy  = Debug.log "theta" dTheta
   in
   div [class "columns"]
-    (List.indexedMap (\i el -> carouselItem dTheta i el) children)
-
-
-type alias Percent
-  = Float
+    -- (List.indexedMap (\i el -> carouselItem dTheta i el) children)
+    (List.indexedMap (\i el -> spiralItem time dTheta i el) children)
 
 
 presetRow : List T.SynthPreset -> Html U.UpdateMsg
@@ -201,21 +217,22 @@ presetRow presets =
   div [class "level"] 
     <| List.map presetButton presets
 
-testCarousel : Html msg
-testCarousel =
+
+testCarousel : Int -> Html msg
+testCarousel time =
   let 
-    items = (List.map roleIcon D.roles)
+    items = (List.map roleThumb D.roles)
     moreItems = items ++ items ++ items
   in 
-  carousel moreItems  
+  carousel time moreItems  
+
 
 synthEditor : T.State T.SynthPreset -> Html U.UpdateMsg
 synthEditor model =
   div [class "columns"]
-    [ testCarousel ]
+    [ testCarousel model.time ]
     -- , synthCard model.current
     -- , presetRow model.presets 
-
 
 
 main  =

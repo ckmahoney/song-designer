@@ -83,11 +83,6 @@ noCmd x =
 
 update : UpdateMsg -> T.State T.SynthPreset -> (T.State T.SynthPreset, Cmd UpdateMsg)
 update msg model =
-    let 
-      xx = log "Looking at model.current:" model.current
-      yy = log "Looking at modelpresets:" model.presets
-    in
-
     case msg of
       Tick ptime ->
         noCmd <| { model | time = ptoInt ptime }
