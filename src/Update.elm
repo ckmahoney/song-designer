@@ -4,13 +4,18 @@ import Html
 import Random
 import Debug exposing (log)
 import Array 
+import Time
+import Browser
+
+
 
 import Types as T
 import Data as D
 
 
 type UpdateMsg
-  = UpdateSynthRole T.SynthPreset T.SynthRole  
+  = Tick Time.Posix
+  | UpdateSynthRole T.SynthPreset T.SynthRole  
   | NewID Int
   | NewPreset Int
   | SavePreset T.SynthPreset
@@ -18,6 +23,12 @@ type UpdateMsg
   | ChangeSelection T.SynthPreset
   | UpdateDensity Int
   | UpdateComplexity Int
+
+
+
+ptoInt : Time.Posix -> Int
+ptoInt t =
+  Time.posixToMillis t
 
 
 conj x xs =
@@ -70,7 +81,6 @@ noCmd x =
   (x, Cmd.none)
 
 
-
 update : UpdateMsg -> T.State T.SynthPreset -> (T.State T.SynthPreset, Cmd UpdateMsg)
 update msg model =
     let 
@@ -79,6 +89,9 @@ update msg model =
     in
 
     case msg of
+      Tick ptime ->
+        noCmd <| { model | time = ptoInt ptime }
+
       NewID int ->
         let
           prev = model.current
@@ -110,7 +123,8 @@ update msg model =
           presets = Array.toList <| Array.set index next <| Array.fromList model.presets
         in 
         noCmd <|
-          { current = next
+          { model
+          | current = next
           , presets = presets }
 
       UpdateDensity val ->

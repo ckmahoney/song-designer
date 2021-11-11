@@ -55,7 +55,8 @@ type alias ScoreMeta =
   }
 
 type alias State a =
-  { current : a
+  { time : Int
+  , current : a
   , presets : List SynthPreset
   }
 

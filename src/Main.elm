@@ -6,6 +6,7 @@ import Html.Events exposing (onClick)
 import Browser
 import Dict
 import Debug
+import Time
 
 import Types as T
 import Data exposing (p1, p2, p3, p4)
@@ -19,7 +20,8 @@ type alias Model =
 
 init : T.State T.SynthPreset
 init =
-   { current = p1
+   { time = 0
+   , current = p1
    , presets = []
    }
 
@@ -44,9 +46,9 @@ initFromFlags ini =
       (init, U.genPreset)
 
 
-subs : Model -> Sub msg
-subs _ =
-  Sub.none
+subs : Model -> Sub U.UpdateMsg
+subs model =
+  Time.every 1 U.Tick
 
 
 main =

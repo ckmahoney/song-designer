@@ -3,23 +3,12 @@ module View exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+
 import Types as T
 import Data as D
 import Update as U
 
 
-view : T.State T.SynthPreset -> Html U.UpdateMsg
-view model =
-    div []
-        [ h1 [] [ text "SPA in Elm" ]
-        , div []
-            [ text "Button pushed in this screen: "
-
-            ]
-        , div []
-            [ button [  ] [ text "++" ]
-            ]
-        ]
 
 cardTitle : String -> Html a
 cardTitle title =
@@ -185,17 +174,48 @@ presetButton preset =
     [ presetIcon preset.role ]
 
 
+carouselItem : Float -> Int -> Html msg -> Html msg
+carouselItem dTheta i el =
+  let 
+    rotation = "rotate3d(0, 1, 0," ++ (String.fromFloat <| (toFloat i) * dTheta) ++ "deg)"
+    fff = Debug.log "rotation:" rotation
+  in 
+  div [class <| String.fromInt i, style "transform" rotation ] [el]
+
+
+carousel : List (Html msg) -> Html msg
+carousel children =
+  let 
+    dTheta = 360.0 / (toFloat (List.length children))
+  in
+  div [class "columns"]
+    (List.indexedMap (\i el -> carouselItem dTheta i el) children)
+
+
+type alias Percent
+  = Float
+
+
 presetRow : List T.SynthPreset -> Html U.UpdateMsg
 presetRow presets =
   div [class "level"] 
     <| List.map presetButton presets
 
+testCarousel : Html msg
+testCarousel =
+  let 
+    items = (List.map roleIcon D.roles)
+    moreItems = items ++ items ++ items
+  in 
+  carousel moreItems  
 
 synthEditor : T.State T.SynthPreset -> Html U.UpdateMsg
 synthEditor model =
   div [class "columns"]
-    [ synthCard model.current
-    , presetRow model.presets ]
+    [ testCarousel ]
+    -- , synthCard model.current
+    -- , presetRow model.presets 
+
 
 
 main  =
