@@ -18,6 +18,7 @@ keyNames =
   if useSharps then D.sharps else D.flats
 
 
+
 cardTitle : String -> Html a
 cardTitle title =
   div [class "is-size-3"] [text title]
@@ -405,6 +406,11 @@ sizeToCycles cpc size =
  cpc * (2^size)
 
 
+duration : Int -> Float -> Int -> Float
+duration cpc cps size  =
+  cps * (toFloat (sizeToCycles cpc size))
+
+
 sizeText : Int -> Int -> String
 sizeText cpc size =
   String.fromInt <| sizeToCycles cpc size
@@ -443,8 +449,14 @@ layoutItem {cps, cpc, size, root} msg =
       [ label [] [text  "Tempo"]
       , b [] [text <| String.fromFloat (cpsToBPM cps)] ]
     , div [] 
+      [ label [] [text  "Meter"]
+      , b [] [text <| String.fromInt cpc] ]
+    , div [] 
       [ label [] [text  "Key"]
       , b [] [text <| keyToLabel root] ]
+    , div [] 
+      [ label [] [text  "Duration"]
+      , b [] [text <| String.fromFloat <| duration cpc cps size] ]
     ]
 
 
