@@ -2,12 +2,10 @@ module Update exposing (..)
 
 import Html
 import Random
-import Debug exposing (log)
+import Debug
 import Array 
 import Time
 import Browser
-
-
 
 import Types as T
 import Data as D
@@ -27,6 +25,12 @@ type UpdateMsg
   | UpdateComplexity Int
   | ChangePreset T.PresetKit
 
+
+type EditScore
+  = UpdateCPS Float
+  | UpdateCPC Int
+  | UpdateSize Int
+  | UpdateRoot Int
 
 ptoInt : Time.Posix -> Int
 ptoInt t =
@@ -88,7 +92,55 @@ noCmd x =
   (x, Cmd.none)
 
 
-update : UpdateMsg -> T.State T.SynthPreset -> (T.State T.SynthPreset, Cmd UpdateMsg)
+updateScore : EditScore -> T.EditScore -> (T.EditScore, Cmd EditScore)
+updateScore msg model =
+  case msg of 
+    UpdateCPS x ->
+      case model.current of 
+        Nothing -> 
+          (model, Cmd.none)
+
+        Just prev ->
+          let 
+            next = { prev | cps = x }
+          in 
+          ({ model | current = Just next }, Cmd.none)
+
+    UpdateCPC x ->
+      case model.current of 
+        Nothing -> 
+          (model, Cmd.none)
+
+        Just prev ->
+          let 
+            next = { prev | cpc = x }
+          in 
+          ({ model | current = Just next }, Cmd.none)
+
+    UpdateSize x ->
+      case model.current of 
+        Nothing -> 
+          (model, Cmd.none)
+
+        Just prev ->
+          let 
+            next = { prev | size = x }
+          in 
+          ({ model | current = Just next }, Cmd.none)
+
+    UpdateRoot x ->
+      case model.current of 
+        Nothing ->
+          (model, Cmd.none)
+
+        Just prev ->
+          let 
+            next = { prev | root = x }
+          in 
+          ({ model | current = Just next }, Cmd.none)
+        
+
+update : UpdateMsg -> T.SynthState -> (T.SynthState, Cmd UpdateMsg)
 update msg model =
     case msg of
       Tick ptime ->

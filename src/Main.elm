@@ -15,14 +15,22 @@ import View
 
 
 type alias Model = 
-  T.State T.SynthPreset
+  T.EditScore
 
 
-init : T.State T.SynthPreset
-init =
+initEditSynth : T.SynthState
+initEditSynth =
    { time = 0
    , current = Just p1
    , presets = Data.kitAll
+   }
+
+initEditScore : T.EditScore
+initEditScore =
+   { time = 0
+   , index = -1
+   , current = Just Data.s1
+   , presets = []
    }
 
 
@@ -31,32 +39,43 @@ toInt x =
   Maybe.withDefault 0 x
 
 
-view : Model -> Html U.UpdateMsg
+view : Model -> Html U.EditScore
 view model =
   div [Attr.class "syn-main section"] 
-    [ View.presetMenu Data.kits
-    , View.synthEditor model
-    ]
+    [ View.editScore model ]
 
 
-initFromFlags : Maybe Int -> (Model, Cmd U.UpdateMsg)
-initFromFlags ini = 
+-- initFromFlags : Maybe Int -> (Model, Cmd U.UpdateMsg)
+-- initFromFlags ini = 
+--   let
+--     w = Debug.log "initializing: " ini
+--   in
+--   case ini of 
+--     _ ->
+--       (initEditSynth, Cmd.none)
+
+initScore : Maybe Int -> (Model, Cmd U.EditScore)
+initScore ini = 
   let
-    w = Debug.log "initializing: " ini
+    w = Debug.log "initializing score: " ini
   in
   case ini of 
     _ ->
-      (init, Cmd.none)
+      (initEditScore, Cmd.none)
 
 
 subs : Model -> Sub U.UpdateMsg
 subs model =
   Time.every 1000 U.Tick
 
+subsScore : Model -> Sub U.EditScore
+subsScore model =
+  Sub.none
+
 
 main =
-  Browser.element { init = initFromFlags
-                  , update = U.update
+  Browser.element { init = initScore
+                  , update = U.updateScore
                   , view = view 
-                  , subscriptions = subs
+                  , subscriptions = subsScore
                   }

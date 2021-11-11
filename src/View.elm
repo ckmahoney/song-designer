@@ -1,13 +1,13 @@
 module View exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (..)
 
 import Types as T
 import Data as D
 import Update as U
-
+import String exposing (String(..))
 
 cardTitle : String -> Html a
 cardTitle title =
@@ -127,6 +127,27 @@ editInt title name val toMsg =
     , button [class "button", onClick (toMsg <| val + 1)] [text  "+ "]]
 
 
+editFloat : String -> String -> Float -> (Float -> msg) -> Html msg
+editFloat title name val toMsg =
+  div [class "level"]
+    [ button [class "button", onClick (toMsg <| val - 1)] [text  "-" ]
+    , label [] [text name, b [] [" " ++ String.fromFloat val |> text]]
+    , button [class "button", onClick (toMsg <| val + 1)] [text  "+ "]]
+
+
+editRange : String -> Html msg -> (Float, Float) -> Float -> Float -> (Float -> msg) -> Html msg
+editRange title infoMsg (mn, mx) step_ val toMsg =
+  div [class "m-3 level column box"
+      , onInput (\s -> toMsg <| Maybe.withDefault 0.0 <| String.toFloat s) ]
+    [ label [class "subtitle"] [text title]
+    , input [type_ "range"
+            , value <| String.fromFloat val
+            , step <| String.fromFloat step_
+            , Attr.min <| String.fromFloat mn
+            , Attr.max <| String.fromFloat mx ] []
+    , infoMsg ]
+
+
 editBoundInt : String -> String -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
 editBoundInt title name (min, max) val toMsg =
   let 
@@ -138,6 +159,33 @@ editBoundInt title name (min, max) val toMsg =
   div [class "level"]
     [ less
     , label [] [text name, b [] [" " ++ String.fromInt val |> text]]
+    , more ]
+
+editBoundInt2 : String -> String -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
+editBoundInt2 title name (min, max) val toMsg =
+  let 
+    less = if min == val then noClickButton else
+             button [class "image button is-48x48", onClick (toMsg <| val - 1)] [text  "-" ]
+    more = if max == val then noClickButton else 
+             button [class "image button is-48x48", onClick (toMsg <| val + 1)] [text  "+ "]
+  in 
+  div [class "m-2 column box"]
+    [ h5 [class "subtitle"] [text title]
+    , div [] [ less
+    , label [] [text name, b [] [" " ++ String.fromInt val |> text]]
+    , more ] ]
+
+editBoundFloat : String -> String -> (Float,  Float) -> Float -> (Float -> msg) -> Html msg
+editBoundFloat title name (min, max) val toMsg =
+  let 
+    less = if min == val then noClickButton else
+             button [class "image button is-48x48", onClick (toMsg <| val - 1)] [text  "-" ]
+    more = if max == val then noClickButton else 
+             button [class "image button is-48x48", onClick (toMsg <| val + 1)] [text  "+ "]
+  in 
+  div [class "level"]
+    [ less
+    , label [] [text name, b [] [" " ++ String.fromFloat val |> text]]
     , more ]
 
 
@@ -267,7 +315,7 @@ testCarousel time =
   carousel 0 items
 
 
-synthEditor : T.State T.SynthPreset -> Html U.UpdateMsg
+synthEditor : T.SynthState -> Html U.UpdateMsg
 synthEditor model =
   let 
     yy = Debug.log "model : " model
@@ -293,6 +341,12 @@ csv strs =
     s = List.foldl (\str all -> all ++ str ++ "," )  "" strs 
   in
   String.slice 0 ((String.length s) - 1) s
+
+
+keys : Html msg
+keys =
+  -- div [] (List.map (\x -> text (String.fromFloat x)) D.chromaticRoots)
+  div [] [ text <| csv  (List.map String.fromFloat D.chromaticRoots)]
 
 
 backgroundGradient : List String -> Attribute msg
@@ -327,6 +381,71 @@ presetMenu kits =
     ]
 
 
+tempoMessage : Float -> Html msg
+tempoMessage  cps =
+  div [class "content"] 
+    [ p [] [text "The speed for you track."]
+    , text <| (String.fromFloat (60.0 * cps)) ++ " Beats Per Minute" ]
 
-main  =
+
+sizeText : Int -> Int -> String
+sizeText cpc size =
+  String.fromInt <| cpc * (2^size) 
+
+
+compoContent : T.Compo -> Html U.EditScore
+compoContent model = 
+  div [ class "columns card-content has-background-white is-multiline" ]
+    -- [ button [onClick (U.ChangeSelection Nothing), class "delete is-large"] []
+    [ editBoundInt2 "Meter" "cpc" D.rangeCPC model.cpc U.UpdateCPC
+    , editBoundInt2 "Size" (sizeText model.cpc model.size) D.rangeCompoSize model.size U.UpdateSize
+    , editRange "Tempo" (tempoMessage model.cps) D.rangeCPS D.rangeStep model.cps U.UpdateCPS 
+    , keyPicker model.root U.UpdateRoot ]
+      -- [ figure [class "image mx-auto is-96x96"] [roleThumb preset.role]]
+      -- , synthDescription preset 
+      -- , rolePicker (U.UpdateSynthRole preset) 
+      -- , texEdit preset
+      -- , crudButtons preset ]
+
+
+layoutPreview : T.Score -> Html U.EditScore
+layoutPreview score = 
+  div [] []
+
+
+keyButton : String -> Int -> (Int -> U.EditScore) -> Int -> Html U.EditScore
+keyButton name curr toMsg val =
+  button [ onClick (toMsg val)
+         , class <| if curr == val then "is-success is-selected" else ""
+         , class "button" ] [text name]
+
+
+keyPicker : Int -> (Int -> U.EditScore) -> Html U.EditScore
+keyPicker val toMsg =
+  div [class "m-2 box"] 
+    <| [ h5 [class "subtitle"] [text "Key"] ]
+    ++ List.map (\(v, name) -> keyButton name val toMsg v) D.indexedSharps
+
+
+editCompo : (Maybe T.Compo) -> Html U.EditScore
+editCompo mcompo =
+  case mcompo of 
+    Nothing ->
+      text ""
+
+    Just compo ->
+     div [ class "column card  is-half px-6 py-4"
+         , style  "background" "cyan" ]
+       [ compoContent compo]
+
+
+editScore : T.EditScore -> Html U.EditScore 
+editScore model = 
+  div [ class "container" ]
+    [ h1 [] [text "Compo Designer"]
+    , editCompo model.current
+    , layoutPreview model.presets
+    , keys ]
+
+main =
   Html.text ""

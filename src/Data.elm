@@ -33,7 +33,73 @@ rangeComplexity : (Int, Int)
 rangeComplexity = (minComplexity, maxComplexity)
 
 
+defaultCPC = 4
 
+rangeCPC : (Int, Int)
+rangeCPC = (1, 7)
+
+
+defaultCPS = 1
+
+
+rangeCPS : (Float, Float)
+rangeCPS = (0.5, 4)
+rangeStep = 0.05
+
+rangeCompoSize : (Int, Int)
+rangeCompoSize = (1, 9)
+
+rangeRoot : (Float, Float)
+rangeRoot  = (16.0, 16.0 * 2)
+
+chromaticRoots =
+  let 
+    root = Tuple.first rangeRoot
+    octave = Tuple.second rangeRoot - root
+    nSteps = 12
+    step = octave / nSteps
+  in
+  List.map (\i -> root + (step * (toFloat i))) <| List.range 0 11
+
+
+sharps =
+  [ "C"
+  , "C#"
+  , "D"
+  , "D#"
+  , "E"
+  , "F"
+  , "F#"
+  , "G"
+  , "G#"
+  , "A"
+  , "A#"
+  , "B"
+  ] 
+
+
+flats = 
+  [ "C"
+  , "Db"
+  , "D"
+  , "Eb"
+  , "E"
+  , "F"
+  , "Gb"
+  , "G"
+  , "Ab"
+  , "A"
+  , "Bb"
+  , "B"
+  ]
+  
+
+indexedSharps
+  = List.map2 Tuple.pair (List.range 0 11) sharps
+
+
+indexedFlats
+  = List.map2 Tuple.pair (List.range 0 11) flats
 
 
 paletteTrio : Palette
@@ -75,6 +141,40 @@ palette3 =
   , "#1a0cb8"
   , "#4738f2"
   ]
+
+
+s1 : Compo
+s1 =
+  { cps = 1
+  , cpc = 4 
+  , nCycles = 64
+  , root = 0
+  , size = 4
+  }
+
+
+s2 : Compo
+s2 =
+  { cps = 2
+  , cpc = 3
+  , nCycles = 96
+  , root = 1
+  , size = 5
+  }
+
+
+s3 : Compo
+s3 =
+  { cps = 3
+  , cpc = 4
+  , nCycles = 256
+  , root = 4
+  , size = 3
+  }
+
+
+layout1 : List Compo
+layout1 = [s1, s2, s1,  s3]
 
 
 p1 : SynthPreset
