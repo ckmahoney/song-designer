@@ -48,6 +48,10 @@ type alias SynthPreset =
   }
 
 
+type alias PresetKit = List SynthPreset
+
+type alias NPresetKit = (String, PresetKit)
+
 type alias ScoreMeta =
   { cps : Float
   , root : Float

@@ -33,7 +33,10 @@ toInt x =
 
 view : Model -> Html U.UpdateMsg
 view model =
-  View.synthEditor model
+  div [Attr.class "main"] 
+    [ View.presetMenu Data.kits
+    , View.synthEditor model
+    ]
 
 
 initFromFlags : Maybe Int -> (Model, Cmd U.UpdateMsg)

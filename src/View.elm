@@ -249,8 +249,8 @@ carousel time children =
     -- (List.indexedMap (\i el -> spiralItem time dTheta i el) children)
 
 
-presetRow : (Maybe T.SynthPreset) -> List T.SynthPreset -> Html U.UpdateMsg
-presetRow curr presets =
+kitRow : (Maybe T.SynthPreset) -> List T.SynthPreset -> Html U.UpdateMsg
+kitRow curr presets =
   div [class "level"] 
     <| List.map changePresetButton presets
 
@@ -274,13 +274,37 @@ synthEditor model =
     Nothing -> 
       div [class "columns"] 
         [ button [onClick U.RequestPreset] [text "Create a Preset"]
-        , presetRow model.current model.presets ]
+        , kitRow model.current model.presets ]
     -- [testCarousel model.time]
     
     Just preset ->
       div [] 
         [ editPreset preset
-        , presetRow model.current model.presets ]
+        , kitRow model.current model.presets ]
+
+
+kitItem : T.SynthPreset -> Html msg
+kitItem preset =
+  div [class "column is-half is-centered has-text-centered"]
+    [ h5 [class "subtitle"] [text preset.title]
+    , roleIcon preset.role ]
+
+
+presetRow : T.NPresetKit -> Html msg
+presetRow (name, kit) =
+  div [ class "my-3 box column columns is-multiline is-one-quarter is-centered" ]
+    <| [ h3 [class "title"] [text name] ]
+    ++ List.map kitItem kit
+
+
+presetMenu : List T.NPresetKit -> Html msg
+presetMenu kits =
+  div [] <|
+    [ h2 [] [text  "Presets"]
+    , div [ class "columns is-multiline is-mobile mx-auto is-centered is-flex is-justify-content-space-around py-3"
+      ] <| List.map presetRow kits
+    ]
+
 
 
 main  =

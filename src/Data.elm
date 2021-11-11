@@ -13,8 +13,10 @@ import Html
 minDensity : Int
 minDensity = 1
 
+
 maxDensity : Int
 maxDensity = 4
+
 
 minComplexity : Int
 minComplexity = 0
@@ -26,8 +28,10 @@ maxComplexity = 6
 rangeDensity : (Int, Int)
 rangeDensity = (minDensity, maxDensity)
 
+
 rangeComplexity : (Int, Int)
 rangeComplexity = (minComplexity, maxComplexity)
+
 
 palette : Palette
 palette =
@@ -38,6 +42,7 @@ palette =
   , "#11ff00"
   , "#ee00ff"
   ]
+
 
 p1 : SynthPreset
 p1 =
@@ -50,6 +55,7 @@ p1 =
   , complexity = 1
   }
 
+
 p2 : SynthPreset
 p2 =
   { id = -2
@@ -61,6 +67,7 @@ p2 =
   , complexity = 0
   }
 
+
 p3 : SynthPreset
 p3 =
   { id = -3
@@ -71,6 +78,7 @@ p3 =
   , density = 1
   , complexity = 2
   }
+
 
 p4 : SynthPreset
 p4 =
@@ -84,7 +92,43 @@ p4 =
   }
 
 
+presets : PresetKit
 presets = [p1,p2,p3,p4]
+
+
+kitAll : PresetKit
+kitAll =
+  [ SynthPreset 0 Structure Kick "clock" 1 1 0
+  , SynthPreset 1 Structure Perc "clap" 3 2 0
+  , SynthPreset 2 Structure Hat "offbeat" 5 3 1
+  , SynthPreset 3 Structure Bass "pedal" 5 3 1
+  , SynthPreset 4 Structure Chords "hook" 5 3 1
+  , SynthPreset 5 Structure Melody "phrase" 5 3 1
+  ]
+
+
+kitBeat : PresetKit
+kitBeat =
+  [ SynthPreset 0 Structure Kick "clock" 1 1 0
+  , SynthPreset 1 Structure Perc "clap" 3 2 0
+  , SynthPreset 2 Structure Hat "offbeat" 5 3 1
+  ]
+
+
+kitSynth : PresetKit
+kitSynth =
+  [ SynthPreset 0 Structure Bass "pedal" 5 3 1
+  , SynthPreset 1 Structure Chords "hook" 5 3 1
+  , SynthPreset 2 Structure Melody "phrase" 5 3 1
+  ]
+
+
+kits : List NPresetKit
+kits = 
+  [ ("One of Everything", kitAll)
+  , ("The beats", kitBeat)
+  , ("The synths", kitSynth)
+  ]
 
 
 roles : List SynthRole
@@ -145,7 +189,6 @@ findIndex x xs =
 relate : a -> List a -> List b -> Maybe b
 relate x xs ys = 
   get (findIndex x xs) ys
-  
 
 
 roleDescription : SynthRole -> String
