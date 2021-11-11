@@ -17,10 +17,12 @@ type UpdateMsg
   = Tick Time.Posix
   | UpdateSynthRole T.SynthPreset T.SynthRole  
   | NewID Int
+  | RequestPreset
   | NewPreset Int
-  | SavePreset T.SynthPreset
+  | AddPreset T.SynthPreset
+  | UpdatePreset (Maybe T.SynthPreset)
   | KillPreset T.SynthPreset
-  | ChangeSelection T.SynthPreset
+  | ChangeSelection (Maybe T.SynthPreset)
   | UpdateDensity Int
   | UpdateComplexity Int
 
@@ -44,6 +46,7 @@ genID : Cmd UpdateMsg
 genID = 
   Random.generate NewID rint
 
+
 genPreset : Cmd UpdateMsg
 genPreset = 
   Random.generate NewPreset rint
@@ -62,18 +65,22 @@ createPreset id_ =
   { ref | id = id_ }
 
 
-remove : a -> List a -> List a
+remove : Maybe a -> List a -> List a
 remove x xs =
-  List.filter (\a -> not (x == a)) xs
+  case x of 
+   Nothing ->
+     xs
 
+   Just jx ->
+     List.filter (\a -> not (jx == a)) xs
 
 replace : a -> a -> List a -> List a 
-replace x xx xs =
+replace prev next xs =
   let
-    prev = x
-    nexts = remove prev xs
+    arr = Array.fromList xs
   in
-  xx :: nexts
+  Array.set (D.findIndex prev xs) next arr
+  |> Array.toList
 
 
 noCmd : a -> (a, Cmd UpdateMsg)
@@ -85,56 +92,81 @@ update : UpdateMsg -> T.State T.SynthPreset -> (T.State T.SynthPreset, Cmd Updat
 update msg model =
     case msg of
       Tick ptime ->
-        noCmd <| { model | time = ptoInt ptime }
+        noCmd { model | time = ptoInt ptime }
+
+      RequestPreset ->
+        (model, genPreset)
 
       NewID int ->
-        let
-          prev = model.current
-          presets = remove prev model.presets
-          next = { prev | id = int } 
-       in
-        noCmd { model | current = next} 
+        case model.current of
+          Nothing ->
+            noCmd { model | current = Just (createPreset int) }
+
+          Just prev ->   
+            let
+              next = { prev | id = int } 
+              presets = replace prev next model.presets
+             in
+             noCmd { model | current = Just next } 
  
       NewPreset id ->
        let
          next = createPreset id
        in      
-       noCmd <| ({ model | current = next, presets = next :: model.presets })      
+         noCmd { model | current  = Just next }
+               -- , presets = conj next model.presets }
 
-      SavePreset preset ->
-       ({ model | presets = conj preset model.presets }, genID)
+
+      AddPreset preset ->
+        noCmd { model 
+              | presets = conj preset model.presets }
+
+
+      UpdatePreset next ->
+        noCmd { model | current = next }
+
 
       KillPreset preset ->
-       ({ model | presets = remove preset model.presets }, Cmd.none)
+       ({ model 
+        | current = Nothing
+        , presets = remove (Just preset) model.presets }, Cmd.none)
+
   
       ChangeSelection preset ->
-        noCmd <| { model | current = preset }
+        noCmd { model | current =  preset }
 
-      UpdateSynthRole preset r ->
+      UpdateSynthRole curr r ->
         let 
-          prev = model.current
-          next = { prev | role = r, title = (Tuple.second <| D.roleLabel r)}
-          index = D.findIndex prev model.presets
-          presets = Array.toList <| Array.set index next <| Array.fromList model.presets
+          next = { curr | role = r
+                 , title = (Tuple.second <| D.roleLabel r) }
+          -- index = D.findIndex curr model.presets
+          -- presets = Array.toList <| Array.set index next <| Array.fromList model.presets
         in 
-        noCmd <|
-          { model
-          | current = next
-          , presets = presets }
+         noCmd { model | current = Just next }
+
 
       UpdateDensity val ->
-        let 
-          prev = model.current
-          next = { prev | density = val }
-        in
-        noCmd <| { model | current = next, presets = replace prev next model.presets }
+        case model.current of 
+         Nothing ->
+          noCmd model
+         
+         Just prev ->
+           let
+             next = { prev | density = val }
+           in
+           noCmd { model | current = Just next }
+
 
       UpdateComplexity val ->
-        let 
-          prev = model.current
-          next = { prev | complexity = val }
-        in
-          noCmd <| { model | current = next, presets = replace prev next model.presets }
+       case model.current of 
+        Nothing ->
+          noCmd model
+
+        Just prev ->
+           let
+             next = { prev | complexity = val }
+           in
+           noCmd { model | current = Just next }
 
 main =
   Html.text ""

@@ -21,7 +21,7 @@ type alias Model =
 init : T.State T.SynthPreset
 init =
    { time = 0
-   , current = p1
+   , current = Nothing
    , presets = []
    }
 
@@ -43,12 +43,12 @@ initFromFlags ini =
   in
   case ini of 
     _ ->
-      (init, U.genPreset)
+      (init, Cmd.none)
 
 
 subs : Model -> Sub U.UpdateMsg
 subs model =
-  Time.every 1 U.Tick
+  Time.every 1000 U.Tick
 
 
 main =

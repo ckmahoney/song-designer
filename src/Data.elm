@@ -6,10 +6,28 @@ import Array
 import Html
 
 
--- child moodule of Types
+-- child module of Types
 -- providing helpers for humanizing as data
 
 
+minDensity : Int
+minDensity = 1
+
+maxDensity : Int
+maxDensity = 4
+
+minComplexity : Int
+minComplexity = 0
+
+maxComplexity : Int
+maxComplexity = 6
+
+
+rangeDensity : (Int, Int)
+rangeDensity = (minDensity, maxDensity)
+
+rangeComplexity : (Int, Int)
+rangeComplexity = (minComplexity, maxComplexity)
 
 palette : Palette
 palette =
@@ -66,6 +84,9 @@ p4 =
   }
 
 
+presets = [p1,p2,p3,p4]
+
+
 roles : List SynthRole
 roles =
   [Kick, Perc, Hat, Bass, Chords, Melody]
@@ -104,6 +125,7 @@ get i xs =
     Array.get i tmp
 
 
+-- Returns the index of an element in list, or -1
 findIndex : a -> List a -> Int
 findIndex x xs =
   let 

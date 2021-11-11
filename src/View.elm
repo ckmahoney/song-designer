@@ -75,9 +75,9 @@ roleThumb role =
 
 roleIconButton : (T.SynthRole -> U.UpdateMsg) -> T.SynthRole -> Html U.UpdateMsg
 roleIconButton update role =
-  div [class "column columns is-centered is-one-third "]
+  div [class "column columns is-centered is-one-third mb-0"]
    [ div [class "box"]
-     [ div [class "image is-48x48"]
+     [ div [class "image is-48x48", style "box-shadow" ("0px 0px 30px " ++ D.roleColor role)]
        [ img  [ width 50
                , height 50
                , onClick (update role)
@@ -99,6 +99,24 @@ roleCard role =
     text = D.roleLabel role
   in
   card role (Tuple.second text) (" " ++ (Tuple.first text))
+
+
+-- Guarantees the integer will be in the range provided, inclusive
+bindInt : Int -> Int -> Int ->  Int
+bindInt min max val =
+  if val > max then 
+    max
+  else if val < min then
+    min
+  else 
+    val 
+
+
+noClickButton : Html msg
+noClickButton =
+  button [ class "m-0 button image is-48x48 has-background-black"
+         , style "border-radius" "50%"
+         , style "cursor" "initial"] []
   
 
 editInt : String -> String -> Int -> (Int -> msg) -> Html msg
@@ -109,6 +127,23 @@ editInt title name val toMsg =
     , button [class "button", onClick (toMsg <| val + 1)] [text  "+ "]]
 
 
+editBoundInt : String -> String -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
+editBoundInt title name (min, max) val toMsg =
+  let 
+    less = if min == val then noClickButton else
+             button [class "image button is-48x48", onClick (toMsg <| val - 1)] [text  "-" ]
+    more = if max == val then noClickButton else 
+             button [class "image button is-48x48", onClick (toMsg <| val + 1)] [text  "+ "]
+  in 
+  div [class "level"]
+    [ less
+    , label [] [text name, b [] [" " ++ String.fromInt val |> text]]
+    , more ]
+
+
+
+
+
 editTexture : T.SynthPreset -> Html U.UpdateMsg
 editTexture preset =
   let 
@@ -116,8 +151,8 @@ editTexture preset =
     textC = D.textureLabel T.Complexity
   in 
   div [class "is-two-thirds"]
-    [ editInt (Tuple.second textD) (Tuple.first textD) preset.density U.UpdateDensity 
-    , editInt (Tuple.second textC) (Tuple.first textC) preset.complexity U.UpdateComplexity
+    [ editBoundInt (Tuple.second textD) (Tuple.first textD) D.rangeDensity preset.density U.UpdateDensity 
+    , editBoundInt (Tuple.second textC) (Tuple.first textC) D.rangeComplexity preset.complexity U.UpdateComplexity
     ]
 
 
@@ -128,7 +163,8 @@ buttonOpt role msg =
 
 saveButton : T.SynthPreset -> Html U.UpdateMsg
 saveButton synth =
-  button [class "button", onClick (U.SavePreset synth)] [text "Clone"]
+  button [class "button", onClick (U.AddPreset synth)] [text "Save"]
+
 
 killButton : T.SynthPreset -> Html U.UpdateMsg
 killButton synth =
@@ -164,22 +200,23 @@ synthCardContent preset =
       , crudButtons preset ]
 
 
-synthCard : T.SynthPreset -> Html U.UpdateMsg
-synthCard preset =
+editPreset : T.SynthPreset -> Html U.UpdateMsg
+editPreset preset =
   div [class "column card is-one-third px-6 py-4" ,style  "background" (D.roleColor preset.role)]
     [ synthCardContent preset]
 
 
 presetButton : T.SynthPreset -> Html U.UpdateMsg
 presetButton preset = 
-  div [ onClick (U.ChangeSelection preset) ] 
+  div [ onClick (U.ChangeSelection (Just preset)) ] 
     [ presetIcon preset.role ]
 
 
 carouselItem : Float -> Int -> Html msg -> Html msg
 carouselItem dTheta i el =
   let 
-    rotation = "rotate3d(0, 1, 0," ++ (String.fromFloat <| (toFloat i) * dTheta) ++ "deg)"
+    degree = (toFloat i) * 15
+    rotation = "rotate3d(0, 1, 0," ++ (String.fromFloat degree) ++ "deg)"
   in 
   div [class <| String.fromInt i, style "transform" rotation ] [el]
 
@@ -204,12 +241,12 @@ modulateInt time =
 carousel : Int -> List (Html msg) -> Html msg
 carousel time children =
   let 
-    dTheta = (modulateInt time) + 360.0 / (toFloat (List.length children))
+    dTheta = (modulateInt time) + 0.0 / (toFloat (List.length children))
     yy  = Debug.log "theta" dTheta
   in
   div [class "columns"]
-    -- (List.indexedMap (\i el -> carouselItem dTheta i el) children)
-    (List.indexedMap (\i el -> spiralItem time dTheta i el) children)
+    (List.indexedMap (\i el -> carouselItem dTheta i el) children)
+    -- (List.indexedMap (\i el -> spiralItem time dTheta i el) children)
 
 
 presetRow : List T.SynthPreset -> Html U.UpdateMsg
@@ -218,21 +255,30 @@ presetRow presets =
     <| List.map presetButton presets
 
 
-testCarousel : Int -> Html msg
+testCarousel : Int -> Html U.UpdateMsg
 testCarousel time =
   let 
     items = (List.map roleThumb D.roles)
+    items2 = List.map presetButton ( D.presets ++ D.presets ++ D.presets)
     moreItems = items ++ items ++ items
   in 
-  carousel time moreItems  
+  carousel 0 items2
 
 
 synthEditor : T.State T.SynthPreset -> Html U.UpdateMsg
 synthEditor model =
-  div [class "columns"]
-    [ testCarousel model.time ]
-    -- , synthCard model.current
-    -- , presetRow model.presets 
+  let 
+    yy = Debug.log "model : " model
+  in 
+  case model.current of 
+    Nothing -> 
+      div [class "columns"] [button [onClick U.RequestPreset] [text "Create a Preset"]]
+    -- [testCarousel model.time]
+    
+    Just preset ->
+      div [] 
+        [ editPreset preset
+        , presetRow model.presets ]
 
 
 main  =
