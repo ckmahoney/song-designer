@@ -137,7 +137,7 @@ editFloat title name val toMsg =
 
 editRange : String -> Html msg -> (Float, Float) -> Float -> Float -> (Float -> msg) -> Html msg
 editRange title infoMsg (mn, mx) step_ val toMsg =
-  div [class "m-3 level column box"
+  div [class "m-2 level column box"
       , onInput (\s -> toMsg <| Maybe.withDefault 0.0 <| String.toFloat s) ]
     [ label [class "subtitle"] [text title]
     , input [type_ "range"
@@ -445,7 +445,8 @@ editScore model =
     [ h1 [] [text "Compo Designer"]
     , editCompo model.current
     , layoutPreview model.presets
-    , keys ]
+    ]
+
 
 main =
   Html.text ""
