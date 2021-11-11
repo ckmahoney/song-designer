@@ -206,8 +206,8 @@ editPreset preset =
     [ synthCardContent preset]
 
 
-presetButton : T.SynthPreset -> Html U.UpdateMsg
-presetButton preset = 
+changePresetButton : T.SynthPreset -> Html U.UpdateMsg
+changePresetButton preset = 
   div [ onClick (U.ChangeSelection (Just preset)) ] 
     [ presetIcon preset.role ]
 
@@ -249,20 +249,20 @@ carousel time children =
     -- (List.indexedMap (\i el -> spiralItem time dTheta i el) children)
 
 
-presetRow : List T.SynthPreset -> Html U.UpdateMsg
-presetRow presets =
+presetRow : (Maybe T.SynthPreset) -> List T.SynthPreset -> Html U.UpdateMsg
+presetRow curr presets =
   div [class "level"] 
-    <| List.map presetButton presets
+    <| List.map changePresetButton presets
 
 
 testCarousel : Int -> Html U.UpdateMsg
 testCarousel time =
   let 
     items = (List.map roleThumb D.roles)
-    items2 = List.map presetButton ( D.presets ++ D.presets ++ D.presets)
+    -- items2 = List.map changePresetButton ( D.presets ++ D.presets ++ D.presets)
     moreItems = items ++ items ++ items
   in 
-  carousel 0 items2
+  carousel 0 items
 
 
 synthEditor : T.State T.SynthPreset -> Html U.UpdateMsg
@@ -272,13 +272,15 @@ synthEditor model =
   in 
   case model.current of 
     Nothing -> 
-      div [class "columns"] [button [onClick U.RequestPreset] [text "Create a Preset"]]
+      div [class "columns"] 
+        [ button [onClick U.RequestPreset] [text "Create a Preset"]
+        , presetRow model.current model.presets ]
     -- [testCarousel model.time]
     
     Just preset ->
       div [] 
         [ editPreset preset
-        , presetRow model.presets ]
+        , presetRow model.current model.presets ]
 
 
 main  =

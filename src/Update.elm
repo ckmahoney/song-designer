@@ -34,7 +34,7 @@ ptoInt t =
 
 
 conj x xs =
-  List.reverse <| x :: xs
+  List.append xs [x]
 
 
 rint : Random.Generator Int
@@ -127,13 +127,40 @@ update msg model =
 
 
       KillPreset preset ->
-       ({ model 
-        | current = Nothing
-        , presets = remove (Just preset) model.presets }, Cmd.none)
+       let 
+         yy = Debug.log "presets:" model.presets
+       in
+       noCmd { model 
+             | current = Nothing
+             , presets = remove (Just preset) model.presets }
 
-  
-      ChangeSelection preset ->
-        noCmd { model | current =  preset }
+      -- remove the target from presets and hold it in current   
+      ChangeSelection next ->
+        case model.current of 
+         Nothing ->
+           case next of 
+             Nothing ->
+               noCmd model
+
+             Just n ->
+               noCmd { model 
+                     | current = next
+                     , presets = remove (Just n) model.presets }
+
+         Just prev ->
+           let 
+             ps = List.append model.presets [prev]
+           in 
+           case next of 
+             Nothing -> 
+               noCmd { model 
+               | current = next
+               , presets = ps }
+
+             Just n -> 
+               noCmd { model 
+               | current = next
+               , presets = remove (Just n) ps }
 
       UpdateSynthRole curr r ->
         let 
