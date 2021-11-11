@@ -30,7 +30,7 @@ initEditScore =
    { time = 0
    , index = -1
    , current = Just Data.s1
-   , presets = []
+   , presets = Data.layout1
    }
 
 

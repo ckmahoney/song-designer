@@ -4,10 +4,19 @@ import Html exposing (..)
 import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (..)
 
+import Array
 import Types as T
 import Data as D
 import Update as U
 import String exposing (String(..))
+
+
+useSharps = False
+
+
+keyNames =
+  if useSharps then D.sharps else D.flats
+
 
 cardTitle : String -> Html a
 cardTitle title =
@@ -175,6 +184,7 @@ editBoundInt2 title name (min, max) val toMsg =
     , label [] [text name, b [] [" " ++ String.fromInt val |> text]]
     , more ] ]
 
+
 editBoundFloat : String -> String -> (Float,  Float) -> Float -> (Float -> msg) -> Html msg
 editBoundFloat title name (min, max) val toMsg =
   let 
@@ -187,9 +197,6 @@ editBoundFloat title name (min, max) val toMsg =
     [ less
     , label [] [text name, b [] [" " ++ String.fromFloat val |> text]]
     , more ]
-
-
-
 
 
 editTexture : T.SynthPreset -> Html U.UpdateMsg
@@ -381,16 +388,33 @@ presetMenu kits =
     ]
 
 
+
+cpsToBPM : Float -> Float
+cpsToBPM cps =
+  60.0 * cps
+
 tempoMessage : Float -> Html msg
 tempoMessage  cps =
   div [class "content"] 
     [ p [] [text "The speed for you track."]
-    , text <| (String.fromFloat (60.0 * cps)) ++ " Beats Per Minute" ]
+    , text <| (String.fromFloat (cpsToBPM cps)) ++ " Beats Per Minute" ]
+
+
+sizeToCycles: Int -> Int -> Int
+sizeToCycles cpc size =
+ cpc * (2^size)
 
 
 sizeText : Int -> Int -> String
 sizeText cpc size =
-  String.fromInt <| cpc * (2^size) 
+  String.fromInt <| sizeToCycles cpc size
+
+
+keyToLabel : Int -> String
+keyToLabel index =
+   Maybe.withDefault "Key Not Found"
+     <| Array.get index <| Array.fromList keyNames
+
 
 
 compoContent : T.Compo -> Html U.EditScore
@@ -407,10 +431,27 @@ compoContent model =
       -- , texEdit preset
       -- , crudButtons preset ]
 
+layoutItem : T.Compo -> U.EditScore -> Html U.EditScore
+layoutItem {cps, cpc, size, root} msg =
+  div [class "column box is-flex is-flex-direction-column", onClick msg]
+    [ text <| String.fromInt <| sizeToCycles cpc size 
+    , text <| keyToLabel root
+    , div [] 
+      [ label [] [text "Size "] 
+      , b [] [text <| String.fromInt size] ]
+    , div [] 
+      [ label [] [text  "Tempo"]
+      , b [] [text <| String.fromFloat (cpsToBPM cps)] ]
+    , div [] 
+      [ label [] [text  "Key"]
+      , b [] [text <| keyToLabel root] ]
+    ]
 
-layoutPreview : T.Score -> Html U.EditScore
+
+layoutPreview : List T.Compo -> Html U.EditScore
 layoutPreview score = 
-  div [] []
+  div [class "columns"] 
+    <| List.map (\c -> layoutItem c (U.ChangeScoreSelection (Just c))) score
 
 
 keyButton : String -> Int -> (Int -> U.EditScore) -> Int -> Html U.EditScore
@@ -424,7 +465,7 @@ keyPicker : Int -> (Int -> U.EditScore) -> Html U.EditScore
 keyPicker val toMsg =
   div [class "m-2 box"] 
     <| [ h5 [class "subtitle"] [text "Key"] ]
-    ++ List.map (\(v, name) -> keyButton name val toMsg v) D.indexedSharps
+    ++ List.map (\(v, name) -> keyButton name val toMsg v) (if useSharps then D.indexedSharps else D.indexedFlats)
 
 
 editCompo : (Maybe T.Compo) -> Html U.EditScore

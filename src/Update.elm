@@ -31,6 +31,8 @@ type EditScore
   | UpdateCPC Int
   | UpdateSize Int
   | UpdateRoot Int
+  | ChangeScoreSelection (Maybe T.Compo)
+
 
 ptoInt : Time.Posix -> Int
 ptoInt t =
@@ -138,7 +140,34 @@ updateScore msg model =
             next = { prev | root = x }
           in 
           ({ model | current = Just next }, Cmd.none)
-        
+    
+    ChangeScoreSelection next ->
+        case model.current of 
+           Nothing ->
+             case next of 
+               Nothing ->
+                 (model, Cmd.none)
+
+               Just comp ->
+                 ({ model 
+                 | current = next
+                 , presets = remove (Just comp) model.presets }, Cmd.none)
+
+           Just prev ->
+             let 
+               ps = List.append model.presets [prev]
+             in 
+             case next of 
+               Nothing -> 
+                 ({ model 
+                 | current = next
+                 , presets = ps }, Cmd.none)
+
+               Just comp -> 
+                 ({ model 
+                 | current = next
+                 , presets = remove (Just comp) ps }, Cmd.none)
+         
 
 update : UpdateMsg -> T.SynthState -> (T.SynthState, Cmd UpdateMsg)
 update msg model =

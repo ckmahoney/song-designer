@@ -174,7 +174,7 @@ s3 =
 
 
 layout1 : List Compo
-layout1 = [s1, s2, s1,  s3]
+layout1 = [s1, s2,  s3]
 
 
 p1 : SynthPreset
