@@ -251,8 +251,8 @@ updateLayout msg model =
                  , presets = remove (Just comp) ps }, Cmd.none)
          
 
-update : UpdateMsg -> T.SynthState -> (T.SynthState, Cmd UpdateMsg)
-update msg model =
+updateEnsemble : UpdateMsg -> T.SynthState -> (T.SynthState, Cmd UpdateMsg)
+updateEnsemble msg model =
     case msg of
       Tick ptime ->
         noCmd { model | time = ptoInt ptime }

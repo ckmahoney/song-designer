@@ -94,6 +94,7 @@ type alias EditLayout  =
 
 
 type alias Section = (Compo, Ensemble)
+type alias SectionP = (Maybe Compo, Maybe Ensemble)
 
 
 -- a Score represents the ordered set of (Compo, Ensemble) pairs.

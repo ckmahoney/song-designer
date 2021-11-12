@@ -18,7 +18,6 @@ keyNames =
   if useSharps then D.sharps else D.flats
 
 
-
 cardTitle : String -> Html a
 cardTitle title =
   div [class "is-size-3"] [text title]
@@ -355,7 +354,7 @@ carousel time children =
 kitRow : (Maybe T.SynthPreset) -> List T.SynthPreset -> Html U.UpdateMsg
 kitRow curr presets =
   div [class "column level"] 
-    <| [ h5 [class "title" ] [ text "Instruments" ] ]
+    <| [ h5 [class "title" ] [ text "Ensemble Designer" ] ]
     ++ List.map changePresetButton presets
 
 
@@ -368,8 +367,8 @@ testCarousel time =
   carousel 0 items
 
 
-synthEditor : T.SynthState -> Html U.UpdateMsg
-synthEditor model =
+ensembleEditor : T.SynthState -> Html U.UpdateMsg
+ensembleEditor model =
   let 
     yy = Debug.log "model : " model
   in 
@@ -386,6 +385,11 @@ synthEditor model =
       div [class "columns is-centered"] 
         [ kitRow model.current model.presets 
         , editPreset preset ]
+
+
+editEnsemble : T.SynthState -> Html U.UpdateMsg
+editEnsemble  =
+  ensembleEditor
 
 
 csv : List String -> String
@@ -566,6 +570,7 @@ compoContent model =
   , div [class "is-hidden-mobile is-hidden-tablet-only is-block-desktop"] [ compoContentDesktop model ] 
   ]
 
+
 layoutItem : T.Compo -> U.EditLayout -> Html U.EditLayout
 layoutItem ({cps, cpc, size, root} as model) msg =
   div [class "m-3 column box is-flex is-flex-direction-column", onClick msg]
@@ -664,9 +669,32 @@ editLayout model =
     ]
 
 
-scorePreview : List T.Section -> Html msg
+scoreItem : T.Section -> U.EditScore -> Html U.EditScore
+scoreItem (compo, ensemble) toMsg =
+  div [ onClick toMsg ] [ text compo.label ]
+
+
+scorePreview : List T.Section -> Html U.EditScore
 scorePreview sections = 
-  div [] [ text "Score sections go here" ]
+  div [ class "box" ] 
+    [ h3 [ class "subtitle" ] [ text "Score" ]
+    , div [ class "columns" ] <| List.map (\s -> scoreItem s U.RequestScore)  sections ]
+
+
+
+makeSection : T.SectionP -> Html msg
+makeSection (mCompo, mEnsemble) =
+  div [] [ text "it has some maybethings" ]
+
+
+editSection : (Maybe T.Section) -> Html msg
+editSection mSection = 
+  case mSection of 
+    Nothing ->
+      button [ class "button" ] [ text "Create a new section" ]
+    
+    Just section ->
+      div [] [ text "Change a section" ]
 
 
 editScore : T.EditScore -> Html U.EditScore
@@ -674,7 +702,9 @@ editScore ({ current, list, layout, ensembles} as model) =
   div [ class "container" ]
     [ h1 [ class "title" ] [ text "Score Designer"]
     , div [ class "columns is-multiline"] 
-        [ div [ class "column is-full" ] [ scorePreview list ] ] ]    
+        [ div [ class "column is-full" ] [ editSection current ] ]
+        , div [ class "column is-full" ] [ scorePreview list ] ]
+
 
 
 main =

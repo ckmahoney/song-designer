@@ -14,12 +14,8 @@ import Update as U
 import View
 
 
-type alias Model = 
-  T.EditLayout
-
-
-initEditSynth : T.SynthState
-initEditSynth =
+initEditEnsemble : T.SynthState
+initEditEnsemble =
    { time = 0
    , current = Just p1
    , presets = Data.kitAll
@@ -50,7 +46,13 @@ toInt x =
   Maybe.withDefault 0 x
 
 
-viewLayoutEditor : Model -> Html U.EditLayout
+viewEnsembleEditor : T.SynthState -> Html U.UpdateMsg
+viewEnsembleEditor model =
+  div [Attr.class "syn-main section"] 
+    [ View.editEnsemble model ]
+
+
+viewLayoutEditor : T.EditLayout -> Html U.EditLayout
 viewLayoutEditor model =
   div [Attr.class "syn-main section"] 
     [ View.editLayout model ]
@@ -60,6 +62,16 @@ viewScoreEditor : T.EditScore -> Html U.EditScore
 viewScoreEditor model =
   div [Attr.class "syn-main section"] 
     [ View.editScore model ]
+
+
+initEnsemble : Maybe Int -> (T.SynthState, Cmd U.UpdateMsg)
+initEnsemble ini = 
+  let
+    w = Debug.log "initializing layout: " ini
+  in
+  case ini of 
+    _ ->
+      (initEditEnsemble, Cmd.none)
 
 
 initLayout : Maybe Int -> (T.EditLayout, Cmd U.EditLayout)
@@ -82,18 +94,26 @@ initScore ini =
       (initEditScore, Cmd.none)
 
 
-subs : Model -> Sub U.UpdateMsg
-subs model =
+subsEnsemble : T.SynthState -> Sub U.UpdateMsg
+subsEnsemble model =
   Time.every 1000 U.Tick
 
 
-subsLayout : Model -> Sub U.EditLayout
+subsLayout : T.EditLayout -> Sub U.EditLayout
 subsLayout model =
   Sub.none
 
 
 subsScore model =
   Sub.none
+
+
+mainEnsembleEditor =
+  Browser.element { init = initEnsemble
+                  , update = U.updateEnsemble
+                  , view = viewEnsembleEditor
+                  , subscriptions = subsEnsemble
+                  }
 
 
 mainLayoutEditor =
@@ -103,6 +123,7 @@ mainLayoutEditor =
                   , subscriptions = subsLayout
                   }
 
+
 mainScoreEditor =
   Browser.element { init = initScore
                   , update = U.updateScore
@@ -111,4 +132,4 @@ mainScoreEditor =
                   }
 
 main = 
-  mainScoreEditor
+  mainEnsembleEditor
