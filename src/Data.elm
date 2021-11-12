@@ -145,7 +145,8 @@ palette3 =
 
 s1 : Compo
 s1 =
-  { label = "verse"
+  { id = -1
+  , label = "verse"
   , cps = 1
   , cpc = 4 
   , nCycles = 64
@@ -156,7 +157,8 @@ s1 =
 
 s2 : Compo
 s2 =
-  { label = "chorus"
+  { id = -2
+  , label = "chorus"
   , cps = 2
   , cpc = 3
   , nCycles = 96
@@ -167,7 +169,8 @@ s2 =
 
 s3 : Compo
 s3 =
-  { label = "breakdown"
+  { id = -3
+  , label = "breakdown"
   , cps = 3
   , cpc = 4
   , nCycles = 256

@@ -606,16 +606,25 @@ keyPicker val toMsg =
     ]
 
 
+killCompoButton : T.Compo -> Html U.EditScore
+killCompoButton model =
+  button [ onClick (U.KillCompo model), class "button" ] [ text "Delete Section" ]
+
+
 editCompo : (Maybe T.Compo) -> Html U.EditScore
 editCompo mcompo =
   case mcompo of 
     Nothing ->
-      text ""
+      div []
+        [ p [ class "mb-3" ] [ text "Select an existing section below, or create a new one." ]
+
+        , button [ onClick U.RequestCompo, class "button" ] [ text "Create a new Section"] ]
 
     Just compo ->
-     div [ class "column card px-6 py-4"
-         , style  "background" "cyan" ]
-       [ compoContent compo]
+      div [ class "column card px-6 py-4"
+          , style  "background" "cyan" ]
+          [ killCompoButton compo
+          , compoContent compo]
 
 
 editScore : T.EditScore -> Html U.EditScore 

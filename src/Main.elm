@@ -29,7 +29,7 @@ initEditScore : T.EditScore
 initEditScore =
    { time = 0
    , index = -1
-   , current = Just Data.s1
+   , current = Nothing
    , presets = Data.layout1
    }
 

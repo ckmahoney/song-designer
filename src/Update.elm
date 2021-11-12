@@ -27,7 +27,10 @@ type UpdateMsg
 
 
 type EditScore
-  = UpdateCPS Float
+  = RequestCompo
+  | NewCompo Int
+  | KillCompo T.Compo
+  | UpdateCPS Float
   | UpdateCPC Int
   | UpdateSize Int
   | UpdateRoot Int
@@ -71,6 +74,13 @@ createPreset id_ =
   in
   { ref | id = id_ }
 
+createCompo : Int -> T.Compo
+createCompo id_ =   
+  let 
+    ref = D.s1
+  in
+  { ref | id = id_ }
+
 
 remove : Maybe a -> List a -> List a
 remove x xs =
@@ -95,9 +105,40 @@ noCmd x =
   (x, Cmd.none)
 
 
+reindexCompo : T.EditScore -> T.EditScore
+reindexCompo ({ index, current, presets } as model) =
+  model
+
+
+genCompo : Cmd EditScore
+genCompo =
+  Random.generate NewCompo rint
+
 updateScore : EditScore -> T.EditScore -> (T.EditScore, Cmd EditScore)
 updateScore msg model =
-  case msg of 
+  case msg of
+    RequestCompo ->
+      case model.current of 
+        Nothing ->
+          (model, genCompo)
+
+        Just prev ->
+          (reindexCompo model, genCompo)
+
+    NewCompo id ->
+      let 
+        next = createCompo id
+      in       
+      ({ model | current = Just next }, Cmd.none)
+
+    KillCompo compo ->
+      let
+        ps = remove (Just compo) model.presets
+      in       
+      ({ model
+       | current = Nothing
+       , presets = ps }, Cmd.none)
+
     UpdateCPS x ->
       case model.current of 
         Nothing -> 
