@@ -56,7 +56,8 @@ type alias NPresetKit = (String, PresetKit)
 
 
 type alias Compo  =
-  { cps : Float
+  { label : String
+  , cps : Float
   , cpc : Int
   , root : Int
   , nCycles : Int

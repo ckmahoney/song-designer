@@ -145,18 +145,44 @@ editFloat title name val toMsg =
     , button [class "button", onClick (toMsg <| val + 1)] [text  "+ "]]
 
 
-editRange : String -> Html msg -> (Float, Float) -> Float -> Float -> (Float -> msg) -> Html msg
-editRange title infoMsg (mn, mx) step_ val toMsg =
-  div [class "m-2 level column box"
-      , onInput (\s -> toMsg <| Maybe.withDefault 0.0 <| String.toFloat s) ]
-    [ label [class "subtitle"] [text title]
-    , input [type_ "range"
-            , value <| String.fromFloat val
-            , step <| String.fromFloat step_
-            , Attr.min <| String.fromFloat mn
-            , Attr.max <| String.fromFloat mx ] []
-    , infoMsg ]
 
+editRangeMobile : String -> Html msg -> (Float, Float) -> Float -> Float -> (Float -> msg) -> Html msg
+editRangeMobile title html (mn, mx) step_ val toMsg =
+  div [class "m-3 box level"
+      , onInput (\s -> toMsg <| Maybe.withDefault 0.0 <| String.toFloat s) ]
+    [ div [class "columns is-multiline"]
+      [ div [class "column is-full level is-flex is-justify-content-space-around"] 
+        [ label [class "m-0 subtitle"] [text title]
+        , input [ type_ "range"
+                , class "m-0"
+                , value <| String.fromFloat val
+                , step <| String.fromFloat step_
+                , Attr.min <| String.fromFloat mn
+                , Attr.max <| String.fromFloat mx ] [] ]
+      , div [class "column"] [ html ] ] ]
+
+
+editRangeDesktop : String -> Html msg -> (Float, Float) -> Float -> Float -> (Float -> msg) -> Html msg
+editRangeDesktop title html (mn, mx) step_ val toMsg =
+  div [class "m-3 box level"
+      , onInput (\s -> toMsg <| Maybe.withDefault 0.0 <| String.toFloat s) ]
+    [ div [class "columns is-multiline"]
+      [ div [class "column is-full level"] 
+        [ label [class "m-0 subtitle"] [text title]
+        , input [ type_ "range"
+                , class "m-0"
+                , value <| String.fromFloat val
+                , step <| String.fromFloat step_
+                , Attr.min <| String.fromFloat mn
+                , Attr.max <| String.fromFloat mx ] [] ]
+      , div [class "column"] [ html ] ] ]
+
+
+editRange : String -> Html msg -> (Float, Float) -> Float -> Float -> (Float -> msg) -> Html msg
+editRange title html (mn, mx) step_ val toMsg =
+  div []
+   [ div [class "is-hidden-tablet"] [ editRangeMobile title html (mn, mx) step_ val toMsg ]
+   , div [class "is-hidden-mobile"] [ editRangeDesktop title html (mn, mx) step_ val toMsg ] ]
 
 editBoundInt : String -> String -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
 editBoundInt title name (min, max) val toMsg =
@@ -179,11 +205,30 @@ editBoundInt2 title name (min, max) val toMsg =
     more = if max == val then noClickButton else 
              button [class "image button is-48x48", onClick (toMsg <| val + 1)] [text  "+ "]
   in 
-  div [class "m-2 column box"]
-    [ h5 [class "subtitle"] [text title]
+  div [class "m-3 column box"]
+    [ h3 [class "subtitle"] [text title]
     , div [] [ less
     , label [] [text name, b [] [" " ++ String.fromInt val |> text]]
     , more ] ]
+
+
+editBoundInt3 : String -> Html msg -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
+editBoundInt3 title html (min, max) val toMsg =
+  let 
+    less = if min == val then noClickButton else
+             button [class "image button is-48x48", onClick (toMsg <| val - 1)] [text  "-" ]
+    more = if max == val then noClickButton else 
+             button [class "image button is-48x48", onClick (toMsg <| val + 1)] [text  "+ "]
+  in 
+  div [ class "m-3 box"]
+    [ div [ class "columns is-multiline"]
+      [ div [ class "columns is-multiline column is-full is-flex is-flex-row is-justify-content-space-between"] 
+            [ h5 [ class "column is-full subtitle"] [ text title ]
+            , div [ class "mt-0 column is-full is-flex is-flex-row level"] 
+                     [ less
+                     , b [] [" " ++ String.fromInt val |> text ]
+                     , more ] ] 
+      , div [ class "column has-background-danger isfull"] [ html ] ] ]
 
 
 editBoundFloat : String -> String -> (Float,  Float) -> Float -> (Float -> msg) -> Html msg
@@ -422,26 +467,82 @@ keyToLabel index =
      <| Array.get index <| Array.fromList keyNames
 
 
+compoContentMobile : T.Compo -> Html U.EditScore
+compoContentMobile model =
+  div [ class "columns card-content is-multiline" ]
+    [ div [class "column"] 
+        [ editBoundInt3 "Meter" (text "cpc") D.rangeCPC model.cpc U.UpdateCPC
+        , editBoundInt3 "Size" (text (sizeText model.cpc model.size)) D.rangeCompoSize model.size U.UpdateSize ]
+    , div [class "column"] [ editText "Label" labelInfo model.label U.UpdateLabel ]
+    , div [class "column"] [ editRange "Tempo" (tempoMessage model.cps) D.rangeCPS D.rangeStep model.cps U.UpdateCPS ]
+    , div [class "column"] [ keyPicker model.root U.UpdateRoot ] ]
+
+
+compoContentTablet : T.Compo -> Html U.EditScore
+compoContentTablet model =
+  div [ class "columns card-content is-multiline" ]
+    [ div [class "column is-half"] 
+        [ editBoundInt3 "Meter" (text "cpc") D.rangeCPC model.cpc U.UpdateCPC
+        , editBoundInt3 "Size" (text (sizeText model.cpc model.size)) D.rangeCompoSize model.size U.UpdateSize ]
+    , div [class "column is-half"] [ editText "Label" labelInfo model.label U.UpdateLabel ]
+    , div [class "column is-half"] [ editRange "Tempo" (tempoMessage model.cps) D.rangeCPS D.rangeStep model.cps U.UpdateCPS ]
+    , div [class "column is-half"] [ keyPicker model.root U.UpdateRoot ] ]
+
+
+labelInfo : Html msg
+labelInfo =
+  div [class "content"] [ text "A name to help you remember what this section is for." ]
+
+editTextMobile : String -> Html msg -> String -> ( String -> msg ) -> Html msg
+editTextMobile title html val toMsg =
+  div [class ""]
+    [ label [ ] [ text title ]
+    , input [ type_ "text"
+            , class "input my-3 is-info"
+            , value val
+            , onInput toMsg ] []
+    , html
+    ]
+
+editTextDesktop : String -> Html msg -> String -> ( String -> msg ) -> Html msg
+editTextDesktop title html val toMsg =
+  div [class ""]
+    [ label [ ] [ text title ]
+    , input [ type_ "text"
+            , class "input my-3 is-info"
+            , value val
+            , onInput toMsg ] []
+    , html
+    ]
+
+editText : String -> Html msg -> String -> ( String -> msg ) -> Html msg
+editText title html val toMsg =
+  div [class "m-3 box"]
+    [ div [ class "is-hidden-tablet" ] [ editTextMobile title html val toMsg ]
+    , div [ class "is-hidden-mobile" ] [ editTextDesktop title html val toMsg ] ] 
+
+compoContentDesktop : T.Compo -> Html U.EditScore
+compoContentDesktop model =
+  div [ class "content-desktop columns card-content is-multiline" ]
+    [ editBoundInt3 "Meter" (text "cpc") D.rangeCPC model.cpc U.UpdateCPC
+    , editBoundInt3 "Size" (text (sizeText model.cpc model.size)) D.rangeCompoSize model.size U.UpdateSize
+    , editText "Label" labelInfo model.label U.UpdateLabel
+    , editRange "Tempo" (tempoMessage model.cps) D.rangeCPS D.rangeStep model.cps U.UpdateCPS 
+    , keyPicker model.root U.UpdateRoot ]
+
 
 compoContent : T.Compo -> Html U.EditScore
 compoContent model = 
-  div [ class "columns card-content has-background-white is-multiline" ]
-    -- [ button [onClick (U.ChangeSelection Nothing), class "delete is-large"] []
-    [ editBoundInt2 "Meter" "cpc" D.rangeCPC model.cpc U.UpdateCPC
-    , editBoundInt2 "Size" (sizeText model.cpc model.size) D.rangeCompoSize model.size U.UpdateSize
-    , editRange "Tempo" (tempoMessage model.cps) D.rangeCPS D.rangeStep model.cps U.UpdateCPS 
-    , keyPicker model.root U.UpdateRoot ]
-      -- [ figure [class "image mx-auto is-96x96"] [roleThumb preset.role]]
-      -- , synthDescription preset 
-      -- , rolePicker (U.UpdateSynthRole preset) 
-      -- , texEdit preset
-      -- , crudButtons preset ]
+  div []
+  [ div [class "is-hidden-tablet is-block-mobile"] [ compoContentMobile model ]
+  , div [class "is-hidden-mobile is-hidden-desktop is-block-tablet-only"] [ compoContentTablet model ] 
+  , div [class "is-hidden-mobile is-hidden-tablet-only is-block-desktop"] [ compoContentDesktop model ] 
+  ]
 
 layoutItem : T.Compo -> U.EditScore -> Html U.EditScore
-layoutItem {cps, cpc, size, root} msg =
-  div [class "column box is-flex is-flex-direction-column", onClick msg]
-    [ text <| String.fromInt <| sizeToCycles cpc size 
-    , text <| keyToLabel root
+layoutItem ({cps, cpc, size, root} as model) msg =
+  div [class "m-3 column box is-flex is-flex-direction-column", onClick msg]
+    [ label [class "subtitle has-text-centered"] [ text model.label ]
     , div [] 
       [ label [] [text "Size "] 
       , b [] [text <| String.fromInt size] ]
@@ -462,22 +563,47 @@ layoutItem {cps, cpc, size, root} msg =
 
 layoutPreview : List T.Compo -> Html U.EditScore
 layoutPreview score = 
-  div [class "columns"] 
-    <| List.map (\c -> layoutItem c (U.ChangeScoreSelection (Just c))) score
+  div [class "box", style "background" "magenta" ] 
+    [ div [class "columns"]
+      <| List.map (\c -> layoutItem c (U.ChangeScoreSelection (Just c))) score ]
 
 
-keyButton : String -> Int -> (Int -> U.EditScore) -> Int -> Html U.EditScore
-keyButton name curr toMsg val =
+keyButtonMobile : String -> Int -> (Int -> U.EditScore) -> Int -> Html U.EditScore
+keyButtonMobile name curr toMsg val =
   button [ onClick (toMsg val)
          , class <| if curr == val then "is-success is-selected" else ""
-         , class "button" ] [text name]
+         , class "column p-0 is-4 button" ] [text name]
+
+
+keyButtonDesktop : String -> Int -> (Int -> U.EditScore) -> Int -> Html U.EditScore
+keyButtonDesktop name curr toMsg val =
+  button [ onClick (toMsg val)
+         , class <| if curr == val then "is-success is-selected" else ""
+         , class "column is-3 button p-0" ] [text name]
+
+
+keyPickerMobile : Int -> (Int -> U.EditScore) -> Html U.EditScore
+keyPickerMobile val toMsg =
+  div [class "key-picker-mobile"] 
+    <| [ h5 [class "subtitle"] [text "Key"] ]
+    ++ [ div [class "columns is-multiline is-mobile"] 
+       <| List.map (\(v, name) -> keyButtonDesktop name val toMsg v) (if useSharps then D.indexedSharps else D.indexedFlats) ]
+
+
+keyPickerDesktop : Int -> (Int -> U.EditScore) -> Html U.EditScore
+keyPickerDesktop val toMsg =
+  div [class ""] 
+    <| [ h5 [class "subtitle"] [text "Key"] ] 
+    ++ [ div [class "columns is-multiline"] 
+       <| List.map (\(v, name) -> keyButtonDesktop name val toMsg v) (if useSharps then D.indexedSharps else D.indexedFlats) ]
 
 
 keyPicker : Int -> (Int -> U.EditScore) -> Html U.EditScore
 keyPicker val toMsg =
-  div [class "m-2 box"] 
-    <| [ h5 [class "subtitle"] [text "Key"] ]
-    ++ List.map (\(v, name) -> keyButton name val toMsg v) (if useSharps then D.indexedSharps else D.indexedFlats)
+  div [class "m-3 box container"] 
+    [ div [class "is-hidden-tablet"] [keyPickerMobile val toMsg]
+    , div [class "is-hidden-mobile"] [keyPickerDesktop val toMsg]
+    ]
 
 
 editCompo : (Maybe T.Compo) -> Html U.EditScore
@@ -487,7 +613,7 @@ editCompo mcompo =
       text ""
 
     Just compo ->
-     div [ class "column card  is-half px-6 py-4"
+     div [ class "column card px-6 py-4"
          , style  "background" "cyan" ]
        [ compoContent compo]
 
@@ -495,9 +621,10 @@ editCompo mcompo =
 editScore : T.EditScore -> Html U.EditScore 
 editScore model = 
   div [ class "container" ]
-    [ h1 [] [text "Compo Designer"]
-    , editCompo model.current
-    , layoutPreview model.presets
+    [ h1 [ class "title" ] [ text "Layout Designer"]
+    , div [ class "columns is-multiline"] 
+      [ div [ class "column is-full" ] [ editCompo model.current ]
+      , div [ class "column is-full" ] [ layoutPreview model.presets ] ]
     ]
 
 

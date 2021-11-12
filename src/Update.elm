@@ -31,6 +31,7 @@ type EditScore
   | UpdateCPC Int
   | UpdateSize Int
   | UpdateRoot Int
+  | UpdateLabel String
   | ChangeScoreSelection (Maybe T.Compo)
 
 
@@ -138,6 +139,17 @@ updateScore msg model =
         Just prev ->
           let 
             next = { prev | root = x }
+          in 
+          ({ model | current = Just next }, Cmd.none)
+
+    UpdateLabel string ->
+      case model.current of 
+        Nothing ->
+          (model, Cmd.none)
+
+        Just prev ->
+          let 
+            next = { prev | label = string }
           in 
           ({ model | current = Just next }, Cmd.none)
     
