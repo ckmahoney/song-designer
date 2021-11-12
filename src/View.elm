@@ -228,7 +228,7 @@ editBoundInt3 title html (min, max) val toMsg =
                      [ less
                      , b [] [" " ++ String.fromInt val |> text ]
                      , more ] ] 
-      , div [ class "column has-background-danger isfull"] [ html ] ] ]
+      , div [ class "column box has-text-light has-background-info is-full"] [ html ] ] ]
 
 
 editBoundFloat : String -> String -> (Float,  Float) -> Float -> (Float -> msg) -> Html msg
@@ -439,11 +439,27 @@ cpsToBPM : Float -> Float
 cpsToBPM cps =
   60.0 * cps
 
-tempoMessage : Float -> Html msg
-tempoMessage  cps =
+
+timeSigString : Int -> String
+timeSigString cpc =
+  (String.fromInt cpc) ++ " / 4"
+
+
+bpmString cps =
+  String.fromFloat <| cpsToBPM cps
+
+
+tempoMessage : T.Compo -> Html msg
+tempoMessage ({cps, size} as model) =
   div [class "content"] 
-    [ p [] [text "The speed for you track."]
+    [ p [] [text "The speed for you track. Higher BPM are faster, and lower BPM are slower."]
+    , p [] [ text <| "With size " ++ (String.fromInt size) ++ " at " ++ (bpmString cps) ++ " that means it will be " ++ " seconds long." ]
     , text <| (String.fromFloat (cpsToBPM cps)) ++ " Beats Per Minute" ]
+
+
+meterMessage : T.Compo -> Html msg
+meterMessage ({cpc} as model) =
+  p [] [ text <| "This section has " ++ (timeSigString cpc) ++ " time." ]
 
 
 sizeToCycles: Int -> Int -> Int
@@ -461,37 +477,23 @@ sizeText cpc size =
   String.fromInt <| sizeToCycles cpc size
 
 
+sizeMessage : T.Compo -> Html msg
+sizeMessage ({size, cpc} as model) =
+  div [] 
+    [ p [] [ text <| "Using size " ++ (String.fromInt size) ++ " and " ++ String.fromInt cpc ++ " cycles per measure," ]
+    , p [] [ text <| "That means this section is " ++ (sizeText cpc size) ++ " cycles long." ] ]
+
+
 keyToLabel : Int -> String
 keyToLabel index =
    Maybe.withDefault "Key Not Found"
      <| Array.get index <| Array.fromList keyNames
 
 
-compoContentMobile : T.Compo -> Html U.EditScore
-compoContentMobile model =
-  div [ class "columns card-content is-multiline" ]
-    [ div [class "column"] 
-        [ editBoundInt3 "Meter" (text "cpc") D.rangeCPC model.cpc U.UpdateCPC
-        , editBoundInt3 "Size" (text (sizeText model.cpc model.size)) D.rangeCompoSize model.size U.UpdateSize ]
-    , div [class "column"] [ editText "Label" labelInfo model.label U.UpdateLabel ]
-    , div [class "column"] [ editRange "Tempo" (tempoMessage model.cps) D.rangeCPS D.rangeStep model.cps U.UpdateCPS ]
-    , div [class "column"] [ keyPicker model.root U.UpdateRoot ] ]
-
-
-compoContentTablet : T.Compo -> Html U.EditScore
-compoContentTablet model =
-  div [ class "columns card-content is-multiline" ]
-    [ div [class "column is-half"] 
-        [ editBoundInt3 "Meter" (text "cpc") D.rangeCPC model.cpc U.UpdateCPC
-        , editBoundInt3 "Size" (text (sizeText model.cpc model.size)) D.rangeCompoSize model.size U.UpdateSize ]
-    , div [class "column is-half"] [ editText "Label" labelInfo model.label U.UpdateLabel ]
-    , div [class "column is-half"] [ editRange "Tempo" (tempoMessage model.cps) D.rangeCPS D.rangeStep model.cps U.UpdateCPS ]
-    , div [class "column is-half"] [ keyPicker model.root U.UpdateRoot ] ]
-
-
 labelInfo : Html msg
 labelInfo =
   div [class "content"] [ text "A name to help you remember what this section is for." ]
+
 
 editTextMobile : String -> Html msg -> String -> ( String -> msg ) -> Html msg
 editTextMobile title html val toMsg =
@@ -504,6 +506,7 @@ editTextMobile title html val toMsg =
     , html
     ]
 
+
 editTextDesktop : String -> Html msg -> String -> ( String -> msg ) -> Html msg
 editTextDesktop title html val toMsg =
   div [class ""]
@@ -515,19 +518,43 @@ editTextDesktop title html val toMsg =
     , html
     ]
 
+
 editText : String -> Html msg -> String -> ( String -> msg ) -> Html msg
 editText title html val toMsg =
   div [class "m-3 box"]
     [ div [ class "is-hidden-tablet" ] [ editTextMobile title html val toMsg ]
     , div [ class "is-hidden-mobile" ] [ editTextDesktop title html val toMsg ] ] 
 
+
+compoContentMobile : T.Compo -> Html U.EditScore
+compoContentMobile model =
+  div [ class "content-mobile columns card-content is-multiline" ]
+    [ div [class "column"] 
+        [ editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
+        , editBoundInt3 "Size" (sizeMessage model) D.rangeCompoSize model.size U.UpdateSize ]
+    , div [class "column"] [ editText "Label" labelInfo model.label U.UpdateLabel ]
+    , div [class "column"] [ editRange "Tempo" (tempoMessage model) D.rangeCPS D.rangeStep model.cps U.UpdateCPS ]
+    , div [class "column"] [ keyPicker model.root U.UpdateRoot ] ]
+
+
+compoContentTablet : T.Compo -> Html U.EditScore
+compoContentTablet model =
+  div [ class "content-tablet columns card-content is-multiline" ]
+    [ div [class "column is-half"] 
+        [ editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
+        , editBoundInt3 "Size" (sizeMessage model) D.rangeCompoSize model.size U.UpdateSize ]
+    , div [class "column is-half"] [ editText "Label" labelInfo model.label U.UpdateLabel ]
+    , div [class "column is-half"] [ editRange "Tempo" (tempoMessage model) D.rangeCPS D.rangeStep model.cps U.UpdateCPS ]
+    , div [class "column is-half"] [ keyPicker model.root U.UpdateRoot ] ]
+
+
 compoContentDesktop : T.Compo -> Html U.EditScore
 compoContentDesktop model =
   div [ class "content-desktop columns card-content is-multiline" ]
-    [ editBoundInt3 "Meter" (text "cpc") D.rangeCPC model.cpc U.UpdateCPC
-    , editBoundInt3 "Size" (text (sizeText model.cpc model.size)) D.rangeCompoSize model.size U.UpdateSize
+    [ editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
+    , editBoundInt3 "Size" (sizeMessage model) D.rangeCompoSize model.size U.UpdateSize
     , editText "Label" labelInfo model.label U.UpdateLabel
-    , editRange "Tempo" (tempoMessage model.cps) D.rangeCPS D.rangeStep model.cps U.UpdateCPS 
+    , editRange "Tempo" (tempoMessage model) D.rangeCPS D.rangeStep model.cps U.UpdateCPS 
     , keyPicker model.root U.UpdateRoot ]
 
 

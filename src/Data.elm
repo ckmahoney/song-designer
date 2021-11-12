@@ -47,7 +47,7 @@ rangeCPS = (0.5, 4)
 rangeStep = 0.05
 
 rangeCompoSize : (Int, Int)
-rangeCompoSize = (1, 9)
+rangeCompoSize = (0, 8)
 
 rangeRoot : (Float, Float)
 rangeRoot  = (16.0, 16.0 * 2)
