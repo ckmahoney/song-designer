@@ -89,8 +89,7 @@ type alias SynthState
   = EditState SynthPreset
 
 
-
-type alias EditScore  = 
+type alias EditLayout  = 
   { time : Int
   , index : Int
   , current : Maybe Compo
@@ -98,11 +97,21 @@ type alias EditScore  =
   }
 
 
+type alias Section = (Compo, Ensemble)
+
+
 -- a Score represents the ordered set of (Compo, Ensemble) pairs.
 type alias Score 
-  = List (Compo, Ensemble)
+  = List Section
 
 
+type alias EditScore =
+  { time : Int
+  , current : Maybe Section
+  , list : Section
+  , layout : List Compo
+  , ensembles : List Ensemble
+  }
 
 main =
   Html.text ""

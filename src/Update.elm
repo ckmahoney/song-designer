@@ -26,7 +26,7 @@ type UpdateMsg
   | ChangePreset T.PresetKit
 
 
-type EditScore
+type EditLayout
   = RequestCompo
   | NewCompo Int
   | KillCompo T.Compo
@@ -35,7 +35,7 @@ type EditScore
   | UpdateSize Int
   | UpdateRoot Int
   | UpdateLabel String
-  | ChangeScoreSelection (Maybe T.Compo)
+  | ChangeLayoutSelection (Maybe T.Compo)
 
 
 ptoInt : Time.Posix -> Int
@@ -105,17 +105,17 @@ noCmd x =
   (x, Cmd.none)
 
 
-reindexCompo : T.EditScore -> T.EditScore
+reindexCompo : T.EditLayout -> T.EditLayout
 reindexCompo ({ index, current, presets } as model) =
   model
 
 
-genCompo : Cmd EditScore
+genCompo : Cmd EditLayout
 genCompo =
   Random.generate NewCompo rint
 
-updateScore : EditScore -> T.EditScore -> (T.EditScore, Cmd EditScore)
-updateScore msg model =
+updateLayout : EditLayout -> T.EditLayout -> (T.EditLayout, Cmd EditLayout)
+updateLayout msg model =
   case msg of
     RequestCompo ->
       case model.current of 
@@ -194,7 +194,7 @@ updateScore msg model =
           in 
           ({ model | current = Just next }, Cmd.none)
     
-    ChangeScoreSelection next ->
+    ChangeLayoutSelection next ->
         case model.current of 
            Nothing ->
              case next of 

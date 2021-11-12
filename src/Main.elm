@@ -15,7 +15,7 @@ import View
 
 
 type alias Model = 
-  T.EditScore
+  T.EditLayout
 
 
 initEditSynth : T.SynthState
@@ -25,8 +25,8 @@ initEditSynth =
    , presets = Data.kitAll
    }
 
-initEditScore : T.EditScore
-initEditScore =
+initEditLayout : T.EditLayout
+initEditLayout =
    { time = 0
    , index = -1
    , current = Nothing
@@ -39,10 +39,10 @@ toInt x =
   Maybe.withDefault 0 x
 
 
-view : Model -> Html U.EditScore
+view : Model -> Html U.EditLayout
 view model =
   div [Attr.class "syn-main section"] 
-    [ View.editScore model ]
+    [ View.editLayout model ]
 
 
 -- initFromFlags : Maybe Int -> (Model, Cmd U.UpdateMsg)
@@ -54,28 +54,28 @@ view model =
 --     _ ->
 --       (initEditSynth, Cmd.none)
 
-initScore : Maybe Int -> (Model, Cmd U.EditScore)
-initScore ini = 
+initLayout : Maybe Int -> (Model, Cmd U.EditLayout)
+initLayout ini = 
   let
     w = Debug.log "initializing score: " ini
   in
   case ini of 
     _ ->
-      (initEditScore, Cmd.none)
+      (initEditLayout, Cmd.none)
 
 
 subs : Model -> Sub U.UpdateMsg
 subs model =
   Time.every 1000 U.Tick
 
-subsScore : Model -> Sub U.EditScore
-subsScore model =
+subsLayout : Model -> Sub U.EditLayout
+subsLayout model =
   Sub.none
 
 
 main =
-  Browser.element { init = initScore
-                  , update = U.updateScore
+  Browser.element { init = initLayout
+                  , update = U.updateLayout
                   , view = view 
-                  , subscriptions = subsScore
+                  , subscriptions = subsLayout
                   }

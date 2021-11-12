@@ -526,7 +526,7 @@ editText title html val toMsg =
     , div [ class "is-hidden-mobile" ] [ editTextDesktop title html val toMsg ] ] 
 
 
-compoContentMobile : T.Compo -> Html U.EditScore
+compoContentMobile : T.Compo -> Html U.EditLayout
 compoContentMobile model =
   div [ class "content-mobile columns card-content is-multiline" ]
     [ div [class "column"] 
@@ -537,7 +537,7 @@ compoContentMobile model =
     , div [class "column"] [ keyPicker model.root U.UpdateRoot ] ]
 
 
-compoContentTablet : T.Compo -> Html U.EditScore
+compoContentTablet : T.Compo -> Html U.EditLayout
 compoContentTablet model =
   div [ class "content-tablet columns card-content is-multiline" ]
     [ div [class "column is-half"] 
@@ -548,7 +548,7 @@ compoContentTablet model =
     , div [class "column is-half"] [ keyPicker model.root U.UpdateRoot ] ]
 
 
-compoContentDesktop : T.Compo -> Html U.EditScore
+compoContentDesktop : T.Compo -> Html U.EditLayout
 compoContentDesktop model =
   div [ class "content-desktop columns card-content is-multiline" ]
     [ editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
@@ -558,7 +558,7 @@ compoContentDesktop model =
     , keyPicker model.root U.UpdateRoot ]
 
 
-compoContent : T.Compo -> Html U.EditScore
+compoContent : T.Compo -> Html U.EditLayout
 compoContent model = 
   div []
   [ div [class "is-hidden-tablet is-block-mobile"] [ compoContentMobile model ]
@@ -566,7 +566,7 @@ compoContent model =
   , div [class "is-hidden-mobile is-hidden-tablet-only is-block-desktop"] [ compoContentDesktop model ] 
   ]
 
-layoutItem : T.Compo -> U.EditScore -> Html U.EditScore
+layoutItem : T.Compo -> U.EditLayout -> Html U.EditLayout
 layoutItem ({cps, cpc, size, root} as model) msg =
   div [class "m-3 column box is-flex is-flex-direction-column", onClick msg]
     [ label [class "subtitle has-text-centered"] [ text model.label ]
@@ -588,28 +588,28 @@ layoutItem ({cps, cpc, size, root} as model) msg =
     ]
 
 
-layoutPreview : List T.Compo -> Html U.EditScore
+layoutPreview : List T.Compo -> Html U.EditLayout
 layoutPreview score = 
   div [class "box", style "background" "magenta" ] 
     [ div [class "columns"]
-      <| List.map (\c -> layoutItem c (U.ChangeScoreSelection (Just c))) score ]
+      <| List.map (\c -> layoutItem c (U.ChangeLayoutSelection (Just c))) score ]
 
 
-keyButtonMobile : String -> Int -> (Int -> U.EditScore) -> Int -> Html U.EditScore
+keyButtonMobile : String -> Int -> (Int -> U.EditLayout) -> Int -> Html U.EditLayout
 keyButtonMobile name curr toMsg val =
   button [ onClick (toMsg val)
          , class <| if curr == val then "is-success is-selected" else ""
          , class "column p-0 is-4 button" ] [text name]
 
 
-keyButtonDesktop : String -> Int -> (Int -> U.EditScore) -> Int -> Html U.EditScore
+keyButtonDesktop : String -> Int -> (Int -> U.EditLayout) -> Int -> Html U.EditLayout
 keyButtonDesktop name curr toMsg val =
   button [ onClick (toMsg val)
          , class <| if curr == val then "is-success is-selected" else ""
          , class "column is-3 button p-0" ] [text name]
 
 
-keyPickerMobile : Int -> (Int -> U.EditScore) -> Html U.EditScore
+keyPickerMobile : Int -> (Int -> U.EditLayout) -> Html U.EditLayout
 keyPickerMobile val toMsg =
   div [class "key-picker-mobile"] 
     <| [ h5 [class "subtitle"] [text "Key"] ]
@@ -617,7 +617,7 @@ keyPickerMobile val toMsg =
        <| List.map (\(v, name) -> keyButtonDesktop name val toMsg v) (if useSharps then D.indexedSharps else D.indexedFlats) ]
 
 
-keyPickerDesktop : Int -> (Int -> U.EditScore) -> Html U.EditScore
+keyPickerDesktop : Int -> (Int -> U.EditLayout) -> Html U.EditLayout
 keyPickerDesktop val toMsg =
   div [class ""] 
     <| [ h5 [class "subtitle"] [text "Key"] ] 
@@ -625,7 +625,7 @@ keyPickerDesktop val toMsg =
        <| List.map (\(v, name) -> keyButtonDesktop name val toMsg v) (if useSharps then D.indexedSharps else D.indexedFlats) ]
 
 
-keyPicker : Int -> (Int -> U.EditScore) -> Html U.EditScore
+keyPicker : Int -> (Int -> U.EditLayout) -> Html U.EditLayout
 keyPicker val toMsg =
   div [class "m-3 box container"] 
     [ div [class "is-hidden-tablet"] [keyPickerMobile val toMsg]
@@ -633,12 +633,12 @@ keyPicker val toMsg =
     ]
 
 
-killCompoButton : T.Compo -> Html U.EditScore
+killCompoButton : T.Compo -> Html U.EditLayout
 killCompoButton model =
   button [ onClick (U.KillCompo model), class "button" ] [ text "Delete Section" ]
 
 
-editCompo : (Maybe T.Compo) -> Html U.EditScore
+editCompo : (Maybe T.Compo) -> Html U.EditLayout
 editCompo mcompo =
   case mcompo of 
     Nothing ->
@@ -654,8 +654,8 @@ editCompo mcompo =
           , compoContent compo]
 
 
-editScore : T.EditScore -> Html U.EditScore 
-editScore model = 
+editLayout : T.EditLayout -> Html U.EditLayout 
+editLayout model = 
   div [ class "container" ]
     [ h1 [ class "title" ] [ text "Layout Designer"]
     , div [ class "columns is-multiline"] 
