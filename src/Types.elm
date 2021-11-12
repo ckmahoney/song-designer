@@ -50,6 +50,7 @@ type alias SynthPreset =
 
 
 type alias PresetKit = List SynthPreset
+type alias Ensemble = List SynthPreset
 
 
 type alias NPresetKit = (String, PresetKit)
@@ -73,10 +74,8 @@ type alias SeedCell =
   } 
 
 
-type alias Score = List Compo
+-- type alias Score = List Compo
 
-
-type alias Layout = List SeedCell
 
 
 type alias EditState a =
@@ -90,12 +89,19 @@ type alias SynthState
   = EditState SynthPreset
 
 
+
 type alias EditScore  = 
   { time : Int
   , index : Int
   , current : Maybe Compo
   , presets : List Compo
   }
+
+
+-- a Score represents the ordered set of (Compo, Ensemble) pairs.
+type alias Score 
+  = List (Compo, Ensemble)
+
 
 
 main =
