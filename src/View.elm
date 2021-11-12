@@ -664,5 +664,18 @@ editLayout model =
     ]
 
 
+scorePreview : List T.Section -> Html msg
+scorePreview sections = 
+  div [] [ text "Score sections go here" ]
+
+
+editScore : T.EditScore -> Html U.EditScore
+editScore ({ current, list, layout, ensembles} as model) = 
+  div [ class "container" ]
+    [ h1 [ class "title" ] [ text "Score Designer"]
+    , div [ class "columns is-multiline"] 
+        [ div [ class "column is-full" ] [ scorePreview list ] ] ]    
+
+
 main =
   Html.text ""

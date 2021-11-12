@@ -38,6 +38,11 @@ type EditLayout
   | ChangeLayoutSelection (Maybe T.Compo)
 
 
+type EditScore
+  = RequestScore
+  | NewScore Int
+
+
 ptoInt : Time.Posix -> Int
 ptoInt t =
   Time.posixToMillis t
@@ -62,6 +67,11 @@ genPreset =
   Random.generate NewPreset rint
 
 
+genScore : Cmd EditScore
+genScore = 
+  Random.generate NewScore rint
+
+
 uuid : Random.Generator Int
 uuid = 
   Random.int 1 100000000000000000000
@@ -80,6 +90,11 @@ createCompo id_ =
     ref = D.s1
   in
   { ref | id = id_ }
+
+
+createScore : Int -> T.Score
+createScore id =
+  []
 
 
 remove : Maybe a -> List a -> List a
@@ -113,6 +128,20 @@ reindexCompo ({ index, current, presets } as model) =
 genCompo : Cmd EditLayout
 genCompo =
   Random.generate NewCompo rint
+
+
+updateScore : EditScore -> T.EditScore -> (T.EditScore, Cmd EditScore)
+updateScore msg model =
+  case msg of 
+    RequestScore ->
+      (model, genScore)
+ 
+    NewScore id ->
+      let
+        next = createScore id
+      in
+      ({ model | list = next }, Cmd.none)
+
 
 updateLayout : EditLayout -> T.EditLayout -> (T.EditLayout, Cmd EditLayout)
 updateLayout msg model =

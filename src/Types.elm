@@ -74,10 +74,6 @@ type alias SeedCell =
   } 
 
 
--- type alias Score = List Compo
-
-
-
 type alias EditState a =
   { time : Int
   , current : Maybe a
@@ -108,10 +104,12 @@ type alias Score
 type alias EditScore =
   { time : Int
   , current : Maybe Section
-  , list : Section
+  , cps : Float
+  , list : List Section
   , layout : List Compo
   , ensembles : List Ensemble
   }
+
 
 main =
   Html.text ""

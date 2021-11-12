@@ -180,7 +180,7 @@ s3 =
 
 
 layout1 : List Compo
-layout1 = [s1, s2,  s3]
+layout1 = [s1, s2, s3]
 
 
 p1 : SynthPreset
@@ -231,8 +231,11 @@ p4 =
   }
 
 
+
+
 presets : PresetKit
 presets = [p1,p2,p3,p4]
+
 
 
 kitAll : PresetKit
@@ -268,6 +271,23 @@ kits =
   , ("One of Everything", kitAll) 
   , ("The synths", kitSynth)
   ]
+
+
+allKits : List Ensemble
+allKits =
+  [ kitBeat
+  , kitAll
+  , kitSynth
+  ]
+
+
+score1 : Score
+score1 =
+  [ (s1, kitBeat)
+  , (s2, kitSynth)
+  , (s3, kitAll)
+  ] 
+
 
 
 roles : List SynthRole

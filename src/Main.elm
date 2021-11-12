@@ -34,48 +34,81 @@ initEditLayout =
    }
 
 
+initEditScore : T.EditScore
+initEditScore = 
+  { time = 0
+  , cps = 1
+  , current = Nothing
+  , ensembles = Data.allKits
+  , layout = Data.layout1
+  , list = Data.score1
+  } 
+
+
 toInt : Maybe Int ->  Int
 toInt x =
   Maybe.withDefault 0 x
 
 
-view : Model -> Html U.EditLayout
-view model =
+viewLayoutEditor : Model -> Html U.EditLayout
+viewLayoutEditor model =
   div [Attr.class "syn-main section"] 
     [ View.editLayout model ]
 
 
--- initFromFlags : Maybe Int -> (Model, Cmd U.UpdateMsg)
--- initFromFlags ini = 
---   let
---     w = Debug.log "initializing: " ini
---   in
---   case ini of 
---     _ ->
---       (initEditSynth, Cmd.none)
+viewScoreEditor : T.EditScore -> Html U.EditScore
+viewScoreEditor model =
+  div [Attr.class "syn-main section"] 
+    [ View.editScore model ]
 
-initLayout : Maybe Int -> (Model, Cmd U.EditLayout)
+
+initLayout : Maybe Int -> (T.EditLayout, Cmd U.EditLayout)
 initLayout ini = 
   let
-    w = Debug.log "initializing score: " ini
+    w = Debug.log "initializing layout: " ini
   in
   case ini of 
     _ ->
       (initEditLayout, Cmd.none)
 
 
+initScore : Maybe Int -> (T.EditScore, Cmd U.EditScore)
+initScore ini = 
+  let
+    w = Debug.log "initializing score: " ini
+  in
+  case ini of 
+    _ ->
+      (initEditScore, Cmd.none)
+
+
 subs : Model -> Sub U.UpdateMsg
 subs model =
   Time.every 1000 U.Tick
+
 
 subsLayout : Model -> Sub U.EditLayout
 subsLayout model =
   Sub.none
 
 
-main =
+subsScore model =
+  Sub.none
+
+
+mainLayoutEditor =
   Browser.element { init = initLayout
                   , update = U.updateLayout
-                  , view = view 
+                  , view = viewLayoutEditor
                   , subscriptions = subsLayout
                   }
+
+mainScoreEditor =
+  Browser.element { init = initScore
+                  , update = U.updateScore
+                  , view = viewScoreEditor
+                  , subscriptions = subsScore
+                  }
+
+main = 
+  mainScoreEditor
