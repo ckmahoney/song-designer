@@ -8,6 +8,7 @@ import Dict
 import Debug
 import Time
 
+import App
 import Types as T
 import Data exposing (p1, p2, p3, p4)
 import Update as U
@@ -20,6 +21,7 @@ initEditEnsemble =
    , current = Just p1
    , presets = Data.kitAll
    }
+
 
 initEditLayout : T.EditLayout
 initEditLayout =
@@ -134,5 +136,14 @@ mainScoreEditor =
                   }
 
 
+mainSongDesigner =
+  Browser.element { init = App.init
+                  , update = App.update
+                  , view = App.view
+                  , subscriptions = App.subscriptions
+                  }
+
 main = 
-  mainScoreEditor
+  mainSongDesigner
+
+

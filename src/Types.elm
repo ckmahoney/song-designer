@@ -56,6 +56,38 @@ type alias Ensemble = List SynthPreset
 type alias NPresetKit = (String, PresetKit)
 
 
+type alias ScoreMeta = 
+  { title : String
+  , cps : Float 
+  , root : Float
+  , cpc : Int
+  , nCycles : Int
+  }
+
+
+-- Record of all invalid values for a given entry for ScoreMeta
+emptyScoreMeta : ScoreMeta
+emptyScoreMeta = 
+  { title = ""
+  , cps = 0.0
+  , root = 0.00
+  , cpc = 0
+  , nCycles = 0
+  }
+
+
+type alias Token = Bool
+
+
+-- a request to build one song from configuration
+type alias HTTPData = 
+  { user : String
+  , token : Maybe Token
+  , meta : ScoreMeta
+  , score : Score
+  }
+
+
 type alias Compo  =
   { id : Int
   , label : String
@@ -121,5 +153,9 @@ type alias EditScore =
   }
 
 
+
+
 main =
   Html.text ""
+
+

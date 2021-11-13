@@ -150,7 +150,6 @@ updateScore msg model =
     NewSection ->
       ({ model | current = Just (D.s1, D.kitBeat) }, Cmd.none)
 
-
     ApplySection (compo, ensemble) ->
       ({ model | current =  Just (compo, ensemble) }, Cmd.none)
 
