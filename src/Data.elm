@@ -374,7 +374,7 @@ roleDescription role =
 
 roleColor : SynthRole -> String
 roleColor role =
-  case (relate role roles palette) of
+  case (relate role roles palette3) of
     Nothing ->
       ""
     Just color ->

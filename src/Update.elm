@@ -41,6 +41,11 @@ type EditLayout
 type EditScore
   = RequestScore
   | NewScore Int
+  | NewSection
+  | ApplySection T.Section
+  | UpdateSection T.Compo T.Ensemble
+  | UpdateCompo (Maybe T.Compo)
+  | UpdateEnsemble (Maybe T.Ensemble)
 
 
 ptoInt : Time.Posix -> Int
@@ -141,6 +146,22 @@ updateScore msg model =
         next = createScore id
       in
       ({ model | list = next }, Cmd.none)
+
+    NewSection ->
+      ({ model | current = Just (D.s1, D.kitBeat) }, Cmd.none)
+
+
+    ApplySection (compo, ensemble) ->
+      ({ model | current =  Just (compo, ensemble) }, Cmd.none)
+
+    UpdateSection compo ensemble ->
+      ({ model | current =  Just (compo, ensemble) }, Cmd.none)
+
+    UpdateCompo c ->
+      ({ model | compo = c }, Cmd.none )
+
+    UpdateEnsemble e ->
+      ({ model | ensemble = e }, Cmd.none )
 
 
 updateLayout : EditLayout -> T.EditLayout -> (T.EditLayout, Cmd EditLayout)

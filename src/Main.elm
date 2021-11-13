@@ -35,6 +35,8 @@ initEditScore =
   { time = 0
   , cps = 1
   , current = Nothing
+  , ensemble = Nothing
+  , compo = Nothing
   , ensembles = Data.allKits
   , layout = Data.layout1
   , list = Data.score1
@@ -131,5 +133,6 @@ mainScoreEditor =
                   , subscriptions = subsScore
                   }
 
+
 main = 
-  mainEnsembleEditor
+  mainScoreEditor

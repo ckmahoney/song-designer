@@ -94,7 +94,14 @@ type alias EditLayout  =
 
 
 type alias Section = (Compo, Ensemble)
-type alias SectionP = (Maybe Compo, Maybe Ensemble)
+type alias SectionP = Maybe (Compo, Ensemble)
+
+
+type SectionState
+  = Section Compo Ensemble
+  | NeedsCompo Ensemble
+  | NeedsEnsemble Compo
+  | EmptySection
 
 
 -- a Score represents the ordered set of (Compo, Ensemble) pairs.
@@ -105,6 +112,8 @@ type alias Score
 type alias EditScore =
   { time : Int
   , current : Maybe Section
+  , ensemble : Maybe Ensemble
+  , compo : Maybe Compo
   , cps : Float
   , list : List Section
   , layout : List Compo

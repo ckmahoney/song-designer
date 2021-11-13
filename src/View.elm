@@ -14,6 +14,11 @@ import String exposing (String(..))
 useSharps = False
 
 
+invertColor : Html msg -> Html msg
+invertColor el =
+  div [ style "filter" "invert(1)" ] [ el ] 
+
+
 keyNames =
   if useSharps then D.sharps else D.flats
 
@@ -66,7 +71,8 @@ roleIcon role =
 
 presetIcon : T.SynthRole -> Html msg
 presetIcon role =
-  div [class "box", style "background" (D.roleColor role)]
+  div [ class "box"
+      , style "background" (D.roleColor role)]
   [ div [class "p-6"] [
       img [ width 50
           , height 50
@@ -92,6 +98,7 @@ roleIconButton update role =
                , onClick (update role)
                , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ] ] ]
 
+
 roleRow : Html msg
 roleRow = 
   div [] (List.map roleIcon D.roles)
@@ -100,6 +107,20 @@ roleRow =
 rolePicker : (T.SynthRole -> U.UpdateMsg) -> Html U.UpdateMsg
 rolePicker update =
   div [class "mt-3 columns is-multiline is-centered margin-auto"] <| List.map (roleIconButton update) D.roles
+
+
+ensemblePreviewIcon : String -> T.SynthRole -> Html msg
+ensemblePreviewIcon title role =
+  div [ class "column" ]
+     [ div [ class "is-radiusless box is-block p-3 is-flex is-justify-content-space-around is-align-items-center"
+           , style "background" <| D.roleColor role ]
+        [ invertColor <| roleIcon role, label [ class "is-size-4 has-text-black" ] [ text title ]  ] ]
+
+
+ensemblePreview : T.Ensemble -> Html msg
+ensemblePreview ensemble =
+  div [class "mt-3 is-multiline"]
+    <| List.map (\synth ->  ensemblePreviewIcon (Tuple.first (D.roleLabel <| .role synth)) (.role synth) ) ensemble
 
 
 roleCard : T.SynthRole -> Html msg
@@ -351,8 +372,8 @@ carousel time children =
     -- (List.indexedMap (\i el -> spiralItem time dTheta i el) children)
 
 
-kitRow : (Maybe T.SynthPreset) -> List T.SynthPreset -> Html U.UpdateMsg
-kitRow curr presets =
+kitCol : (Maybe T.SynthPreset) -> List T.SynthPreset -> Html U.UpdateMsg
+kitCol curr presets =
   div [class "column level"] 
     <| [ h5 [class "title" ] [ text "Ensemble Designer" ] ]
     ++ List.map changePresetButton presets
@@ -367,24 +388,22 @@ testCarousel time =
   carousel 0 items
 
 
+synthEditor : (Maybe T.SynthPreset) -> Html U.UpdateMsg
+synthEditor preset =
+  case preset of 
+    Nothing ->
+      button [ onClick U.RequestPreset
+             , class "button" ] [text "Create a Preset"]
+
+    Just synth ->
+      editPreset synth
+
+
 ensembleEditor : T.SynthState -> Html U.UpdateMsg
 ensembleEditor model =
-  let 
-    yy = Debug.log "model : " model
-  in 
-  case model.current of 
-    Nothing -> 
-      div [class "columns"] 
-        [ kitRow model.current model.presets
-        , button [ onClick U.RequestPreset
-                 , class "button" ] [text "Create a Preset"]
-         ]
-    -- [testCarousel model.time]
-    
-    Just preset ->
-      div [class "columns is-centered"] 
-        [ kitRow model.current model.presets 
-        , editPreset preset ]
+  div [class "columns"]
+    [ kitCol  model.current model.presets
+    , synthEditor model.current ]
 
 
 editEnsemble : T.SynthState -> Html U.UpdateMsg
@@ -649,7 +668,6 @@ editCompo mcompo =
     Nothing ->
       div []
         [ p [ class "mb-3" ] [ text "Select an existing section below, or create a new one." ]
-
         , button [ onClick U.RequestCompo, class "button" ] [ text "Create a new Section"] ]
 
     Just compo ->
@@ -669,32 +687,85 @@ editLayout model =
     ]
 
 
-scoreItem : T.Section -> U.EditScore -> Html U.EditScore
-scoreItem (compo, ensemble) toMsg =
-  div [ onClick toMsg ] [ text compo.label ]
+scorePreviewItem : T.Section -> (T.Section -> U.EditScore) -> Html U.EditScore
+scorePreviewItem ((compo, ensemble) as section) toMsg =
+  div [ class "box" 
+      , onClick (toMsg section) ] 
+    [ div [ class "columns is-multiline" ]
+      [ label [ class "column is-full title has-text-centered" ] [ text compo.label ]
+      , div [ class "column is-full"] [ ensemblePreview ensemble ]
+      ] ]
 
 
 scorePreview : List T.Section -> Html U.EditScore
 scorePreview sections = 
   div [ class "box" ] 
     [ h3 [ class "subtitle" ] [ text "Score" ]
-    , div [ class "columns" ] <| List.map (\s -> scoreItem s U.RequestScore)  sections ]
+    , div [ class "columns" ] <| List.map (\s -> scorePreviewItem s U.ApplySection)  sections ]
 
 
 
-makeSection : T.SectionP -> Html msg
+makeSection : T.Section -> Html msg
 makeSection (mCompo, mEnsemble) =
   div [] [ text "it has some maybethings" ]
 
 
-editSection : (Maybe T.Section) -> Html msg
-editSection mSection = 
+compoThumb : T.Compo -> U.EditScore -> Html U.EditScore
+compoThumb compo toMsg =
+  div [ class "box", onClick toMsg ] [ text compo.label ]
+
+
+ensembleThumb : T.Ensemble -> U.EditScore -> Html U.EditScore
+ensembleThumb ensemble toMsg =
+  div [ class "box", onClick toMsg ] [ text <| String.fromInt <| List.length ensemble ]  
+
+
+chooseCompo : List T.Compo -> (T.Compo -> U.EditScore) -> (Maybe T.Compo) -> Html U.EditScore
+chooseCompo compos toMsg compo =
+  case compo of 
+    Nothing -> 
+      div [] 
+        [ text "You need a meta for this section. Pick one here." 
+        , div [] <| List.map (\c -> compoThumb c (toMsg c)) compos
+        ]
+ 
+    Just comp -> 
+       div [  ] 
+         <| 
+         [ p [ class "subtitle"] [ text <| "Using this section:" ++ comp.label ]
+         , p [] [ text "Choose an option below to change your section."  ] ]
+         ++ (List.map (\c -> compoThumb c (toMsg c)) compos)
+
+
+chooseEnsemble : List T.Ensemble -> (T.Ensemble -> U.EditScore) -> (Maybe T.Ensemble) -> Html U.EditScore
+chooseEnsemble ensembles toMsg ensemble =
+  case ensemble of 
+    Nothing -> 
+      div [] 
+        [ text "You need an ensemble for this section. Pick one here." 
+        , div [] <| List.map (\e -> ensembleThumb e (toMsg e)) ensembles
+        ]
+
+    Just ens -> 
+       div [] 
+         <|
+           [ text <| "Using this ensemble:" ++ (String.fromInt <| List.length ens) 
+           , p [] [ text "Choose an option below to change your section."  ] ]
+           ++ (List.map (\e -> ensembleThumb e (toMsg e)) ensembles)
+
+
+editSection : List T.Compo -> List T.Ensemble ->  (Maybe T.Section) -> Html U.EditScore
+editSection cs es mSection = 
   case mSection of 
     Nothing ->
-      button [ class "button" ] [ text "Create a new section" ]
+      div [] 
+        [ button [ class "button", onClick U.NewSection ] [ text "Add a new section" ]
+        , p [] [ text "Or choose from one of the sections below to update it." ] ]
     
-    Just section ->
-      div [] [ text "Change a section" ]
+    Just (compo, ensemble) ->
+      div [] 
+        [ chooseCompo cs (\x -> U.UpdateSection x ensemble) (Just compo)
+        , chooseEnsemble es (\x -> U.UpdateSection compo x) (Just ensemble) ]
 
 
 editScore : T.EditScore -> Html U.EditScore
@@ -702,8 +773,8 @@ editScore ({ current, list, layout, ensembles} as model) =
   div [ class "container" ]
     [ h1 [ class "title" ] [ text "Score Designer"]
     , div [ class "columns is-multiline"] 
-        [ div [ class "column is-full" ] [ editSection current ] ]
-        , div [ class "column is-full" ] [ scorePreview list ] ]
+        [ div [ class "column is-full" ] [ editSection layout ensembles current] ]
+        , div [ class "column is-full" ] [ scorePreview list] ]
 
 
 
