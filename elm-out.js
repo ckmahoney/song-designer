@@ -4934,6 +4934,7 @@ var $author$project$View$main = $elm$html$Html$text('');
 var $author$project$Update$main = $elm$html$Html$text('');
 var $author$project$Types$main = $elm$html$Html$text('');
 var $author$project$Model$main = $elm$html$Html$text('');
+var $elm$json$Json$Decode$int = _Json_decodeInt;
 var $elm$browser$Browser$External = function (a) {
 	return {$: 'External', a: a};
 };
@@ -5257,7 +5258,7 @@ var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
 var $author$project$Data$p1 = {complexity: 1, density: 1, duty: $author$project$Types$Structure, id: -1, role: $author$project$Types$Bass, title: 'Bass', voice: 1};
-var $author$project$Main$init = {
+var $author$project$Main$initEditEnsemble = {
 	current: $elm$core$Maybe$Just($author$project$Data$p1),
 	presets: $author$project$Data$kitAll,
 	time: 0
@@ -5265,13 +5266,10 @@ var $author$project$Main$init = {
 var $elm$core$Debug$log = _Debug_log;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$Main$initFromFlags = function (ini) {
-	var w = A2($elm$core$Debug$log, 'initializing: ', ini);
-	return _Utils_Tuple2($author$project$Main$init, $elm$core$Platform$Cmd$none);
+var $author$project$Main$initEnsemble = function (ini) {
+	var w = A2($elm$core$Debug$log, 'initializing layout: ', ini);
+	return _Utils_Tuple2($author$project$Main$initEditEnsemble, $elm$core$Platform$Cmd$none);
 };
-var $elm$json$Json$Decode$int = _Json_decodeInt;
-var $elm$json$Json$Decode$null = _Json_decodeNull;
-var $elm$json$Json$Decode$oneOf = _Json_oneOf;
 var $author$project$Update$Tick = function (a) {
 	return {$: 'Tick', a: a};
 };
@@ -5690,7 +5688,7 @@ var $elm$time$Time$every = F2(
 		return $elm$time$Time$subscription(
 			A2($elm$time$Time$Every, interval, tagger));
 	});
-var $author$project$Main$subs = function (model) {
+var $author$project$Main$subsEnsemble = function (model) {
 	return A2($elm$time$Time$every, 1000, $author$project$Update$Tick);
 };
 var $elm$core$List$append = F2(
@@ -6028,7 +6026,7 @@ var $elm$core$Tuple$second = function (_v0) {
 	var y = _v0.b;
 	return y;
 };
-var $author$project$Update$update = F2(
+var $author$project$Update$updateEnsemble = F2(
 	function (msg, model) {
 		switch (msg.$) {
 			case 'Tick':
@@ -6213,192 +6211,6 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
-var $author$project$Data$kitBeat = _List_fromArray(
-	[
-		A7($author$project$Types$SynthPreset, 0, $author$project$Types$Structure, $author$project$Types$Kick, 'clock', 1, 1, 0),
-		A7($author$project$Types$SynthPreset, 1, $author$project$Types$Structure, $author$project$Types$Perc, 'clap', 3, 2, 0),
-		A7($author$project$Types$SynthPreset, 2, $author$project$Types$Structure, $author$project$Types$Hat, 'offbeat', 5, 3, 1)
-	]);
-var $author$project$Data$kitSynth = _List_fromArray(
-	[
-		A7($author$project$Types$SynthPreset, 0, $author$project$Types$Structure, $author$project$Types$Bass, 'pedal', 5, 3, 1),
-		A7($author$project$Types$SynthPreset, 1, $author$project$Types$Structure, $author$project$Types$Chords, 'hook', 5, 3, 1),
-		A7($author$project$Types$SynthPreset, 2, $author$project$Types$Structure, $author$project$Types$Melody, 'phrase', 5, 3, 1)
-	]);
-var $author$project$Data$kits = _List_fromArray(
-	[
-		_Utils_Tuple2('The beats', $author$project$Data$kitBeat),
-		_Utils_Tuple2('One of Everything', $author$project$Data$kitAll),
-		_Utils_Tuple2('The synths', $author$project$Data$kitSynth)
-	]);
-var $elm$html$Html$h5 = _VirtualDom_node('h5');
-var $author$project$Update$ChangePreset = function (a) {
-	return {$: 'ChangePreset', a: a};
-};
-var $author$project$View$csv = function (strs) {
-	var s = A3(
-		$elm$core$List$foldl,
-		F2(
-			function (str, all) {
-				return all + (str + ',');
-			}),
-		'',
-		strs);
-	return A3(
-		$elm$core$String$slice,
-		0,
-		$elm$core$String$length(s) - 1,
-		s);
-};
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
-var $author$project$View$backgroundGradient = function (colors) {
-	return A2(
-		$elm$html$Html$Attributes$style,
-		'background',
-		'linear-gradient(' + ($author$project$View$csv(colors) + ')'));
-};
-var $elm$html$Html$h3 = _VirtualDom_node('h3');
-var $elm$html$Html$Attributes$height = function (n) {
-	return A2(
-		_VirtualDom_attribute,
-		'height',
-		$elm$core$String$fromInt(n));
-};
-var $elm$html$Html$img = _VirtualDom_node('img');
-var $elm$html$Html$Attributes$src = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'src',
-		_VirtualDom_noJavaScriptOrHtmlUri(url));
-};
-var $elm$html$Html$Attributes$width = function (n) {
-	return A2(
-		_VirtualDom_attribute,
-		'width',
-		$elm$core$String$fromInt(n));
-};
-var $author$project$View$roleIcon = function (role) {
-	return A2(
-		$elm$html$Html$img,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$width(50),
-				$elm$html$Html$Attributes$height(50),
-				$elm$html$Html$Attributes$src(
-				'/svg/' + ($author$project$Data$roleLabel(role).a + '.svg'))
-			]),
-		_List_Nil);
-};
-var $elm$html$Html$span = _VirtualDom_node('span');
-var $author$project$View$kitItem = function (preset) {
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$class('is-hidden-mobile column is-half is-centered has-text-centered')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$h5,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('subtitle has-text-black')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text(preset.title)
-					])),
-				A2(
-				$elm$html$Html$span,
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'filter', 'invert(1)')
-					]),
-				_List_fromArray(
-					[
-						$author$project$View$roleIcon(preset.role)
-					]))
-			]));
-};
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $author$project$View$presetRow = function (_v0) {
-	var name = _v0.a;
-	var kit = _v0.b;
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				$elm$html$Html$Events$onClick(
-				$author$project$Update$ChangePreset(kit)),
-				$elm$html$Html$Attributes$class('is-clickable my-3 box column columns is-centered is-multiline is-one-quarter '),
-				$author$project$View$backgroundGradient(
-				_List_fromArray(
-					['cyan', 'magenta']))
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$h3,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('column is-full title has-text-centered')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text(name)
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('columns column is-centered is-multiline is-mobile')
-					]),
-				A2($elm$core$List$map, $author$project$View$kitItem, kit))
-			]));
-};
-var $author$project$View$presetMenu = function (kits) {
-	return A2(
-		$elm$html$Html$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$h5,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('title')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Presets')
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('columns is-multiline is-mobile mx-auto is-centered is-flex is-justify-content-space-around py-3')
-					]),
-				A2($elm$core$List$map, $author$project$View$presetRow, kits))
-			]));
-};
 var $author$project$Update$RequestPreset = {$: 'RequestPreset'};
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $author$project$Data$palette = _List_fromArray(
@@ -6465,6 +6277,8 @@ var $author$project$Data$roleColor = function (role) {
 		return color;
 	}
 };
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $author$project$Update$ChangeSelection = function (a) {
 	return {$: 'ChangeSelection', a: a};
 };
@@ -6474,6 +6288,23 @@ var $author$project$Update$UpdateSynthRole = F2(
 	});
 var $author$project$Update$KillPreset = function (a) {
 	return {$: 'KillPreset', a: a};
+};
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
 };
 var $author$project$View$killButton = function (synth) {
 	return A2(
@@ -6520,6 +6351,25 @@ var $author$project$View$crudButtons = function (preset) {
 			]));
 };
 var $elm$html$Html$figure = _VirtualDom_node('figure');
+var $elm$html$Html$Attributes$height = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'height',
+		$elm$core$String$fromInt(n));
+};
+var $elm$html$Html$img = _VirtualDom_node('img');
+var $elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
+var $elm$html$Html$Attributes$width = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'width',
+		$elm$core$String$fromInt(n));
+};
 var $author$project$View$roleIconButton = F2(
 	function (update, role) {
 		return A2(
@@ -6885,6 +6735,7 @@ var $author$project$View$changePresetButton = function (preset) {
 				$author$project$View$presetIcon(preset.role)
 			]));
 };
+var $elm$html$Html$h5 = _VirtualDom_node('h5');
 var $author$project$View$kitRow = F2(
 	function (curr, presets) {
 		return A2(
@@ -6904,12 +6755,12 @@ var $author$project$View$kitRow = F2(
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text('Instruments')
+								$elm$html$Html$text('Ensemble Designer')
 							]))
 					]),
 				A2($elm$core$List$map, $author$project$View$changePresetButton, presets)));
 	});
-var $author$project$View$synthEditor = function (model) {
+var $author$project$View$ensembleEditor = function (model) {
 	var yy = A2($elm$core$Debug$log, 'model : ', model);
 	var _v0 = model.current;
 	if (_v0.$ === 'Nothing') {
@@ -6949,7 +6800,8 @@ var $author$project$View$synthEditor = function (model) {
 				]));
 	}
 };
-var $author$project$Main$view = function (model) {
+var $author$project$View$editEnsemble = $author$project$View$ensembleEditor;
+var $author$project$Main$viewEnsembleEditor = function (model) {
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
@@ -6958,12 +6810,14 @@ var $author$project$Main$view = function (model) {
 			]),
 		_List_fromArray(
 			[
-				$author$project$View$presetMenu($author$project$Data$kits),
-				$author$project$View$synthEditor(model)
+				$author$project$View$editEnsemble(model)
 			]));
 };
-var $author$project$Main$main = $elm$browser$Browser$element(
-	{init: $author$project$Main$initFromFlags, subscriptions: $author$project$Main$subs, update: $author$project$Update$update, view: $author$project$Main$view});
+var $author$project$Main$mainEnsembleEditor = $elm$browser$Browser$element(
+	{init: $author$project$Main$initEnsemble, subscriptions: $author$project$Main$subsEnsemble, update: $author$project$Update$updateEnsemble, view: $author$project$Main$viewEnsembleEditor});
+var $elm$json$Json$Decode$null = _Json_decodeNull;
+var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $author$project$Main$main = $author$project$Main$mainEnsembleEditor;
 var $author$project$Data$main = $elm$html$Html$text('');
 var $author$project$Components$main = $elm$html$Html$text('');
 var $the_sett$elm_color$Color$rgb = F3(
@@ -7053,6 +6907,7 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			$elm$html$Html$Events$alwaysStop,
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
+var $elm$html$Html$span = _VirtualDom_node('span');
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
