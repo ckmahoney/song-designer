@@ -13,6 +13,20 @@ import Types as T
 import Data exposing (p1, p2, p3, p4)
 import Update as U
 import View
+import Mill
+
+
+
+type alias User = 
+  { username : String
+  , token : Bool
+  }
+
+
+joe = 
+  { username = "Joe"
+  , token = True
+  }
 
 
 initEditEnsemble : T.SynthState
@@ -98,6 +112,20 @@ initScore ini =
       (initEditScore, Cmd.none)
 
 
+initMill : Maybe Int -> (Mill.Model User, Cmd (Mill.Msg User))
+initMill ini = 
+  let
+    w = Debug.log "initializing score: " ini
+  in
+  case ini of 
+    _ ->
+      (Mill.initWith joe, Cmd.none)
+
+
+initApp : Maybe Int -> (App.Module, Cmd msg)
+initApp = 
+   App.init
+
 subsEnsemble : T.SynthState -> Sub U.UpdateMsg
 subsEnsemble model =
   Time.every 1000 U.Tick
@@ -143,7 +171,18 @@ mainSongDesigner =
                   , subscriptions = App.subscriptions
                   }
 
+
+mainMill =
+  Browser.element { init = initMill
+                  , update = Mill.update
+                  , view = Mill.view
+                  , subscriptions = Mill.subscriptions
+                  }
+
+
 main = 
-  mainSongDesigner
-
-
+  -- mainSongDesigner
+  mainMill
+  -- mainEnsembleEditor 
+  -- mainLayoutEditor 
+  -- mainScoreEditor 
