@@ -36,8 +36,8 @@ type EditLayout
   | UpdateRoot Int
   | UpdateLabel String
   | ChangeLayoutSelection (Maybe T.Compo)
-  | AddSection T.Compo
-
+  | AddLayoutSection T.Compo
+  | RemoveLayoutAt Int
 
 type EditScore
   = RequestScore
@@ -111,6 +111,17 @@ remove x xs =
 
    Just jx ->
      List.filter (\a -> not (jx == a)) xs
+
+
+removeAt : Int -> List a -> List a
+removeAt index els =
+  case index of 
+  0 ->
+    List.drop 1 els
+
+  n -> 
+    List.concat [ (List.take n els), (List.drop (n + 1) els) ]
+
 
 replace : a -> a -> List a -> List a 
 replace prev next xs =
@@ -271,8 +282,11 @@ updateLayout msg model =
                  | current = next
                  , presets = remove (Just comp) ps }, Cmd.none)
     
-    AddSection compo -> 
+    AddLayoutSection compo -> 
       ({ model | list = conj compo model.list }, Cmd.none)
+
+    RemoveLayoutAt index -> 
+      ({ model | list = removeAt index model.list }, Cmd.none)
 
 
 updateEnsemble : UpdateMsg -> T.SynthState -> (T.SynthState, Cmd UpdateMsg)

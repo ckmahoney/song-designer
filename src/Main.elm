@@ -71,7 +71,7 @@ viewEnsembleEditor model =
 viewLayoutEditor : T.EditLayout -> Html U.EditLayout
 viewLayoutEditor model =
   div [Attr.class "syn-main section"] 
-    [ View.editLayout model ]
+    [ View.designLayout model ]
 
 
 viewScoreEditor : T.EditScore -> Html U.EditScore

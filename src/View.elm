@@ -14,6 +14,7 @@ import String exposing (String(..))
 useSharps = False
 
 
+
 invertColor : Html msg -> Html msg
 invertColor el =
   div [ style "filter" "invert(1)" ] [ el ] 
@@ -625,11 +626,25 @@ layoutPreview score =
       <| List.map (\c -> layoutItem c (U.ChangeLayoutSelection (Just c))) score ]
 
 
+designPreview : List T.Compo -> Html U.EditLayout
+designPreview score = 
+  div [class "box", style "background" "magenta" ] 
+    [ div [class "columns is-multiline"]
+      <| List.indexedMap (\i c -> layoutItem c (U.RemoveLayoutAt i)) score ]
+
+
+designOptions : List T.Compo -> Html U.EditLayout
+designOptions score = 
+  div [class "box", style "background" "orange" ] 
+    [ div [class "columns"]
+      <| List.indexedMap (\i c -> layoutItem c (U.AddLayoutSection c)) score ]
+
+
 layoutOptions : List T.Compo -> Html U.EditLayout
 layoutOptions opts = 
   div [class "box", style "background" "orange" ] 
     [ div [class "columns"]
-      <| List.map (\c -> layoutItem c (U.AddSection  c)) opts ]
+      <| List.map (\c -> layoutItem c (U.ChangeLayoutSelection <| Just c)) opts ]
 
 
 keyButtonMobile : String -> Int -> (Int -> U.EditLayout) -> Int -> Html U.EditLayout
@@ -695,6 +710,11 @@ editLayoutMessage =
   p [class "content"] [text "Use this editor to create sections for your songs."]
 
 
+designLayoutMessage : Html msg
+designLayoutMessage = 
+  p [class "content"] [text "Arrange your score here."]
+
+
 editLayout : T.EditLayout -> Html U.EditLayout 
 editLayout model = 
   div [ class "container" ]
@@ -709,9 +729,10 @@ designLayout : T.EditLayout -> Html U.EditLayout
 designLayout model = 
   div [ class "container" ]
     [ h1 [ class "title" ] [ text "Layout Designer"]
+    , p [ class ""] [ designLayoutMessage]
     , div [ class "columns is-multiline"] 
-      [ div [ class "column is-full" ] [ layoutPreview model.list ] ]
-      , div [ class "column is-full" ] [ layoutOptions model.presets ] ]
+      [ div [ class "column is-full" ] [ designPreview model.list ] ]
+      , div [ class "column is-full" ] [ designOptions model.presets ] ]
 
 
 
