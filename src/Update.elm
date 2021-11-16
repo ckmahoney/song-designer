@@ -36,6 +36,7 @@ type EditLayout
   | UpdateRoot Int
   | UpdateLabel String
   | ChangeLayoutSelection (Maybe T.Compo)
+  | AddSection T.Compo
 
 
 type EditScore
@@ -269,7 +270,10 @@ updateLayout msg model =
                  ({ model 
                  | current = next
                  , presets = remove (Just comp) ps }, Cmd.none)
-         
+    
+    AddSection compo -> 
+      ({ model | list = conj compo model.list }, Cmd.none)
+
 
 updateEnsemble : UpdateMsg -> T.SynthState -> (T.SynthState, Cmd UpdateMsg)
 updateEnsemble msg model =

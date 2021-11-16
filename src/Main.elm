@@ -12,10 +12,7 @@ import App
 import Types as T
 import Data exposing (p1, p2, p3, p4)
 import Update as U
-import View
-import Mill
-
-
+import View 
 
 type alias User = 
   { username : String
@@ -42,6 +39,7 @@ initEditLayout =
    { time = 0
    , index = -1
    , current = Nothing
+   , list = []
    , presets = Data.layout1
    }
 
@@ -112,14 +110,14 @@ initScore ini =
       (initEditScore, Cmd.none)
 
 
-initMill : Maybe Int -> (Mill.Model User, Cmd (Mill.Msg User))
-initMill ini = 
-  let
-    w = Debug.log "initializing score: " ini
-  in
-  case ini of 
-    _ ->
-      (Mill.initWith joe, Cmd.none)
+-- initMill : Maybe Int -> (Mill.Model User, Cmd (Mill.Msg User))
+-- initMill ini = 
+--   let
+--     w = Debug.log "initializing score: " ini
+--   in
+--   case ini of 
+--     _ ->
+--       (Mill.initWith joe, Cmd.none)
 
 
 initApp : Maybe Int -> (App.Module, Cmd msg)
@@ -172,17 +170,16 @@ mainSongDesigner =
                   }
 
 
-mainMill =
-  Browser.element { init = initMill
-                  , update = Mill.update
-                  , view = Mill.view
-                  , subscriptions = Mill.subscriptions
-                  }
+-- mainMill =
+--   Browser.element { init = initMill
+--                   , update = Mill.update
+--                   , view = Mill.view
+--                   , subscriptions = Mill.subscriptions
+--                   }
 
 
 main = 
   -- mainSongDesigner
-  mainMill
   -- mainEnsembleEditor 
-  -- mainLayoutEditor 
+  mainLayoutEditor 
   -- mainScoreEditor 

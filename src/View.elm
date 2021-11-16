@@ -90,9 +90,9 @@ roleThumb role =
 
 roleIconButton : (T.SynthRole -> U.UpdateMsg) -> T.SynthRole -> Html U.UpdateMsg
 roleIconButton update role =
-  div [class "column columns is-centered is-one-third mb-0"]
-   [ div [class "box"]
-     [ div [class "image is-48x48", style "box-shadow" ("0px 0px 30px " ++ D.roleColor role)]
+  div [class "column columns is-centered is-one-third mb-0 p-0"]
+   [ div [class "box p-1 m-3"]
+     [ div [class "image is-48x48", style "box-shadow" ("0px 0px 13px " ++ D.roleColor role)]
        [ img  [ width 50
                , height 50
                , onClick (update role)
@@ -472,12 +472,17 @@ bpmString cps =
   String.fromFloat <| cpsToBPM cps
 
 
+sectionToLength : Float -> Int -> Float
+sectionToLength nCycles cps =
+  nCycles * (toFloat cps)
+
+
 tempoMessage : T.Compo -> Html msg
 tempoMessage ({cps, size} as model) =
   div [class "content"] 
     [ p [] [text "The speed for you track. Higher BPM are faster, and lower BPM are slower."]
-    , p [] [ text <| "With size " ++ (String.fromInt size) ++ " at " ++ (bpmString cps) ++ " that means it will be " ++ " seconds long." ]
-    , text <| (String.fromFloat (cpsToBPM cps)) ++ " Beats Per Minute" ]
+    , p [] [ text <| "With size " ++ (String.fromInt size) ++ " at " ++ (bpmString cps) ++ "BPM, that means this section is " ++ (String.fromFloat (duration model.cpc model.cps model.size)) ++  " seconds long." ] ]
+
 
 
 meterMessage : T.Compo -> Html msg
@@ -553,9 +558,9 @@ compoContentMobile : T.Compo -> Html U.EditLayout
 compoContentMobile model =
   div [ class "content-mobile columns card-content is-multiline" ]
     [ div [class "column"] 
-        [ editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
+        [ div [class "column"] [ editText "Label" labelInfo model.label U.UpdateLabel ]
+        , editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
         , editBoundInt3 "Size" (sizeMessage model) D.rangeCompoSize model.size U.UpdateSize ]
-    , div [class "column"] [ editText "Label" labelInfo model.label U.UpdateLabel ]
     , div [class "column"] [ editRange "Tempo" (tempoMessage model) D.rangeCPS D.rangeStep model.cps U.UpdateCPS ]
     , div [class "column"] [ keyPicker model.root U.UpdateRoot ] ]
 
@@ -574,9 +579,9 @@ compoContentTablet model =
 compoContentDesktop : T.Compo -> Html U.EditLayout
 compoContentDesktop model =
   div [ class "content-desktop columns card-content is-multiline" ]
-    [ editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
+    [ editText "Label" labelInfo model.label U.UpdateLabel
     , editBoundInt3 "Size" (sizeMessage model) D.rangeCompoSize model.size U.UpdateSize
-    , editText "Label" labelInfo model.label U.UpdateLabel
+    , editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
     , editRange "Tempo" (tempoMessage model) D.rangeCPS D.rangeStep model.cps U.UpdateCPS 
     , keyPicker model.root U.UpdateRoot ]
 
@@ -612,11 +617,19 @@ layoutItem ({cps, cpc, size, root} as model) msg =
     ]
 
 
+
 layoutPreview : List T.Compo -> Html U.EditLayout
 layoutPreview score = 
   div [class "box", style "background" "magenta" ] 
     [ div [class "columns"]
       <| List.map (\c -> layoutItem c (U.ChangeLayoutSelection (Just c))) score ]
+
+
+layoutOptions : List T.Compo -> Html U.EditLayout
+layoutOptions opts = 
+  div [class "box", style "background" "orange" ] 
+    [ div [class "columns"]
+      <| List.map (\c -> layoutItem c (U.AddSection  c)) opts ]
 
 
 keyButtonMobile : String -> Int -> (Int -> U.EditLayout) -> Int -> Html U.EditLayout
@@ -677,14 +690,29 @@ editCompo mcompo =
           , compoContent compo]
 
 
+editLayoutMessage : Html msg
+editLayoutMessage = 
+  p [class "content"] [text "Use this editor to create sections for your songs."]
+
+
 editLayout : T.EditLayout -> Html U.EditLayout 
 editLayout model = 
   div [ class "container" ]
-    [ h1 [ class "title" ] [ text "Layout Designer"]
+    [ h1 [ class "title" ] [ text "Layout Editor"]
+    , p [ class ""] [ editLayoutMessage]
     , div [ class "columns is-multiline"] 
       [ div [ class "column is-full" ] [ editCompo model.current ]
-      , div [ class "column is-full" ] [ layoutPreview model.presets ] ]
-    ]
+      , div [ class "column is-full" ] [ layoutOptions model.presets ] ] ]
+
+
+designLayout : T.EditLayout -> Html U.EditLayout 
+designLayout model = 
+  div [ class "container" ]
+    [ h1 [ class "title" ] [ text "Layout Designer"]
+    , div [ class "columns is-multiline"] 
+      [ div [ class "column is-full" ] [ layoutPreview model.list ] ]
+      , div [ class "column is-full" ] [ layoutOptions model.presets ] ]
+
 
 
 scorePreviewItem : T.Section -> (T.Section -> U.EditScore) -> Html U.EditScore

@@ -121,6 +121,7 @@ type alias EditLayout  =
   { time : Int
   , index : Int
   , current : Maybe Compo
+  , list : List Compo
   , presets : List Compo
   }
 
