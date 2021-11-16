@@ -411,6 +411,60 @@ roleDuty role =
     
     Melody ->
       Expression
+
+
+
+
+v1 =
+  { id = -1
+  , label = "verse"
+  , cps = 2
+  , cpc = 4 
+  , root = 30
+  , nCycles = 0
+  , size = 1
+  }
+
+
+c1 =
+  { id = -2
+  , label = "chorus"
+  , cps = 2
+  , cpc = 4 
+  , root = 42
+  , nCycles = 0
+  , size = 1
+  }
+
+
+kitVC1 : PresetKit
+kitVC1 =
+  [ SynthPreset 0 Structure Kick "clock" 1 1 0
+  , SynthPreset 1 Structure Perc "clap" 3 2 0
+  , SynthPreset 3 Structure Bass "clap" 3 3 1
+  , SynthPreset 4 Structure Chords "hook" 5 3 1
+  , SynthPreset 5 Expression Melody "phrase" 5 3 1
+  ]
+
+
+
+kitVC2 : PresetKit
+kitVC2 =
+  [ SynthPreset 0 Structure Hat "clock" 1 1 0
+  , SynthPreset 1 Structure Hat "clap" 3 2 0
+  , SynthPreset 2 Expression Hat "clap" 3 2 0
+  , SynthPreset 3 Structure Bass "clap" 3 3 1
+  , SynthPreset 4 Structure Melody "hook" 5 3 1
+  , SynthPreset 5 Structure Chords "phrase" 5 3 1
+  ]
+
+
+layoutVerseChorus =
+  [ (v1, kitVC1)
+  , (c1, kitVC1)
+  , (v1, kitVC2)
+  , (c1, kitVC2)
+  ]
     
 
 main = 

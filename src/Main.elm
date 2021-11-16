@@ -53,7 +53,7 @@ initEditScore =
   , compo = Nothing
   , ensembles = Data.allKits
   , layout = Data.layout1
-  , list = Data.score1
+  , list = Data.layoutVerseChorus
   } 
 
 
@@ -77,7 +77,8 @@ viewLayoutEditor model =
 viewScoreEditor : T.EditScore -> Html U.EditScore
 viewScoreEditor model =
   div [Attr.class "syn-main section"] 
-    [ View.editScore model ]
+    -- [ View.editScore model ]
+    [ View.overviewScore model.list ]
 
 
 initEnsemble : Maybe Int -> (T.SynthState, Cmd U.UpdateMsg)
@@ -181,5 +182,5 @@ mainSongDesigner =
 main = 
   -- mainSongDesigner
   -- mainEnsembleEditor 
-  mainLayoutEditor 
-  -- mainScoreEditor 
+  -- mainLayoutEditor 
+  mainScoreEditor 

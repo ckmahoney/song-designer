@@ -112,16 +112,34 @@ rolePicker update =
 
 ensemblePreviewIcon : String -> T.SynthRole -> Html msg
 ensemblePreviewIcon title role =
-  div [ class "column" ]
+  div [ class "ensemble-preview-icon column" ]
      [ div [ class "is-radiusless box is-block p-3 is-flex is-justify-content-space-around is-align-items-center"
            , style "background" <| D.roleColor role ]
         [ invertColor <| roleIcon role, label [ class "is-size-4 has-text-black" ] [ text title ]  ] ]
+
+
+ensembleThumbIcon : String -> T.SynthRole -> Html msg
+ensembleThumbIcon title role =
+  div [ class "column box m-3" , style "background" <| D.roleColor role ]
+    [ div [ style "text-align" "center", style "filter" "invert(1)" ] [ roleIcon role] ] 
 
 
 ensemblePreview : T.Ensemble -> Html msg
 ensemblePreview ensemble =
   div [class "mt-3 is-multiline"]
     <| List.map (\synth ->  ensemblePreviewIcon (Tuple.first (D.roleLabel <| .role synth)) (.role synth) ) ensemble
+
+
+ensembleThumbs : T.Ensemble -> Html msg
+ensembleThumbs ensemble =
+  div [class "box m-3 columns"]
+    <| List.map (\synth ->  ensembleThumbIcon "" (.role synth) ) ensemble
+
+
+ensembleThumbClick : T.Ensemble -> U.EditScore -> Html U.EditScore
+ensembleThumbClick ensemble toMsg=
+  div [class "box columns my-3",  onClick toMsg]
+    <| List.map (\synth ->  ensembleThumbIcon "" (.role synth) ) ensemble
 
 
 roleCard : T.SynthRole -> Html msg
@@ -501,6 +519,22 @@ duration cpc cps size  =
   cps * (toFloat (sizeToCycles cpc size))
 
 
+-- Given a Float seconds, returns a MM:SS string
+timeString : Float -> String
+timeString t =
+  let
+    m = ((round t) // 60)
+    pad = if m < 10 then "0" else "" 
+    mm = pad ++ String.fromInt m
+    
+    s = modBy 60 (round t)
+    pad2 = if s < 10 then "0" else "" 
+    ss = pad2 ++ String.fromInt s
+  in
+  mm ++ ":" ++ ss
+
+
+
 sizeText : Int -> Int -> String
 sizeText cpc size =
   String.fromInt <| sizeToCycles cpc size
@@ -604,6 +638,27 @@ layoutItem ({cps, cpc, size, root} as model) msg =
       [ label [] [text "Size "] 
       , b [] [text <| String.fromInt size] ]
     , div [] 
+      [ label [] [text  "Tempo "]
+      , b [] [text <| String.fromFloat (cpsToBPM cps)] ]
+    , div [] 
+      [ label [] [text  "Meter"]
+      , b [] [text <| String.fromInt cpc] ]
+    , div [] 
+      [ label [] [text  "Key"]
+      , b [] [text <| keyToLabel root] ]
+    , div [] 
+      [ label [] [text  "Duration"]
+      , b [] [text <| timeString <| duration cpc cps size] ]
+    ]
+
+editScoreItem : T.Compo -> Html U.EditScore
+editScoreItem ({cps, cpc, size, root} as model) =
+  div [class "m-3 column box is-flex is-flex-direction-column" ]
+    [ label [class "subtitle has-text-centered"] [ text model.label ]
+    , div [] 
+      [ label [] [text "Size "] 
+      , b [] [text <| String.fromInt size] ]
+    , div [] 
       [ label [] [text  "Tempo"]
       , b [] [text <| String.fromFloat (cpsToBPM cps)] ]
     , div [] 
@@ -614,9 +669,8 @@ layoutItem ({cps, cpc, size, root} as model) msg =
       , b [] [text <| keyToLabel root] ]
     , div [] 
       [ label [] [text  "Duration"]
-      , b [] [text <| String.fromFloat <| duration cpc cps size] ]
+      , b [] [text <| timeString <| duration cpc cps size] ]
     ]
-
 
 
 layoutPreview : List T.Compo -> Html U.EditLayout
@@ -712,7 +766,7 @@ editLayoutMessage =
 
 designLayoutMessage : Html msg
 designLayoutMessage = 
-  p [class "content"] [text "Arrange your score here."]
+  p [class "content"] [text "Arrange your score here." ]
 
 
 editLayout : T.EditLayout -> Html U.EditLayout 
@@ -725,21 +779,46 @@ editLayout model =
       , div [ class "column is-full" ] [ layoutOptions model.presets ] ] ]
 
 
+totalLength : List T.Compo -> Float
+totalLength score =
+  List.foldl (\{cpc, cps, size} sum -> 
+    sum + (duration cpc cps size)) 0 score
+
+
+countStems : List T.Section -> Int
+countStems score =
+  List.foldl (\(compo, ensemble) sum ->  
+    sum + (List.length ensemble)) 0 score
+
+
 designLayout : T.EditLayout -> Html U.EditLayout 
 designLayout model = 
+  let
+-- duration cpc cps size  =
+    length = totalLength model.list
+  in 
   div [ class "container" ]
     [ h1 [ class "title" ] [ text "Layout Designer"]
     , p [ class ""] [ designLayoutMessage]
+    , p [] [text <| timeString length ]
     , div [ class "columns is-multiline"] 
       [ div [ class "column is-full" ] [ designPreview model.list ] ]
       , div [ class "column is-full" ] [ designOptions model.presets ] ]
-
 
 
 scorePreviewItem : T.Section -> (T.Section -> U.EditScore) -> Html U.EditScore
 scorePreviewItem ((compo, ensemble) as section) toMsg =
   div [ class "box" 
       , onClick (toMsg section) ] 
+    [ div [ class "columns is-multiline" ]
+      [ label [ class "column is-full title has-text-centered" ] [ text compo.label ]
+      , div [ class "column is-full"] [ ensemblePreview ensemble ]
+      ] ]
+
+
+scoreData : T.Section -> Html U.EditScore
+scoreData ((compo, ensemble) as section) =
+  div [ class "box" ]
     [ div [ class "columns is-multiline" ]
       [ label [ class "column is-full title has-text-centered" ] [ text compo.label ]
       , div [ class "column is-full"] [ ensemblePreview ensemble ]
@@ -753,6 +832,13 @@ scorePreview sections =
     , div [ class "columns" ] <| List.map (\s -> scorePreviewItem s U.ApplySection)  sections ]
 
 
+scoreView : List T.Section -> Html U.EditScore
+scoreView sections = 
+  div [ class "box" ] 
+    [ h3 [ class "subtitle" ] [ text "Score" ]
+    , div [ class "columns" ] <| List.map scoreData  sections ]
+
+
 
 makeSection : T.Section -> Html msg
 makeSection (mCompo, mEnsemble) =
@@ -761,46 +847,65 @@ makeSection (mCompo, mEnsemble) =
 
 compoThumb : T.Compo -> U.EditScore -> Html U.EditScore
 compoThumb compo toMsg =
-  div [ class "box", onClick toMsg ] [ text compo.label ]
+  div [ class "box column m-3"
+      , onClick toMsg ] 
+    [ p [] [ text compo.label ]
+    , p [] [ text (timeString (duration compo.cpc compo.cps compo.size)) ] ]
 
 
-ensembleThumb : T.Ensemble -> U.EditScore -> Html U.EditScore
-ensembleThumb ensemble toMsg =
-  div [ class "box", onClick toMsg ] [ text <| String.fromInt <| List.length ensemble ]  
+ensembleBanner : T.Ensemble -> Html msg
+ensembleBanner ensemble =
+  div [ class "ensemble-banner columns is-multiline pt-3" ] <| List.map (\synth ->
+    div [ class "column is-full"] [ roleIcon synth.role ] ) ensemble
+
+
+sectionThumb : (T.Compo, T.Ensemble) -> Html U.EditScore
+sectionThumb (compo, ensemble) =
+  div [ style "max-width" "90px"
+      , class "m-3 box column has-text-centered" ]
+    [ p [] [ text compo.label ]
+    , p [] [ text (timeString (duration compo.cpc compo.cps compo.size)) ]
+    , ensembleBanner ensemble ]
 
 
 chooseCompo : List T.Compo -> (T.Compo -> U.EditScore) -> (Maybe T.Compo) -> Html U.EditScore
 chooseCompo compos toMsg compo =
+  let
+    picker = div [ class "columns my-3" ] <| List.map (\c -> compoThumb c (toMsg c)) compos
+  in 
   case compo of 
     Nothing -> 
       div [] 
-        [ text "You need a meta for this section. Pick one here." 
-        , div [] <| List.map (\c -> compoThumb c (toMsg c)) compos
+        [ text "You need a compo for this section. Pick one here." 
+        , picker
         ]
  
     Just comp -> 
-       div [  ] 
-         <| 
-         [ p [ class "subtitle"] [ text <| "Using this section:" ++ comp.label ]
-         , p [] [ text "Choose an option below to change your section."  ] ]
-         ++ (List.map (\c -> compoThumb c (toMsg c)) compos)
+       picker
 
 
 chooseEnsemble : List T.Ensemble -> (T.Ensemble -> U.EditScore) -> (Maybe T.Ensemble) -> Html U.EditScore
 chooseEnsemble ensembles toMsg ensemble =
+  let 
+    picker = div [ class "" ] <| List.map (\e -> ensembleThumbClick e (toMsg e)) ensembles
+  in 
   case ensemble of 
     Nothing -> 
       div [] 
         [ text "You need an ensemble for this section. Pick one here." 
-        , div [] <| List.map (\e -> ensembleThumb e (toMsg e)) ensembles
+        , picker
         ]
 
     Just ens -> 
-       div [] 
-         <|
-           [ text <| "Using this ensemble:" ++ (String.fromInt <| List.length ens) 
-           , p [] [ text "Choose an option below to change your section."  ] ]
-           ++ (List.map (\e -> ensembleThumb e (toMsg e)) ensembles)
+     picker
+
+
+sectionPreview : T.Compo -> T.Ensemble -> Html U.EditScore
+sectionPreview compo ensemble =
+  div [ class "columns", style "background" "linear-gradient(90deg, cyan, magenta)" ] 
+  [ div [ class "column is-half" ] [ h3 [] [ text "Details" ],  editScoreItem compo ] 
+  , div [ class "column is-half" ] [ h3 [] [ text "Ensemble" ],  ensembleThumbs ensemble ]
+  ] 
 
 
 editSection : List T.Compo -> List T.Ensemble ->  (Maybe T.Section) -> Html U.EditScore
@@ -813,8 +918,10 @@ editSection cs es mSection =
     
     Just (compo, ensemble) ->
       div [] 
-        [ chooseCompo cs (\x -> U.UpdateSection x ensemble) (Just compo)
-        , chooseEnsemble es (\x -> U.UpdateSection compo x) (Just ensemble) ]
+        [ sectionPreview compo ensemble
+        , div [ class "columns" ]
+          [ div [ class "column is-half" ] [ b [] [ text "Change the Details" ],  chooseCompo cs (\x -> U.UpdateSection x ensemble) (Just compo) ]
+          , div [ class "column is-half" ] [ b [] [ text "Change the Ensemble" ], chooseEnsemble es (\x -> U.UpdateSection compo x) (Just ensemble) ] ] ]
 
 
 editScore : T.EditScore -> Html U.EditScore
@@ -823,8 +930,18 @@ editScore ({ current, list, layout, ensembles} as model) =
     [ h1 [ class "title" ] [ text "Score Designer"]
     , div [ class "columns is-multiline"] 
         [ div [ class "column is-full" ] [ editSection layout ensembles current] ]
+        -- , div [ class "column is-full" ] [ scoreView list ] 
         , div [ class "column is-full" ] [ scorePreview list] ]
 
+
+overviewScore : List T.Section -> Html U.EditScore
+overviewScore score =
+  div [] 
+    [ div [class "columns"] (List.map sectionThumb score)
+    , p [ class "subtitle" ] [ text <| "This song is " ++ (timeString <| totalLength (List.map Tuple.first score)) ++ " in duration."]
+    , p [ class "subtitle" ] [ text <| "It takes stems " ++ (String.fromInt <| countStems score ) ++ " to write this song."]
+    , button [ class "button" ] [ text "Print Song" ]
+    ]
 
 
 main =
