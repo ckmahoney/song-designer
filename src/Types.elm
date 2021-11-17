@@ -99,13 +99,6 @@ type alias Compo  =
   }
 
 
-type alias SeedCell =
-  { id : Int
-  , action : String
-  , nCycles : Int
-  } 
-
-
 type alias EditState a =
   { time : Int
   , current : Maybe a
@@ -152,8 +145,6 @@ type alias EditScore =
   , layout : List Compo
   , ensembles : List Ensemble
   }
-
-
 
 
 main =

@@ -1,43 +1,48 @@
-module Components exposing (card)
-
-import Browser
-import Html exposing (Html, div, figure, img, p, a, br, time, text)
-import Html.Attributes exposing (class, src, href, alt, datetime)
-import Html.Events 
-
-svg : String -> Html a
-svg name =
-  img [src "/svg/bell.svg"] []
-
-cardTitle : String -> Html a
-cardTitle title =
-  div [class "is-size-3"] [text title]
+module Components exposing (..)
 
 
-cardImage : Html a
-cardImage = 
-  div [class "card-image"]
-    [ figure [class "image is-4by3"]
-       [ img [src "https://bulma.io/images/placeholders/1280x960.png", alt "Placeholder Image"] [] ] ]
-
-cardContent : String -> String-> Html a
-cardContent title content = 
-  div [class "card-content"]
-    [ div [class "media"]
-      [ div [class "media-left"]
-         [ figure [class "image is-48x48"]
-           [ svg "bell" ] ]
-         , div [class "media-content"]
-             [ p [class "title is-4"] [text title]
-             , p [class "subtitle is-6"] [text title] ] ]
-      , div [class "content"] [text content] ]
-
-card :String ->  String -> msg -> Html msg
-card label title msg = 
-  div [class "card", Html.Events.onClick msg]
-    [ cardTitle label
-    , cardContent title "the content"]
+import Html exposing (Html, text)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 
 
-main =
+button : msg -> List (Html.Attribute msg) -> String -> Html.Html msg
+button toMsg attrs content =
+  Html.button ([class "button", onClick toMsg] ++ attrs) [ text content ]
+
+
+skButtons : msg -> msg -> Html msg
+skButtons saveMsg killMsg  =
+  Html.div [class "column is-flex is-justify-content-space-between" ]
+    [ button killMsg [] "Delete"
+    , button saveMsg [] "Save" ]
+
+
+picker : List (Html msg) -> selectMsg -> Html msg
+picker options select =
+  Html.div [] []
+
+
+type alias Model 
+  = ()
+
+
+type Msg
+  = Input Int
+
+
+init : flags -> ( Model, Cmd Msg )
+init _ =
+  ( (), Cmd.none )
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+  case msg of 
+    Input n ->
+      ( model, Cmd.none )
+
+
+main = 
   Html.text ""
+

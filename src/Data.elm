@@ -183,6 +183,9 @@ layout1 : List Compo
 layout1 = [s1, s2, s3]
 
 
+layout2 : List Compo
+layout2 = [ s2, s2, s3 , s1]
+
 p1 : SynthPreset
 p1 =
   { id = -1
@@ -459,13 +462,37 @@ kitVC2 =
   ]
 
 
-layoutVerseChorus =
+scoreVerseChorus =
   [ (v1, kitVC1)
+  , (c1, kitVC1)
+  , (v1, kitVC1)
   , (c1, kitVC1)
   , (v1, kitVC2)
   , (c1, kitVC2)
   ]
     
+initEditEnsemble : SynthState
+initEditEnsemble =
+   { time = 0
+   , current = Just p1
+   , presets = kitAll
+   }
+
+
+initEditScore : EditScore
+initEditScore = 
+  { time = 0
+  , cps = 1
+  , current = Nothing
+  , ensemble = Nothing
+  , compo = Nothing
+  , ensembles = allKits
+  , layout = layout1
+  , list = scoreVerseChorus
+  } 
+
 
 main = 
   Html.text ""
+
+

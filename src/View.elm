@@ -4,6 +4,8 @@ import Html exposing (..)
 import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (..)
 
+import Components
+
 import Array
 import Types as T
 import Data as D
@@ -22,38 +24,6 @@ invertColor el =
 
 keyNames =
   if useSharps then D.sharps else D.flats
-
-
-cardTitle : String -> Html a
-cardTitle title =
-  div [class "is-size-3"] [text title]
-
-
-cardImage : String -> Html msg
-cardImage fp =
-  div [class "card-image"]
-    [ figure [class "image is-4by3"] 
-       [ img [src fp, alt ""] [] ] ]
-
-
-cardContent : T.SynthRole -> String -> String-> Html a
-cardContent role title content = 
-  div [class "card-content"]
-    [ div [class "media"]
-      [ div [class "media-left"]
-         [ figure [class "image is-96x96"] [roleIcon role]]
-
-         , div [class "media-content"]
-             [ p [class "title is-4"] [text title]
-             , p [class "subtitle is-6"] [text title] ] ]
-      , div [class "content"] [text content] ]
-
-
-card : T.SynthRole -> String ->  String ->  Html msg
-card role label title  = 
-  div [class "column card"]
-    [ cardTitle label
-    , cardContent role title ""]
 
 
 backgroundInvert : String -> Html msg -> Html msg
@@ -141,13 +111,6 @@ ensembleThumbClick ensemble toMsg=
   div [class "box columns my-3",  onClick toMsg]
     <| List.map (\synth ->  ensembleThumbIcon "" (.role synth) ) ensemble
 
-
-roleCard : T.SynthRole -> Html msg
-roleCard role = 
-  let 
-    text = D.roleLabel role
-  in
-  card role (Tuple.second text) (" " ++ (Tuple.first text))
 
 
 -- Guarantees the integer will be in the range provided, inclusive
@@ -301,22 +264,7 @@ buttonOpt role msg =
   button [] [text (Tuple.first (D.roleLabel role))]
 
 
-saveButton : T.SynthPreset -> Html U.UpdateMsg
-saveButton synth =
-  button [class "button", onClick (U.AddPreset synth)] [text "Save"]
-
-
-killButton : T.SynthPreset -> Html U.UpdateMsg
-killButton synth =
-  button [class "button", onClick (U.KillPreset synth)] [text "Delete"]
-
-
-crudButtons preset =
-  div [class "column is-flex is-justify-content-space-between" ]
-    [ killButton preset
-    , saveButton preset ]
-
-
+synthDescription : T.SynthPreset -> Html msg
 synthDescription preset =
   div [class "column media-left"]
     [ div [class "media-content"]
@@ -331,20 +279,51 @@ texEdit preset =
 
 synthCardContent : T.SynthPreset -> Html U.UpdateMsg
 synthCardContent preset = 
+  let 
+    saveSynth = (U.AddPreset preset)
+    killSynth = (U.KillPreset preset)
+  in 
   div [class "column card-content has-background-white "]
     [ button [onClick (U.ChangeSelection Nothing), class "delete is-large"] []
     , div [class "column media is-centered p-3"]
-      [ figure [class "image mx-auto is-96x96"] [roleThumb preset.role]]
-      , synthDescription preset 
-      , rolePicker (U.UpdateSynthRole preset) 
-      , texEdit preset
-      , crudButtons preset ]
+        <| [ figure [class "image mx-auto is-96x96"] [roleThumb preset.role]
+           , synthDescription preset 
+           , rolePicker (U.UpdateSynthRole preset) 
+           , texEdit preset
+           , (Components.skButtons saveSynth killSynth)
+           ] ]
+
+
+hisIsForEditingInstruments : T.SynthPreset -> msg -> msg -> msg -> msg -> Html msg
+hisIsForEditingInstruments preset selectNone select update delete = 
+  -- let 
+    -- saveSynth = (U.AddPreset preset)
+    -- killSynth = (U.KillPreset preset)
+    -- unselect = (U.ChangeSelection Nothing)
+    -- updateRole = (\p -> U.UpdateSynthRole p)
+  -- in 
+  div [class "column card-content has-background-white "]
+    [ button [onClick selectNone, class "delete is-large"] []
+    , div [class "column media is-centered p-3"]
+        <| [ figure [class "image mx-auto is-96x96"] [roleThumb preset.role]
+           , synthDescription preset
+           , Components.picker [] update
+           -- , texEdit preset
+           , (Components.skButtons update delete)
+           ] ]
 
 
 editPreset : T.SynthPreset -> Html U.UpdateMsg
 editPreset preset =
-  div [class "column card  is-half px-6 py-4" ,style  "background" (D.roleColor preset.role)]
-    [ synthCardContent preset]
+  div [class "column card is-half px-6 py-4", style "background" (D.roleColor preset.role)]
+    [ synthCardContent preset ]
+
+
+instrumentEditor : T.SynthPreset -> msg -> msg -> Html msg
+instrumentEditor synth keep kill =
+  div [class "column card is-half px-6 py-4", style "background" (D.roleColor synth.role)]
+    []
+
 
 
 changePresetButton : T.SynthPreset -> Html U.UpdateMsg

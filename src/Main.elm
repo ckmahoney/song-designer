@@ -13,6 +13,7 @@ import Types as T
 import Data exposing (p1, p2, p3, p4)
 import Update as U
 import View 
+import Router 
 
 type alias User = 
   { username : String
@@ -26,14 +27,6 @@ joe =
   }
 
 
-initEditEnsemble : T.SynthState
-initEditEnsemble =
-   { time = 0
-   , current = Just p1
-   , presets = Data.kitAll
-   }
-
-
 initEditLayout : T.EditLayout
 initEditLayout =
    { time = 0
@@ -42,19 +35,6 @@ initEditLayout =
    , list = []
    , presets = Data.layout1
    }
-
-
-initEditScore : T.EditScore
-initEditScore = 
-  { time = 0
-  , cps = 1
-  , current = Nothing
-  , ensemble = Nothing
-  , compo = Nothing
-  , ensembles = Data.allKits
-  , layout = Data.layout1
-  , list = Data.layoutVerseChorus
-  } 
 
 
 toInt : Maybe Int ->  Int
@@ -81,6 +61,7 @@ viewScoreEditor model =
     [ View.overviewScore model.list ]
 
 
+
 initEnsemble : Maybe Int -> (T.SynthState, Cmd U.UpdateMsg)
 initEnsemble ini = 
   let
@@ -88,7 +69,7 @@ initEnsemble ini =
   in
   case ini of 
     _ ->
-      (initEditEnsemble, Cmd.none)
+      (Data.initEditEnsemble, Cmd.none)
 
 
 initLayout : Maybe Int -> (T.EditLayout, Cmd U.EditLayout)
@@ -108,7 +89,7 @@ initScore ini =
   in
   case ini of 
     _ ->
-      (initEditScore, Cmd.none)
+      (Data.initEditScore, Cmd.none)
 
 
 -- initMill : Maybe Int -> (Mill.Model User, Cmd (Mill.Msg User))
@@ -170,6 +151,13 @@ mainSongDesigner =
                   , subscriptions = App.subscriptions
                   }
 
+mainRouter =
+  Browser.element { init = Router.init
+                  , update = Router.update
+                  , view = Router.view
+                  , subscriptions = Router.subscriptions
+                  }
+
 
 -- mainMill =
 --   Browser.element { init = initMill
@@ -181,6 +169,7 @@ mainSongDesigner =
 
 main = 
   -- mainSongDesigner
-  -- mainEnsembleEditor 
+  mainEnsembleEditor 
   -- mainLayoutEditor 
-  mainScoreEditor 
+  -- mainScoreEditor 
+  -- mainRouter
