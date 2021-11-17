@@ -13,7 +13,6 @@ noClickButton =
          , style "cursor" "initial"] []
 
 
-
 editInt : String -> Html msg -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
 editInt title html (min, max) val toMsg =
   let 
@@ -64,7 +63,6 @@ editText title html val toMsg =
     , Html.div [ class "is-hidden-mobile" ] [ editTextDesktop title html val toMsg ] ] 
 
 
-
 button : msg -> List (Html.Attribute msg) -> String -> Html.Html msg
 button toMsg attrs content =
   Html.button ([class "button", onClick toMsg] ++ attrs) [ text content ]
@@ -77,10 +75,10 @@ skButtons saveMsg killMsg  =
     , button saveMsg [] "Save" ]
 
 
-picker : List (Html msg) -> msg -> Html msg
+picker : List (Html msg) -> (Int -> msg) -> Html msg
 picker options select =
   Html.div [] 
-    <| List.map (\opt -> Html.div [ onClick select ] [ opt ]) options
+    <| List.indexedMap (\index opt -> Html.div [ onClick (select index) ] [ opt ]) options
 
 
 -- everything you need to create, read, update, and delete a thing
@@ -100,14 +98,15 @@ designer view editor thing =
     [ view, editor thing ]
 
 
--- Given a list of things and one thing, shows an interface for editing that one thing of many.
--- abcd : (List a -> Html msg) -> a -> Html msg
--- abcd all one = 
-  -- Html.div []
-    -- [ view
-    -- , fieldEditors
-    -- , skButtons 
-    -- ]
+editOneOfMany : List (Html msg) -> Maybe a -> (a -> Html msg) -> Html msg
+editOneOfMany xs x editor =
+  let
+    v = case x of
+          Nothing -> text "" 
+          Just xx -> editor xx
+  in 
+  Html.div [] 
+    ([ v ] ++ xs)
 
 
 type alias Model 

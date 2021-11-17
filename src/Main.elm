@@ -42,12 +42,6 @@ toInt x =
   Maybe.withDefault 0 x
 
 
--- viewEnsembleEditor : T.SynthState -> Html U.UpdateMsg
--- viewEnsembleEditor model =
-  -- div [Attr.class "syn-main section"] 
-    -- [ View.editEnsemble model ]
-
-
 viewEnsembleEditor : T.EnsembleEditor -> Html U.EditEnsemble
 viewEnsembleEditor model =
   let 
@@ -57,7 +51,7 @@ viewEnsembleEditor model =
     update = (\index inst -> U.UpdateSynth index inst)
   in 
   div [Attr.class "syn-main section"] 
-    [ View.ensembleEditorNew [] ] --  make kill select update ]
+    [ View.ensembleEditorNew model ] --  make kill select update ]
     -- [ View.main ]
 
 
@@ -77,18 +71,20 @@ viewScoreEditor model =
 
 initEnsemble : Maybe Int -> (T.VoiceEditor, Cmd U.UpdateMsg)
 initEnsemble ini = 
-  let
-    w = Debug.log "initializing layout: " ini
-  in
   case ini of 
     _ ->
       (Data.initEditEnsemble, Cmd.none)
 
+
+initVoiceEditor : Maybe Int -> (T.VoiceEditor, Cmd U.EditVoice)
+initVoiceEditor ini =
+  case ini of 
+    _ ->
+     (Data.initVoiceEditor, Cmd.none)
+
+
 initEnsembleEditor : Maybe Int -> (T.EnsembleEditor, Cmd U.EditEnsemble)
 initEnsembleEditor ini = 
-  let
-    w = Debug.log "initializing layout: " ini
-  in
   case ini of 
     _ ->
       (Data.initEnsembleEditor, Cmd.none)
@@ -147,6 +143,20 @@ subsScore model =
   Sub.none
 
 
+subsVoice : T.VoiceEditor -> Sub U.EditVoice
+subsVoice model =
+  Sub.none
+
+
+
+mainVoiceEditor =
+  Browser.element { init = initVoiceEditor
+                  , update = U.updateVoiceEditor
+                  , view = View.viewVoiceEditor
+                  , subscriptions = subsVoice
+                  }
+
+
 mainEnsembleEditor =
   Browser.element { init = initEnsembleEditor
                   , update = U.updateEnsembleEditor
@@ -196,7 +206,8 @@ mainRouter =
 
 main = 
   -- mainSongDesigner
-  mainEnsembleEditor 
+  -- mainEnsembleEditor 
+  mainVoiceEditor
   -- mainLayoutEditor 
   -- mainScoreEditor 
   -- mainRouter

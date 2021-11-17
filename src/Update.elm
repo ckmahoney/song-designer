@@ -56,6 +56,22 @@ type Main
   | SeeDash Everything
 
 
+-- All configurable values for a Voice
+type EditVoice
+  = UVoice T.Voice
+  | UVoiceRole T.SynthRole
+  | UVoiceDuty T.SynthDuty
+
+
+updateVoiceEditor : EditVoice -> T.VoiceEditor -> (T.VoiceEditor, Cmd EditVoice)
+updateVoiceEditor msg model =
+  case msg of
+    UVoice next ->
+      ({ model | current = Just next }, Cmd.none)
+
+    _ -> 
+      (model, Cmd.none)
+
 type EditEnsemble 
   = AddSynth T.Voice
   | KillSynth Int
@@ -75,6 +91,10 @@ type EditLayout
   | ChangeLayoutSelection (Maybe T.Compo)
   | AddLayoutSection T.Compo
   | RemoveLayoutAt Int
+
+
+type EditScope
+  = UScope T.Scope
 
 type EditScore
   = RequestScore

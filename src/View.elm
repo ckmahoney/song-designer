@@ -294,23 +294,70 @@ synthCardContent preset =
            ] ]
 
 
-hisIsForEditingInstruments : T.Voice -> msg -> msg -> msg -> msg -> Html msg
-hisIsForEditingInstruments preset selectNone select update delete = 
-  -- let 
-    -- saveSynth = (U.AddPreset preset)
-    -- killSynth = (U.KillPreset preset)
-    -- unselect = (U.ChangeSelection Nothing)
-    -- updateRole = (\p -> U.UpdateSynthRole p)
-  -- in 
+hisIsForEditingInstruments : T.Voice -> List (Html msg) -> msg -> (Int -> msg) -> msg -> msg -> Html msg
+hisIsForEditingInstruments preset editors selectNone select update delete = 
   div [class "column card-content has-background-white "]
     [ button [onClick selectNone, class "delete is-large"] []
     , div [class "column media is-centered p-3"]
-        <| [ figure [class "image mx-auto is-96x96"] [roleThumb preset.role]
+        <| ([ figure [class "image mx-auto is-96x96"] [roleThumb preset.role]
            , synthDescription preset
-           , Components.picker [] update
-           -- , texEdit preset
-           , (Components.skButtons update delete)
-           ] ]
+           , Components.picker [text "one"] select
+           ] ++ editors ++ [ (Components.skButtons update delete) ])  ]
+
+
+complexityMessage : T.Voice -> Html msg
+complexityMessage voice =
+  text ""
+
+
+densityMessage : T.Voice -> Html msg
+densityMessage voice =
+  text ""
+
+
+voiceEditor : T.Voice -> Html U.EditVoice
+voiceEditor voice =
+  let 
+    updateComplexity = (\n -> U.UVoice { voice | complexity = n })
+    updateDensity = (\n -> U.UVoice { voice | density = n })
+    uLabel = (\s -> U.UVoice { voice | label = s })
+
+    complexity = Components.editInt "Complexity" (complexityMessage voice) D.rangeCompoSize voice.complexity updateComplexity
+    density = Components.editInt "Density" (densityMessage voice) D.rangeCompoSize voice.density updateDensity
+
+    roleOptions = List.map roleIcon D.roles
+    updateRole = (\i -> 
+      case Array.get i <| Array.fromList D.roles of 
+        Just r ->
+          U.UVoice { voice | role = r }
+
+        _ ->
+          U.UVoice voice)
+
+    editors = [ complexity, density ] 
+  in
+  div [] 
+    [ h1 [ class "title" ] [ text "Voice Editor" ]
+    , h1 [ class "title" ] [ text <| D.roleDescription voice.role ]
+    , Components.editText "Label" (text "") voice.label uLabel
+    , density
+    , complexity
+    , Components.picker roleOptions updateRole
+    ]
+
+
+viewVoiceEditor : T.VoiceEditor -> Html U.EditVoice
+viewVoiceEditor model =
+  case model.current of 
+    Nothing -> 
+      div [] 
+        [ h1 [ class "title" ] [ text "Voice Editor, No Voices" ] ]
+
+
+    Just voice ->
+      div [] 
+        [ h1 [ class "title" ] [ text "Voice Editor" ]
+        , voiceEditor voice ]
 
 
 editPreset : T.Voice -> Html U.UpdateMsg
@@ -362,15 +409,26 @@ editEnsemble  =
   ensembleEditor
 
 
-v1 = text "view"
+view1 = 
+  ol [] 
+    [ li [] [text "functional designer: Ensemble"]
+    , li [] [text "view the thing being edited" ]
+    ] 
 
-e1 : T.Ensemble -> Html msg
-e1 ens =
- text <| String.fromInt <| List.length ens
+
+edit1Ensemble : T.Ensemble -> Html msg
+edit1Ensemble ens =
+ div [] <| List.map synthDescription ens
 
 
-ensembleEditorNew ensemble =
-  Components.designer v1 e1 ensemble
+ensembleEditorNew : T.EnsembleEditor -> Html U.EditEnsemble
+ensembleEditorNew model =
+  case model.current of 
+    Just ensemble -> 
+      Components.designer view1 edit1Ensemble ensemble
+
+    Nothing ->
+      Html.text "no ens"
 
 
 csv : List String -> String

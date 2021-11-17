@@ -115,6 +115,9 @@ type alias Compo  =
   }
 
 
+type alias Scope = Compo
+
+
 type alias EditState a =
   { time : Int
   , current : Maybe a
@@ -127,7 +130,7 @@ type alias EditState a =
 
 
 type alias VoiceEditor
-  = EditState Voice
+  = (EditState Voice) 
 
 
 type alias EnsembleEditor

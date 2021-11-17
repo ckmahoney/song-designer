@@ -416,8 +416,6 @@ roleDuty role =
       Expression
 
 
-
-
 v1 =
   { id = -1
   , label = "verse"
@@ -470,6 +468,7 @@ scoreVerseChorus =
   , (v1, kitVC2)
   , (c1, kitVC2)
   ]
+
     
 initVoiceEditor : VoiceEditor
 initVoiceEditor =
@@ -478,6 +477,7 @@ initVoiceEditor =
    , presets = kitAll
    }
 
+
 initEditEnsemble : VoiceEditor
 initEditEnsemble =
    { time = 0
@@ -485,11 +485,12 @@ initEditEnsemble =
    , presets = kitAll
    }
 
+
 initEnsembleEditor : EnsembleEditor
 initEnsembleEditor =
    { time = 0
-   , current = Nothing
-   , presets = []
+   , current = Just kitAll
+   , presets = [ kitBeat, kitSynth ] 
    }
 
 
