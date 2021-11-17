@@ -104,18 +104,15 @@ type alias HTTPData =
   }
 
 
-type alias Compo  =
+
+type alias Scope  =
   { id : Int
   , label : String
   , cps : Float
   , cpc : Int
   , root : Int
-  , nCycles : Int
   , size : Int
   }
-
-
-type alias Scope = Compo
 
 
 type alias EditState a =
@@ -140,20 +137,20 @@ type alias EnsembleEditor
 type alias EditLayout  = 
   { time : Int
   , index : Int
-  , current : Maybe Compo
-  , list : List Compo
-  , presets : List Compo
+  , current : Maybe Scope
+  , list : List Scope
+  , presets : List Scope
   }
 
 
-type alias Section = (Compo, Ensemble)
-type alias SectionP = Maybe (Compo, Ensemble)
+type alias Section = (Scope, Ensemble)
+type alias SectionP = Maybe (Scope, Ensemble)
 
 
 type SectionState
-  = Section Compo Ensemble
+  = Section Scope Ensemble
   | NeedsCompo Ensemble
-  | NeedsEnsemble Compo
+  | NeedsEnsemble Scope
   | EmptySection
 
 
@@ -166,10 +163,10 @@ type alias EditScore =
   { time : Int
   , current : Maybe Section
   , ensemble : Maybe Ensemble
-  , compo : Maybe Compo
+  , scope : Maybe Scope
   , cps : Float
   , list : List Section
-  , layout : List Compo
+  , layout : List Scope
   , ensembles : List Ensemble
   }
 

@@ -322,8 +322,8 @@ voiceEditor voice =
     updateDensity = (\n -> U.UVoice { voice | density = n })
     uLabel = (\s -> U.UVoice { voice | label = s })
 
-    complexity = Components.editInt "Complexity" (complexityMessage voice) D.rangeCompoSize voice.complexity updateComplexity
-    density = Components.editInt "Density" (densityMessage voice) D.rangeCompoSize voice.density updateDensity
+    complexity = Components.editInt "Complexity" (complexityMessage voice) D.rangeComplexity voice.complexity updateComplexity
+    density = Components.editInt "Density" (densityMessage voice) D.rangeDensity voice.density updateDensity
 
     roleOptions = List.map roleIcon D.roles
     updateRole = (\i -> 
@@ -497,7 +497,7 @@ sectionToLength nCycles cps =
   nCycles * (toFloat cps)
 
 
-tempoMessage : T.Compo -> Html msg
+tempoMessage : T.Scope -> Html msg
 tempoMessage ({cps, size} as model) =
   div [class "content"] 
     [ p [] [text "The speed for you track. Higher BPM are faster, and lower BPM are slower."]
@@ -505,7 +505,7 @@ tempoMessage ({cps, size} as model) =
 
 
 
-meterMessage : T.Compo -> Html msg
+meterMessage : T.Scope -> Html msg
 meterMessage ({cpc} as model) =
   p [] [ text <| "This section has " ++ (timeSigString cpc) ++ " time." ]
 
@@ -541,7 +541,7 @@ sizeText cpc size =
   String.fromInt <| sizeToCycles cpc size
 
 
-sizeMessage : T.Compo -> Html msg
+sizeMessage : T.Scope -> Html msg
 sizeMessage ({size, cpc} as model) =
   div [] 
     [ p [] [ text <| "Using size " ++ (String.fromInt size) ++ " and " ++ String.fromInt cpc ++ " cycles per measure," ]
@@ -559,27 +559,27 @@ labelInfo =
   div [class "content"] [ text "A name to help you remember what this section is for." ]
 
 
-compoContentMobile : T.Compo -> Html U.EditLayout
+compoContentMobile : T.Scope -> Html U.EditLayout
 compoContentMobile model =
   div [ class "content-mobile columns card-content is-multiline" ]
     [ div [class "column"] 
         [ div [class "column"] [ Components.editText "Label" labelInfo model.label U.UpdateLabel ]
         , editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
-        , editBoundInt3 "Size" (sizeMessage model) D.rangeCompoSize model.size U.UpdateSize ]
+        , editBoundInt3 "Size" (sizeMessage model) D.rangeScopeSize model.size U.UpdateSize ]
     , div [class "column"] [ editRange "Tempo" (tempoMessage model) D.rangeCPS D.rangeStep model.cps U.UpdateCPS ]
     , div [class "column"] [ keyPicker model.root U.UpdateRoot ] ]
 
-compoContentDesktop : T.Compo -> Html U.EditLayout
+compoContentDesktop : T.Scope -> Html U.EditLayout
 compoContentDesktop model =
   div [ class "content-desktop columns card-content is-multiline" ]
     [ Components.editText "Label" labelInfo model.label U.UpdateLabel
-    , editBoundInt3 "Size" (sizeMessage model) D.rangeCompoSize model.size U.UpdateSize
+    , editBoundInt3 "Size" (sizeMessage model) D.rangeScopeSize model.size U.UpdateSize
     , editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
     , editRange "Tempo" (tempoMessage model) D.rangeCPS D.rangeStep model.cps U.UpdateCPS 
     , keyPicker model.root U.UpdateRoot ]
 
 
-compoContent : T.Compo -> Html U.EditLayout
+compoContent : T.Scope -> Html U.EditLayout
 compoContent model = 
   div []
   [ div [class "is-hidden-desktop is-block-mobile"] [ compoContentMobile model ]
@@ -594,14 +594,14 @@ eeeee model toMsg intVal1 intMsg intVal2 intMsg2 =
         [ div [class "column"]
           [ Components.editText "Label" labelInfo model toMsg 
           , Components.editInt "Meter" (text "") D.rangeCPC intVal1 intMsg
-          , Components.editInt "Size" (text "") D.rangeCompoSize intVal2 intMsg2 ] ] ]
+          , Components.editInt "Size" (text "") D.rangeScopeSize intVal2 intMsg2 ] ] ]
 
 
 instance : Html U.EditLayout
 instance = div [] [ eeeee "test-data" U.UpdateLabel 4 U.UpdateCPC 3 U.UpdateSize ]
 
 
-layoutItem : T.Compo -> U.EditLayout -> Html U.EditLayout
+layoutItem : T.Scope -> U.EditLayout -> Html U.EditLayout
 layoutItem ({cps, cpc, size, root} as model) msg =
   div [class "m-3 column box is-flex is-flex-direction-column", onClick msg]
     [ label [class "subtitle has-text-centered"] [ text model.label ]
@@ -622,7 +622,7 @@ layoutItem ({cps, cpc, size, root} as model) msg =
       , b [] [text <| timeString <| duration cpc cps size] ]
     ]
 
-editScoreItem : T.Compo -> Html U.EditScore
+editScoreItem : T.Scope -> Html U.EditScore
 editScoreItem ({cps, cpc, size, root} as model) =
   div [class "m-3 column box is-flex is-flex-direction-column" ]
     [ label [class "subtitle has-text-centered"] [ text model.label ]
@@ -644,28 +644,28 @@ editScoreItem ({cps, cpc, size, root} as model) =
     ]
 
 
-layoutPreview : List T.Compo -> Html U.EditLayout
+layoutPreview : List T.Scope -> Html U.EditLayout
 layoutPreview score = 
   div [class "box", style "background" "magenta" ] 
     [ div [class "columns"]
       <| List.map (\c -> layoutItem c (U.ChangeLayoutSelection (Just c))) score ]
 
 
-designPreview : List T.Compo -> Html U.EditLayout
+designPreview : List T.Scope -> Html U.EditLayout
 designPreview score = 
   div [class "box", style "background" "magenta" ] 
     [ div [class "columns is-multiline"]
       <| List.indexedMap (\i c -> layoutItem c (U.RemoveLayoutAt i)) score ]
 
 
-designOptions : List T.Compo -> Html U.EditLayout
+designOptions : List T.Scope -> Html U.EditLayout
 designOptions score = 
   div [class "box", style "background" "orange" ] 
     [ div [class "columns"]
       <| List.indexedMap (\i c -> layoutItem c (U.AddLayoutSection c)) score ]
 
 
-layoutOptions : List T.Compo -> Html U.EditLayout
+layoutOptions : List T.Scope -> Html U.EditLayout
 layoutOptions opts = 
   div [class "box", style "background" "orange" ] 
     [ div [class "columns"]
@@ -710,23 +710,23 @@ keyPicker val toMsg =
     ]
 
 
-killCompoButton : T.Compo -> Html U.EditLayout
-killCompoButton model =
-  button [ onClick (U.KillCompo model), class "button" ] [ text "Delete Section" ]
+killScopeButton : T.Scope -> Html U.EditLayout
+killScopeButton model =
+  button [ onClick (U.KillScope model), class "button" ] [ text "Delete Section" ]
 
 
-editCompo : (Maybe T.Compo) -> Html U.EditLayout
-editCompo mcompo =
+editScope : (Maybe T.Scope) -> Html U.EditLayout
+editScope mcompo =
   case mcompo of 
     Nothing ->
       div []
         [ p [ class "mb-3" ] [ text "Select an existing section below, or create a new one." ]
-        , button [ onClick U.RequestCompo, class "button" ] [ text "Create a new Section"] ]
+        , button [ onClick U.RequestScope, class "button" ] [ text "Create a new Section"] ]
 
     Just compo ->
       div [ class "column card px-6 py-4"
           , style  "background" "cyan" ]
-          [ killCompoButton compo
+          [ killScopeButton compo
           , compoContent compo]
 
 
@@ -746,11 +746,11 @@ editLayout model =
     [ h1 [ class "title" ] [ text "Layout Editor"]
     , p [ class ""] [ editLayoutMessage]
     , div [ class "columns is-multiline"] 
-      [ div [ class "column is-full" ] [ editCompo model.current ]
+      [ div [ class "column is-full" ] [ editScope model.current ]
       , div [ class "column is-full" ] [ layoutOptions model.presets ] ] ]
 
 
-totalLength : List T.Compo -> Float
+totalLength : List T.Scope -> Float
 totalLength score =
   List.foldl (\{cpc, cps, size} sum -> 
     sum + (duration cpc cps size)) 0 score
@@ -812,11 +812,11 @@ scoreView sections =
 
 
 makeSection : T.Section -> Html msg
-makeSection (mCompo, mEnsemble) =
+makeSection (mScope, mEnsemble) =
   div [] [ text "it has some maybethings" ]
 
 
-compoThumb : T.Compo -> U.EditScore -> Html U.EditScore
+compoThumb : T.Scope -> U.EditScore -> Html U.EditScore
 compoThumb compo toMsg =
   div [ class "box column m-3"
       , onClick toMsg ] 
@@ -830,7 +830,7 @@ ensembleBanner ensemble =
     div [ class "column is-full"] [ roleIcon synth.role ] ) ensemble
 
 
-sectionThumb : (T.Compo, T.Ensemble) -> Html U.EditScore
+sectionThumb : (T.Scope, T.Ensemble) -> Html U.EditScore
 sectionThumb (compo, ensemble) =
   div [ style "max-width" "90px"
       , class "m-3 box column has-text-centered" ]
@@ -839,8 +839,8 @@ sectionThumb (compo, ensemble) =
     , ensembleBanner ensemble ]
 
 
-chooseCompo : List T.Compo -> (T.Compo -> U.EditScore) -> (Maybe T.Compo) -> Html U.EditScore
-chooseCompo compos toMsg compo =
+chooseScope : List T.Scope -> (T.Scope -> U.EditScore) -> (Maybe T.Scope) -> Html U.EditScore
+chooseScope compos toMsg compo =
   let
     picker = div [ class "columns my-3" ] <| List.map (\c -> compoThumb c (toMsg c)) compos
   in 
@@ -871,7 +871,7 @@ chooseEnsemble ensembles toMsg ensemble =
      picker
 
 
-sectionPreview : T.Compo -> T.Ensemble -> Html U.EditScore
+sectionPreview : T.Scope -> T.Ensemble -> Html U.EditScore
 sectionPreview compo ensemble =
   div [ class "columns", style "background" "linear-gradient(90deg, cyan, magenta)" ] 
   [ div [ class "column is-half" ] [ h3 [] [ text "Details" ],  editScoreItem compo ] 
@@ -879,7 +879,7 @@ sectionPreview compo ensemble =
   ] 
 
 
-editSection : List T.Compo -> List T.Ensemble ->  (Maybe T.Section) -> Html U.EditScore
+editSection : List T.Scope -> List T.Ensemble ->  (Maybe T.Section) -> Html U.EditScore
 editSection cs es mSection = 
   case mSection of 
     Nothing ->
@@ -891,7 +891,7 @@ editSection cs es mSection =
       div [] 
         [ sectionPreview compo ensemble
         , div [ class "columns" ]
-          [ div [ class "column is-half" ] [ b [] [ text "Change the Details" ],  chooseCompo cs (\x -> U.UpdateSection x ensemble) (Just compo) ]
+          [ div [ class "column is-half" ] [ b [] [ text "Change the Details" ],  chooseScope cs (\x -> U.UpdateSection x ensemble) (Just compo) ]
           , div [ class "column is-half" ] [ b [] [ text "Change the Ensemble" ], chooseEnsemble es (\x -> U.UpdateSection compo x) (Just ensemble) ] ] ]
 
 

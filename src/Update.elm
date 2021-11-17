@@ -43,14 +43,14 @@ type alias Meta = String
 type alias Everything =
   { title : Meta
   , ensembles : List T.Ensemble
-  , scopes : List T.Compo
+  , scopes : List T.Scope
   , score : List T.Section
   }
 
 
 type Main
   = ManageEnsemble (List T.Ensemble)
-  | ManageScopes (List T.Compo)
+  | ManageScopes (List T.Scope)
   | ManageScore (List T.Section)
   | EditMeta Meta
   | SeeDash Everything
@@ -80,16 +80,16 @@ type EditEnsemble
 
 
 type EditLayout
-  = RequestCompo
-  | NewCompo Int
-  | KillCompo T.Compo
+  = RequestScope
+  | NewScope Int
+  | KillScope T.Scope
   | UpdateCPS Float
   | UpdateCPC Int
   | UpdateSize Int
   | UpdateRoot Int
   | UpdateLabel String
-  | ChangeLayoutSelection (Maybe T.Compo)
-  | AddLayoutSection T.Compo
+  | ChangeLayoutSelection (Maybe T.Scope)
+  | AddLayoutSection T.Scope
   | RemoveLayoutAt Int
 
 
@@ -101,8 +101,8 @@ type EditScore
   | NewScore Int
   | NewSection
   | ApplySection T.Section
-  | UpdateSection T.Compo T.Ensemble
-  | UpdateCompo (Maybe T.Compo)
+  | UpdateSection T.Scope T.Ensemble
+  | UpdateScope (Maybe T.Scope)
   | UpdateEnsemble (Maybe T.Ensemble)
 
 
@@ -147,8 +147,8 @@ createPreset id_ =
   in
   { ref | id = id_ }
 
-createCompo : Int -> T.Compo
-createCompo id_ =   
+createScope : Int -> T.Scope
+createScope id_ =   
   let 
     ref = D.s1
   in
@@ -194,14 +194,14 @@ noCmd x =
   (x, Cmd.none)
 
 
-reindexCompo : T.EditLayout -> T.EditLayout
-reindexCompo ({ index, current, presets } as model) =
+reindexScope : T.EditLayout -> T.EditLayout
+reindexScope ({ index, current, presets } as model) =
   model
 
 
-genCompo : Cmd EditLayout
-genCompo =
-  Random.generate NewCompo rint
+genScope : Cmd EditLayout
+genScope =
+  Random.generate NewScope rint
 
 
 updateScore : EditScore -> T.EditScore -> (T.EditScore, Cmd EditScore)
@@ -212,21 +212,21 @@ updateScore msg model =
  
     NewScore id ->
       let
-        next = createScore id
+          next = createScore id
       in
       ({ model | list = next }, Cmd.none)
 
     NewSection ->
       ({ model | current = Just (D.s1, D.kitBeat) }, Cmd.none)
 
-    ApplySection (compo, ensemble) ->
-      ({ model | current =  Just (compo, ensemble) }, Cmd.none)
+    ApplySection (scope, ensemble) ->
+      ({ model | current =  Just (scope, ensemble) }, Cmd.none)
 
-    UpdateSection compo ensemble ->
-      ({ model | current =  Just (compo, ensemble) }, Cmd.none)
+    UpdateSection scope ensemble ->
+      ({ model | current =  Just (scope, ensemble) }, Cmd.none)
 
-    UpdateCompo c ->
-      ({ model | compo = c }, Cmd.none )
+    UpdateScope c ->
+      ({ model | scope = c }, Cmd.none )
 
     UpdateEnsemble e ->
       ({ model | ensemble = e }, Cmd.none )
@@ -235,23 +235,23 @@ updateScore msg model =
 updateLayout : EditLayout -> T.EditLayout -> (T.EditLayout, Cmd EditLayout)
 updateLayout msg model =
   case msg of
-    RequestCompo ->
+    RequestScope ->
       case model.current of 
         Nothing ->
-          (model, genCompo)
+          (model, genScope)
 
         Just prev ->
-          (reindexCompo model, genCompo)
+          (reindexScope model, genScope)
 
-    NewCompo id ->
+    NewScope id ->
       let 
-        next = createCompo id
+        next = createScope id
       in       
       ({ model | current = Just next }, Cmd.none)
 
-    KillCompo compo ->
+    KillScope scope ->
       let
-        ps = remove (Just compo) model.presets
+        ps = remove (Just scope) model.presets
       in       
       ({ model
        | current = Nothing
@@ -339,8 +339,8 @@ updateLayout msg model =
                  | current = next
                  , presets = remove (Just comp) ps }, Cmd.none)
     
-    AddLayoutSection compo -> 
-      ({ model | list = conj compo model.list }, Cmd.none)
+    AddLayoutSection scope -> 
+      ({ model | list = conj scope model.list }, Cmd.none)
 
     RemoveLayoutAt index -> 
       ({ model | list = removeAt index model.list }, Cmd.none)

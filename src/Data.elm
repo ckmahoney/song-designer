@@ -46,8 +46,8 @@ rangeCPS : (Float, Float)
 rangeCPS = (0.5, 4)
 rangeStep = 0.05
 
-rangeCompoSize : (Int, Int)
-rangeCompoSize = (0, 8)
+rangeScopeSize : (Int, Int)
+rangeScopeSize = (0, 8)
 
 rangeRoot : (Float, Float)
 rangeRoot  = (16.0, 16.0 * 2)
@@ -143,47 +143,44 @@ palette3 =
   ]
 
 
-s1 : Compo
+s1 : Scope
 s1 =
   { id = -1
   , label = "verse"
   , cps = 1
   , cpc = 4 
-  , nCycles = 64
   , root = 0
   , size = 4
   }
 
 
-s2 : Compo
+s2 : Scope
 s2 =
   { id = -2
   , label = "chorus"
   , cps = 2
   , cpc = 3
-  , nCycles = 96
   , root = 1
   , size = 5
   }
 
 
-s3 : Compo
+s3 : Scope
 s3 =
   { id = -3
   , label = "breakdown"
   , cps = 3
   , cpc = 4
-  , nCycles = 256
   , root = 4
   , size = 3
   }
 
 
-layout1 : List Compo
+layout1 : List Scope
 layout1 = [s1, s2, s3]
 
 
-layout2 : List Compo
+layout2 : List Scope
 layout2 = [ s2, s2, s3 , s1]
 
 p1 : Voice
@@ -422,7 +419,6 @@ v1 =
   , cps = 2
   , cpc = 4 
   , root = 30
-  , nCycles = 0
   , size = 1
   }
 
@@ -433,7 +429,6 @@ c1 =
   , cps = 2
   , cpc = 4 
   , root = 42
-  , nCycles = 0
   , size = 1
   }
 
@@ -500,7 +495,7 @@ initEditScore =
   , cps = 1
   , current = Nothing
   , ensemble = Nothing
-  , compo = Nothing
+  , scope = Nothing
   , ensembles = allKits
   , layout = layout1
   , list = scoreVerseChorus
