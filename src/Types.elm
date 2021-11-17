@@ -49,11 +49,27 @@ type alias SynthPreset =
   }
 
 
-type alias PresetKit = List SynthPreset
-type alias Ensemble = List SynthPreset
+type Count 
+  = Num Int
+  | Zero
 
 
-type alias NPresetKit = (String, PresetKit)
+type alias Voice =
+  { id : Int
+  , duty : SynthDuty
+  , role : SynthRole
+  , label : String
+  , voice : Int
+  , density : Int
+  , complexity : Int
+  }
+
+
+-- type alias PresetKit = List SynthPreset
+type alias Ensemble = List Voice
+
+
+type alias NPresetKit = (String, Ensemble)
 
 
 type alias ScoreMeta = 
@@ -106,8 +122,16 @@ type alias EditState a =
   }
 
 
-type alias SynthState 
-  = EditState SynthPreset
+-- type alias SynthState 
+  -- = EditState Voice
+
+
+type alias VoiceEditor
+  = EditState Voice
+
+
+type alias EnsembleEditor
+  = EditState Ensemble
 
 
 type alias EditLayout  = 

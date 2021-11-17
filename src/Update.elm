@@ -13,24 +13,54 @@ import Data as D
 
 type UpdateMsg
   = Tick Time.Posix
-  | UpdateSynthRole T.SynthPreset T.SynthRole  
+  | UpdateSynthRole T.Voice T.SynthRole  
   | NewID Int
   | RequestPreset
   | NewPreset Int
-  | AddPreset T.SynthPreset
-  | UpdatePreset (Maybe T.SynthPreset)
-  | KillPreset T.SynthPreset
-  | ChangeSelection (Maybe T.SynthPreset)
+  | AddPreset T.Voice
+  | UpdatePreset (Maybe T.Voice)
+  | KillPreset T.Voice
+  | ChangeSelection (Maybe T.Voice)
   | UpdateDensity Int
   | UpdateComplexity Int
-  | ChangePreset T.PresetKit
+  | ChangePreset T.Ensemble
 
 
-type EditEnsemble
-  = AddSynth T.SynthPreset
+-- Units -- 
+
+-- T.SynthPreset
+-- T.Ensemble = List T.SynthPreset
+
+-- T.Compo
+-- T.Section = (T.Compo, T.Ensemble)
+
+-- T.Score = List T.Section
+
+
+type alias Meta = String
+
+
+type alias Everything =
+  { title : Meta
+  , ensembles : List T.Ensemble
+  , scopes : List T.Compo
+  , score : List T.Section
+  }
+
+
+type Main
+  = ManageEnsemble (List T.Ensemble)
+  | ManageScopes (List T.Compo)
+  | ManageScore (List T.Section)
+  | EditMeta Meta
+  | SeeDash Everything
+
+
+type EditEnsemble 
+  = AddSynth T.Voice
   | KillSynth Int
   | SelectSynth Int 
-  | UpdateSynth Int T.SynthPreset
+  | UpdateSynth Int T.Voice
 
 
 type EditLayout
@@ -90,7 +120,7 @@ uuid =
   Random.int 1 100000000000000000000
 
 
-createPreset : Int -> T.SynthPreset
+createPreset : Int -> T.Voice
 createPreset id_ =   
   let 
     ref = D.p1
@@ -296,7 +326,23 @@ updateLayout msg model =
       ({ model | list = removeAt index model.list }, Cmd.none)
 
 
-updateEnsemble : UpdateMsg -> T.SynthState -> (T.SynthState, Cmd UpdateMsg)
+updateEnsembleEditor : EditEnsemble ->  T.EnsembleEditor -> (T.EnsembleEditor, Cmd EditEnsemble)
+updateEnsembleEditor msg model =
+  case msg of 
+    AddSynth inst ->
+      (model, Cmd.none)
+
+    KillSynth index ->
+      (model, Cmd.none)      
+
+    SelectSynth index ->
+      (model, Cmd.none)      
+
+    UpdateSynth index inst ->
+      (model, Cmd.none)      
+
+
+updateEnsemble : UpdateMsg -> T.VoiceEditor -> (T.VoiceEditor, Cmd UpdateMsg)
 updateEnsemble msg model =
     case msg of
       Tick ptime ->
@@ -373,7 +419,7 @@ updateEnsemble msg model =
       UpdateSynthRole curr r ->
         let 
           next = { curr | role = r
-                 , title = (Tuple.second <| D.roleLabel r) }
+                 , label = (Tuple.second <| D.roleLabel r) }
           -- index = D.findIndex curr model.presets
           -- presets = Array.toList <| Array.set index next <| Array.fromList model.presets
         in 

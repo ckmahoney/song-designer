@@ -48,7 +48,7 @@ toInt x =
     -- [ View.editEnsemble model ]
 
 
-viewEnsembleEditor : T.SynthState -> Html msg
+viewEnsembleEditor : T.EnsembleEditor -> Html U.EditEnsemble
 viewEnsembleEditor model =
   let 
     make = (\inst -> U.AddSynth inst)
@@ -58,6 +58,7 @@ viewEnsembleEditor model =
   in 
   div [Attr.class "syn-main section"] 
     [ View.ensembleEditorNew [] ] --  make kill select update ]
+    -- [ View.main ]
 
 
 viewLayoutEditor : T.EditLayout -> Html U.EditLayout
@@ -74,7 +75,7 @@ viewScoreEditor model =
 
 
 
-initEnsemble : Maybe Int -> (T.SynthState, Cmd U.UpdateMsg)
+initEnsemble : Maybe Int -> (T.VoiceEditor, Cmd U.UpdateMsg)
 initEnsemble ini = 
   let
     w = Debug.log "initializing layout: " ini
@@ -82,6 +83,15 @@ initEnsemble ini =
   case ini of 
     _ ->
       (Data.initEditEnsemble, Cmd.none)
+
+initEnsembleEditor : Maybe Int -> (T.EnsembleEditor, Cmd U.EditEnsemble)
+initEnsembleEditor ini = 
+  let
+    w = Debug.log "initializing layout: " ini
+  in
+  case ini of 
+    _ ->
+      (Data.initEnsembleEditor, Cmd.none)
 
 
 initLayout : Maybe Int -> (T.EditLayout, Cmd U.EditLayout)
@@ -118,9 +128,14 @@ initApp : Maybe Int -> (App.Module, Cmd msg)
 initApp = 
    App.init
 
-subsEnsemble : T.SynthState -> Sub U.UpdateMsg
+
+subsEnsemble : a -> Sub U.UpdateMsg
 subsEnsemble model =
   Time.every 1000 U.Tick
+
+subsEnsembleEditor : T.EnsembleEditor -> Sub U.EditEnsemble
+subsEnsembleEditor model =
+  Sub.none
 
 
 subsLayout : T.EditLayout -> Sub U.EditLayout
@@ -133,10 +148,10 @@ subsScore model =
 
 
 mainEnsembleEditor =
-  Browser.element { init = initEnsemble
-                  , update = U.updateEnsemble
+  Browser.element { init = initEnsembleEditor
+                  , update = U.updateEnsembleEditor
                   , view = viewEnsembleEditor
-                  , subscriptions = subsEnsemble
+                  , subscriptions = subsEnsembleEditor
                   }
 
 

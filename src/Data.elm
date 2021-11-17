@@ -186,48 +186,48 @@ layout1 = [s1, s2, s3]
 layout2 : List Compo
 layout2 = [ s2, s2, s3 , s1]
 
-p1 : SynthPreset
+p1 : Voice
 p1 =
   { id = -1
   , duty = Structure
   , role = Bass
-  , title = "Bass"
+  , label = "Bass"
   , voice = 1
   , density = 1
   , complexity = 1
   }
 
 
-p2 : SynthPreset
+p2 : Voice
 p2 =
   { id = -2
   , duty = Structure
   , role = Kick
-  , title = "Kick Drum"
+  , label = "Kick Drum"
   , voice = 0
   , density = 0
   , complexity = 0
   }
 
 
-p3 : SynthPreset
+p3 : Voice
 p3 =
   { id = -3
   , duty = Expression
   , role = Melody
-  , title = "Soaring Melody"
+  , label = "Soaring Melody"
   , voice = 4
   , density = 1
   , complexity = 2
   }
 
 
-p4 : SynthPreset
+p4 : Voice
 p4 =
   { id = -4
   , duty = Structure
   , role = Hat
-  , title = "Hat Drum"
+  , label = "Hat Drum"
   , voice = 6
   , density = 1
   , complexity = 2
@@ -236,35 +236,35 @@ p4 =
 
 
 
-presets : PresetKit
+presets : Ensemble
 presets = [p1,p2,p3,p4]
 
 
 
-kitAll : PresetKit
+kitAll : Ensemble
 kitAll =
-  [ SynthPreset 0 Structure Kick "clock" 1 1 0
-  , SynthPreset 1 Structure Perc "clap" 3 2 0
-  , SynthPreset 2 Structure Hat "offbeat" 5 3 1
-  , SynthPreset 3 Structure Bass "pedal" 5 3 1
-  , SynthPreset 4 Structure Chords "hook" 5 3 1
-  , SynthPreset 5 Structure Melody "phrase" 5 3 1
+  [ Voice 0 Structure Kick "clock" 1 1 0
+  , Voice 1 Structure Perc "clap" 3 2 0
+  , Voice 2 Structure Hat "offbeat" 5 3 1
+  , Voice 3 Structure Bass "pedal" 5 3 1
+  , Voice 4 Structure Chords "hook" 5 3 1
+  , Voice 5 Structure Melody "phrase" 5 3 1
   ]
 
 
-kitBeat : PresetKit
+kitBeat : Ensemble
 kitBeat =
-  [ SynthPreset 0 Structure Kick "clock" 1 1 0
-  , SynthPreset 1 Structure Perc "clap" 3 2 0
-  , SynthPreset 2 Structure Hat "offbeat" 5 3 1
+  [ Voice 0 Structure Kick "clock" 1 1 0
+  , Voice 1 Structure Perc "clap" 3 2 0
+  , Voice 2 Structure Hat "offbeat" 5 3 1
   ]
 
 
-kitSynth : PresetKit
+kitSynth : Ensemble
 kitSynth =
-  [ SynthPreset 0 Structure Bass "pedal" 5 3 1
-  , SynthPreset 1 Structure Chords "hook" 5 3 1
-  , SynthPreset 2 Structure Melody "phrase" 5 3 1
+  [ Voice 0 Structure Bass "pedal" 5 3 1
+  , Voice 1 Structure Chords "hook" 5 3 1
+  , Voice 2 Structure Melody "phrase" 5 3 1
   ]
 
 
@@ -440,25 +440,25 @@ c1 =
   }
 
 
-kitVC1 : PresetKit
+kitVC1 : Ensemble
 kitVC1 =
-  [ SynthPreset 0 Structure Kick "clock" 1 1 0
-  , SynthPreset 1 Structure Perc "clap" 3 2 0
-  , SynthPreset 3 Structure Bass "clap" 3 3 1
-  , SynthPreset 4 Structure Chords "hook" 5 3 1
-  , SynthPreset 5 Expression Melody "phrase" 5 3 1
+  [ Voice 0 Structure Kick "clock" 1 1 0
+  , Voice 1 Structure Perc "clap" 3 2 0
+  , Voice 3 Structure Bass "clap" 3 3 1
+  , Voice 4 Structure Chords "hook" 5 3 1
+  , Voice 5 Expression Melody "phrase" 5 3 1
   ]
 
 
 
-kitVC2 : PresetKit
+kitVC2 : Ensemble
 kitVC2 =
-  [ SynthPreset 0 Structure Hat "clock" 1 1 0
-  , SynthPreset 1 Structure Hat "clap" 3 2 0
-  , SynthPreset 2 Expression Hat "clap" 3 2 0
-  , SynthPreset 3 Structure Bass "clap" 3 3 1
-  , SynthPreset 4 Structure Melody "hook" 5 3 1
-  , SynthPreset 5 Structure Chords "phrase" 5 3 1
+  [ Voice 0 Structure Hat "clock" 1 1 0
+  , Voice 1 Structure Hat "clap" 3 2 0
+  , Voice 2 Expression Hat "clap" 3 2 0
+  , Voice 3 Structure Bass "clap" 3 3 1
+  , Voice 4 Structure Melody "hook" 5 3 1
+  , Voice 5 Structure Chords "phrase" 5 3 1
   ]
 
 
@@ -471,11 +471,25 @@ scoreVerseChorus =
   , (c1, kitVC2)
   ]
     
-initEditEnsemble : SynthState
+initVoiceEditor : VoiceEditor
+initVoiceEditor =
+   { time = 0
+   , current = Just p1
+   , presets = kitAll
+   }
+
+initEditEnsemble : VoiceEditor
 initEditEnsemble =
    { time = 0
    , current = Just p1
    , presets = kitAll
+   }
+
+initEnsembleEditor : EnsembleEditor
+initEnsembleEditor =
+   { time = 0
+   , current = Nothing
+   , presets = []
    }
 
 

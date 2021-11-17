@@ -247,7 +247,7 @@ editBoundFloat title name (min, max) val toMsg =
     , more ]
 
 
-editTexture : T.SynthPreset -> Html U.UpdateMsg
+editTexture : T.Voice -> Html U.UpdateMsg
 editTexture preset =
   let 
     textD = D.textureLabel T.Density
@@ -264,11 +264,11 @@ buttonOpt role msg =
   button [] [text (Tuple.first (D.roleLabel role))]
 
 
-synthDescription : T.SynthPreset -> Html msg
+synthDescription : T.Voice -> Html msg
 synthDescription preset =
   div [class "column media-left"]
     [ div [class "media-content"]
-    [ p [class "title is-4"] [text preset.title]
+    [ p [class "title is-4"] [text preset.label]
     , p [class "content is-6"] [text <| D.roleDescription preset.role] ] ]
 
 
@@ -277,7 +277,7 @@ texEdit preset =
     [ editTexture preset ] 
 
 
-synthCardContent : T.SynthPreset -> Html U.UpdateMsg
+synthCardContent : T.Voice -> Html U.UpdateMsg
 synthCardContent preset = 
   let 
     saveSynth = (U.AddPreset preset)
@@ -294,7 +294,7 @@ synthCardContent preset =
            ] ]
 
 
-hisIsForEditingInstruments : T.SynthPreset -> msg -> msg -> msg -> msg -> Html msg
+hisIsForEditingInstruments : T.Voice -> msg -> msg -> msg -> msg -> Html msg
 hisIsForEditingInstruments preset selectNone select update delete = 
   -- let 
     -- saveSynth = (U.AddPreset preset)
@@ -313,33 +313,33 @@ hisIsForEditingInstruments preset selectNone select update delete =
            ] ]
 
 
-editPreset : T.SynthPreset -> Html U.UpdateMsg
+editPreset : T.Voice -> Html U.UpdateMsg
 editPreset preset =
   div [class "column card is-half px-6 py-4", style "background" (D.roleColor preset.role)]
     [ synthCardContent preset ]
 
 
-instrumentEditor : T.SynthPreset -> msg -> msg -> Html msg
+instrumentEditor : T.Voice -> msg -> msg -> Html msg
 instrumentEditor synth keep kill =
   div [class "column card is-half px-6 py-4", style "background" (D.roleColor synth.role)]
     []
 
 
-changePresetButton : T.SynthPreset -> Html U.UpdateMsg
+changePresetButton : T.Voice -> Html U.UpdateMsg
 changePresetButton preset = 
   div [ onClick (U.ChangeSelection (Just preset))
       , class "my-5" ] 
     [ presetIcon preset.role ]
 
 
-kitCol : (Maybe T.SynthPreset) -> List T.SynthPreset -> Html U.UpdateMsg
+kitCol : (Maybe T.Voice) -> List T.Voice -> Html U.UpdateMsg
 kitCol curr presets =
   div [class "column level"] 
     <| [ h5 [class "title" ] [ text "Ensemble Designer" ] ]
     ++ List.map changePresetButton presets
 
 
-synthEditor : (Maybe T.SynthPreset) -> Html U.UpdateMsg
+synthEditor : (Maybe T.Voice) -> Html U.UpdateMsg
 synthEditor preset =
   case preset of 
     Nothing ->
@@ -350,14 +350,14 @@ synthEditor preset =
       editPreset synth
 
 
-ensembleEditor : T.SynthState -> Html U.UpdateMsg
+ensembleEditor : T.VoiceEditor -> Html U.UpdateMsg
 ensembleEditor model =
   div [class "columns"]
     [ kitCol  model.current model.presets
     , synthEditor model.current ]
 
 
-editEnsemble : T.SynthState -> Html U.UpdateMsg
+editEnsemble : T.VoiceEditor -> Html U.UpdateMsg
 editEnsemble  =
   ensembleEditor
 
@@ -393,10 +393,10 @@ backgroundGradient colors =
     <| "linear-gradient(" ++ (csv colors) ++ ")"
 
 
-kitItem : T.SynthPreset -> Html msg
+kitItem : T.Voice -> Html msg
 kitItem preset =
   div [ class "is-hidden-mobile column is-half is-centered has-text-centered" ]
-    [ h5 [ class "subtitle has-text-black"] [ text preset.title ]
+    [ h5 [ class "subtitle has-text-black"] [ text preset.label ]
     , span [style "filter" "invert(1)"] [ roleIcon preset.role ] ]
 
 
@@ -501,63 +501,20 @@ labelInfo =
   div [class "content"] [ text "A name to help you remember what this section is for." ]
 
 
-editTextMobile : String -> Html msg -> String -> ( String -> msg ) -> Html msg
-editTextMobile title html val toMsg =
-  div [class ""]
-    [ label [ ] [ text title ]
-    , input [ type_ "text"
-            , class "input my-3 is-info"
-            , value val
-            , onInput toMsg ] []
-    , html
-    ]
-
-
-editTextDesktop : String -> Html msg -> String -> ( String -> msg ) -> Html msg
-editTextDesktop title html val toMsg =
-  div [class ""]
-    [ label [ ] [ text title ]
-    , input [ type_ "text"
-            , class "input my-3 is-info"
-            , value val
-            , onInput toMsg ] []
-    , html
-    ]
-
-
-editText : String -> Html msg -> String -> ( String -> msg ) -> Html msg
-editText title html val toMsg =
-  div [class "m-3 box"]
-    [ div [ class "is-hidden-tablet" ] [ editTextMobile title html val toMsg ]
-    , div [ class "is-hidden-mobile" ] [ editTextDesktop title html val toMsg ] ] 
-
-
 compoContentMobile : T.Compo -> Html U.EditLayout
 compoContentMobile model =
   div [ class "content-mobile columns card-content is-multiline" ]
     [ div [class "column"] 
-        [ div [class "column"] [ editText "Label" labelInfo model.label U.UpdateLabel ]
+        [ div [class "column"] [ Components.editText "Label" labelInfo model.label U.UpdateLabel ]
         , editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
         , editBoundInt3 "Size" (sizeMessage model) D.rangeCompoSize model.size U.UpdateSize ]
     , div [class "column"] [ editRange "Tempo" (tempoMessage model) D.rangeCPS D.rangeStep model.cps U.UpdateCPS ]
     , div [class "column"] [ keyPicker model.root U.UpdateRoot ] ]
 
-
-compoContentTablet : T.Compo -> Html U.EditLayout
-compoContentTablet model =
-  div [ class "content-tablet columns card-content is-multiline" ]
-    [ div [class "column is-half"] 
-        [ editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
-        , editBoundInt3 "Size" (sizeMessage model) D.rangeCompoSize model.size U.UpdateSize ]
-    , div [class "column is-half"] [ editText "Label" labelInfo model.label U.UpdateLabel ]
-    , div [class "column is-half"] [ editRange "Tempo" (tempoMessage model) D.rangeCPS D.rangeStep model.cps U.UpdateCPS ]
-    , div [class "column is-half"] [ keyPicker model.root U.UpdateRoot ] ]
-
-
 compoContentDesktop : T.Compo -> Html U.EditLayout
 compoContentDesktop model =
   div [ class "content-desktop columns card-content is-multiline" ]
-    [ editText "Label" labelInfo model.label U.UpdateLabel
+    [ Components.editText "Label" labelInfo model.label U.UpdateLabel
     , editBoundInt3 "Size" (sizeMessage model) D.rangeCompoSize model.size U.UpdateSize
     , editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
     , editRange "Tempo" (tempoMessage model) D.rangeCPS D.rangeStep model.cps U.UpdateCPS 
@@ -567,10 +524,23 @@ compoContentDesktop model =
 compoContent : T.Compo -> Html U.EditLayout
 compoContent model = 
   div []
-  [ div [class "is-hidden-tablet is-block-mobile"] [ compoContentMobile model ]
-  , div [class "is-hidden-mobile is-hidden-desktop is-block-tablet-only"] [ compoContentTablet model ] 
-  , div [class "is-hidden-mobile is-hidden-tablet-only is-block-desktop"] [ compoContentDesktop model ] 
+  [ div [class "is-hidden-desktop is-block-mobile"] [ compoContentMobile model ]
+  , div [class "is-hidden-mobile is-block-desktop"] [ compoContentDesktop model ] 
   ]
+
+
+eeeee : String -> (String -> msg) -> Int -> (Int -> msg) -> Int -> (Int -> msg) -> Html msg
+eeeee model toMsg intVal1 intMsg intVal2 intMsg2 = 
+  div [ class "content-desktop columns card-content is-multiline" ]
+    [ div [class "column"] 
+        [ div [class "column"]
+          [ Components.editText "Label" labelInfo model toMsg 
+          , Components.editInt "Meter" (text "") D.rangeCPC intVal1 intMsg
+          , Components.editInt "Size" (text "") D.rangeCompoSize intVal2 intMsg2 ] ] ]
+
+
+instance : Html U.EditLayout
+instance = div [] [ eeeee "test-data" U.UpdateLabel 4 U.UpdateCPC 3 U.UpdateSize ]
 
 
 layoutItem : T.Compo -> U.EditLayout -> Html U.EditLayout
@@ -888,4 +858,4 @@ overviewScore score =
 
 
 main =
-  Html.text ""
+  instance
