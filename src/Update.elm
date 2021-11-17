@@ -26,6 +26,13 @@ type UpdateMsg
   | ChangePreset T.PresetKit
 
 
+type EditEnsemble
+  = AddSynth T.SynthPreset
+  | KillSynth Int
+  | SelectSynth Int 
+  | UpdateSynth Int T.SynthPreset
+
+
 type EditLayout
   = RequestCompo
   | NewCompo Int

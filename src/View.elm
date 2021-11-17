@@ -325,7 +325,6 @@ instrumentEditor synth keep kill =
     []
 
 
-
 changePresetButton : T.SynthPreset -> Html U.UpdateMsg
 changePresetButton preset = 
   div [ onClick (U.ChangeSelection (Just preset))
@@ -333,57 +332,11 @@ changePresetButton preset =
     [ presetIcon preset.role ]
 
 
-carouselItem : Float -> Int -> Html msg -> Html msg
-carouselItem dTheta i el =
-  let 
-    degree = (toFloat i) * 15
-    rotation = "rotate3d(0, 1, 0," ++ (String.fromFloat degree) ++ "deg)"
-  in 
-  div [class <| String.fromInt i, style "transform" rotation ] [el]
-
-
-spiralItem : Int -> Float -> Int -> Html msg -> Html msg
-spiralItem time dTheta i el =
-  let 
-    rotation = "rotate3d(0, 1, 0," ++ (String.fromFloat <| (toFloat i) * dTheta) ++ "deg)"
-    amount =  100.0 + (100.0 * sin (toFloat (time // 100)))
-    translation = String.replace "%" (String.fromFloat amount) "translate3d(0px,%px,0px)" 
-    styleString = rotation ++ " " ++ translation
-  in 
-  div [ class <| String.fromInt i
-      , style "transform" styleString ] [el]
-
-
-modulateInt : Int -> Float
-modulateInt time =
-  sin <| ((toFloat time) / 1000)
-
-
-carousel : Int -> List (Html msg) -> Html msg
-carousel time children =
-  let 
-    dTheta = (modulateInt time) + 0.0 / (toFloat (List.length children))
-    yy  = Debug.log "theta" dTheta
-  in
-  div [class "columns"]
-    (List.indexedMap (\i el -> carouselItem dTheta i el) children)
-    -- (List.indexedMap (\i el -> spiralItem time dTheta i el) children)
-
-
 kitCol : (Maybe T.SynthPreset) -> List T.SynthPreset -> Html U.UpdateMsg
 kitCol curr presets =
   div [class "column level"] 
     <| [ h5 [class "title" ] [ text "Ensemble Designer" ] ]
     ++ List.map changePresetButton presets
-
-
-testCarousel : Int -> Html U.UpdateMsg
-testCarousel time =
-  let 
-    items = (List.map roleThumb D.roles)
-    moreItems = items ++ items ++ items
-  in 
-  carousel 0 items
 
 
 synthEditor : (Maybe T.SynthPreset) -> Html U.UpdateMsg
@@ -407,6 +360,17 @@ ensembleEditor model =
 editEnsemble : T.SynthState -> Html U.UpdateMsg
 editEnsemble  =
   ensembleEditor
+
+
+v1 = text "view"
+
+e1 : T.Ensemble -> Html msg
+e1 ens =
+ text <| String.fromInt <| List.length ens
+
+
+ensembleEditorNew ensemble =
+  Components.designer v1 e1 ensemble
 
 
 csv : List String -> String

@@ -18,9 +18,27 @@ skButtons saveMsg killMsg  =
     , button saveMsg [] "Save" ]
 
 
-picker : List (Html msg) -> selectMsg -> Html msg
+picker : List (Html msg) -> msg -> Html msg
 picker options select =
+  Html.div [] 
+    <| List.map (\opt -> Html.div [ onClick select ] [ opt ]) options
+
+
+-- everything you need to create, read, update, and delete a thing
+crud : Html msg -> ( x -> Html msg ) -> x -> msg -> msg -> msg -> msg -> Html msg
+crud viewer editor thing add kill select patch =
+  Html.div [] [ viewer, editor thing ]
+
+
+edit : a -> (a -> Html a) -> msg -> Html msg
+edit thing view patch =
   Html.div [] []
+
+
+designer : Html msg -> (a -> Html msg) -> a -> Html msg
+designer view editor thing = 
+  Html.div [] 
+    [ view, editor thing ]
 
 
 type alias Model 

@@ -42,10 +42,22 @@ toInt x =
   Maybe.withDefault 0 x
 
 
-viewEnsembleEditor : T.SynthState -> Html U.UpdateMsg
+-- viewEnsembleEditor : T.SynthState -> Html U.UpdateMsg
+-- viewEnsembleEditor model =
+  -- div [Attr.class "syn-main section"] 
+    -- [ View.editEnsemble model ]
+
+
+viewEnsembleEditor : T.SynthState -> Html msg
 viewEnsembleEditor model =
+  let 
+    make = (\inst -> U.AddSynth inst)
+    kill = (\index -> U.KillSynth index)
+    select = (\index -> U.SelectSynth index)
+    update = (\index inst -> U.UpdateSynth index inst)
+  in 
   div [Attr.class "syn-main section"] 
-    [ View.editEnsemble model ]
+    [ View.ensembleEditorNew [] ] --  make kill select update ]
 
 
 viewLayoutEditor : T.EditLayout -> Html U.EditLayout
