@@ -185,6 +185,10 @@ type alias NamedEnsemble
   = (String, Ensemble)
 
 
+type alias Layout
+  = (String, List Scope)
+
+
 main =
   Html.text ""
 

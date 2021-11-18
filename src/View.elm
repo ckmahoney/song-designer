@@ -382,6 +382,11 @@ timeString t =
   mm ++ ":" ++ ss
 
 
+scopeTimeString : T.Scope -> String
+scopeTimeString ({cpc, cps, size} as scope) =
+  timeString <| duration cpc cps size
+
+
 sizeText : Int -> Int -> String
 sizeText cpc size =
   String.fromInt <| sizeToCycles cpc size
@@ -683,20 +688,29 @@ ensembleAdder opts add =
     ++ List.map (\voice -> div [class "box", onClick (add voice)] [ text voice.label, roleIcon voice.role ] ) opts
 
 
+ensembleNamer : T.NamedEnsemble -> (String -> msg) -> Html msg
+ensembleNamer curr rename =
+  Components.editText "Label" (text "") (Tuple.first curr) rename 
+
+
+ensemblePicker :  (List T.NamedEnsemble) -> (Int -> msg) -> Html msg
+ensemblePicker ensembles chooseEnsemble =
+  div [] <| 
+    List.indexedMap (\i ens -> div [onClick (chooseEnsemble i)] [ text <| Tuple.first ens ]) ensembles 
+
+
 ensembleEditor : List T.Voice -> List T.NamedEnsemble -> (Maybe T.NamedEnsemble) -> (Int -> msg) -> ((Maybe T.NamedEnsemble) -> msg) -> (List T.NamedEnsemble -> msg) -> Html msg
-ensembleEditor options ensembles current chooseEnsemble updateCurrent updateAll =
+ensembleEditor options ensembles current select updateCurrent updateAll =
   let
     done = 
       Components.button (updateCurrent Nothing) [] "Done"
-    ensemblePicker = 
-      List.indexedMap (\i ens -> div [onClick (chooseEnsemble i)] [ text <| Tuple.first ens ]) ensembles 
   in 
   case current of 
     Nothing ->
       div [] <|
         [ div [] [ text "Choose one of your ensembles here to make changes to it." ]
-        , done ]
-        ++ ensemblePicker
+        , done
+        , ensemblePicker ensembles select ]
 
     Just e ->
       let 
@@ -704,13 +718,72 @@ ensembleEditor options ensembles current chooseEnsemble updateCurrent updateAll 
       in 
       div [] <|
         [ viewEnsembleWithRemover e (\voice -> updateCurrent (swapEns (Tools.remove (Just voice) (Tuple.second e))))
-        , div [] [ text "Add or remove voices from this ensemble." ] ]
-        ++ ensemblePicker
-        ++ [ ensembleAdder options (\voice -> updateCurrent (swapEns (Tools.conj voice (Tuple.second e)))) ]
-        ++ [ done
-
+        , div [] [ text "Add or remove voices from this ensemble." ] 
+        , done
+        , ensemblePicker ensembles select 
+        , ensembleNamer e (\str -> updateCurrent (Just (str, (Tuple.second e)))) 
+        , ensembleAdder options (\voice -> updateCurrent (swapEns (Tools.conj voice (Tuple.second e)))) 
+        , done
         ]
 
+
+scopeIcon : T.Scope -> Html msg
+scopeIcon scope =
+  div [ class "box" ] 
+    [ label [ class "label" ] [ text scope.label ]
+    , Components.svg "scope"
+    , text (scopeTimeString scope)
+    ] 
+
+viewLayoutWithRemover : T.Layout -> (T.Scope -> msg) -> Html msg
+viewLayoutWithRemover layout remove =
+  div [] <|
+    [ h3 [ class "subtitle" ] [ text <| "Viewing Ensemble " ++ Tuple.first layout]
+    ] ++ List.map (\scope -> div [class "box", onClick (remove scope)] [ scopeIcon scope, span [class "delete"] []]) (Tuple.second layout)
+
+
+layoutAdder : List T.Scope -> (T.Scope -> msg) -> Html msg
+layoutAdder opts add =
+  div [] <|
+    [ p [] [ text "Add a voice to this layout" ] ]
+    ++ List.map (\scope -> div [class "box", onClick (add scope)] [ scopeIcon scope ] ) opts
+
+
+layoutNamer : String -> (String -> msg) -> Html msg
+layoutNamer title rename =
+  Components.editText "Label" (text "") title rename 
+
+
+layoutPicker :  (List T.Layout) -> (Int -> msg) -> Html msg
+layoutPicker layouts select =
+  div [] <| 
+    List.indexedMap (\i (label, scopes) -> div [onClick (select i)] [ text label ]) layouts 
+
+
+layoutEditor : List T.Scope -> List T.Layout -> (Maybe T.Layout) -> (Int -> msg) -> ((Maybe T.Layout) -> msg) -> (List T.Layout -> msg) -> Html msg
+layoutEditor options layouts current select updateCurrent updateAll =
+  let
+    done = 
+      Components.button (updateCurrent Nothing) [] "Done"
+  in 
+  case current of 
+    Nothing ->
+      div [] <|
+        [ div [] [ text "Choose one of your layouts here to make changes to it." ]
+        , done
+        , layoutPicker layouts select
+        ] 
+
+    Just ((label, scopes) as l) ->
+      div [] <|
+        [ viewLayoutWithRemover l (\layout -> updateCurrent (Just (label, (Tools.remove (Just layout) scopes))))
+        , div [] [ text "Add or remove scopes from this layout.." ] 
+        , done
+        , layoutPicker layouts select
+        , layoutNamer label (\str -> updateCurrent (Just (label, scopes)))
+        , layoutAdder options (\scope -> updateCurrent (Just (label, Tools.conj scope scopes)))
+        , done
+        ]
 
 
 main =

@@ -401,6 +401,7 @@ roleDuty role =
       Expression
 
 
+v1 : Scope
 v1 =
   { id = -11
   , label = "verse"
@@ -496,6 +497,13 @@ coreNamedEnsembles =
   , ("Everything", kitAll)
   , ("Synth", kitSynth)
   ]
+
+
+coreLayouts : List Layout
+coreLayouts =
+  [ ("VerseChorus", [v1, c1, v1, c1, v1, v1, c1])
+  ]
+
 
 
 main = 
