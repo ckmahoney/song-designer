@@ -63,6 +63,10 @@ type EditVoice
   | UVoiceDuty T.SynthDuty
 
 
+type EditScope
+  = UScope T.Scope
+
+
 updateVoiceEditor : EditVoice -> T.VoiceEditor -> (T.VoiceEditor, Cmd EditVoice)
 updateVoiceEditor msg model =
   case msg of
@@ -93,8 +97,6 @@ type EditLayout
   | RemoveLayoutAt Int
 
 
-type EditScope
-  = UScope T.Scope
 
 type EditScore
   = RequestScore

@@ -315,12 +315,12 @@ densityMessage voice =
   text ""
 
 
-voiceEditor : T.Voice -> Html U.EditVoice
-voiceEditor voice =
+voiceEditor : T.Voice -> (U.EditVoice -> msg) -> Html msg
+voiceEditor voice sig =
   let 
-    updateComplexity = (\n -> U.UVoice { voice | complexity = n })
-    updateDensity = (\n -> U.UVoice { voice | density = n })
-    uLabel = (\s -> U.UVoice { voice | label = s })
+    updateComplexity = (\n -> sig <| U.UVoice { voice | complexity = n })
+    updateDensity = (\n -> sig <| U.UVoice { voice | density = n })
+    uLabel = (\s -> sig <| U.UVoice { voice | label = s })
 
     complexity = Components.editInt "Complexity" (complexityMessage voice) D.rangeComplexity voice.complexity updateComplexity
     density = Components.editInt "Density" (densityMessage voice) D.rangeDensity voice.density updateDensity
@@ -329,10 +329,10 @@ voiceEditor voice =
     updateRole = (\i -> 
       case Array.get i <| Array.fromList D.roles of 
         Just r ->
-          U.UVoice { voice | role = r }
+          sig <| U.UVoice { voice | role = r }
 
         _ ->
-          U.UVoice voice)
+          sig <| U.UVoice voice)
 
     editors = [ complexity, density ] 
   in
@@ -346,8 +346,21 @@ voiceEditor voice =
     ]
 
 
-viewVoiceEditor : T.VoiceEditor -> Html U.EditVoice
-viewVoiceEditor model =
+scopeEditor : T.ScopeEditor -> (U.EditScope -> msg) -> Html msg
+scopeEditor editor sig =
+  let
+    ee = Debug.log "editor:" editor
+  in 
+  case editor.current of
+    Nothing ->
+      text "No scope to touch"
+ 
+    Just scope ->
+      editScope2 scope sig
+
+
+viewVoiceEditor : T.VoiceEditor -> (U.EditVoice -> msg) -> Html msg
+viewVoiceEditor model sig =
   case model.current of 
     Nothing -> 
       div [] 
@@ -357,7 +370,20 @@ viewVoiceEditor model =
     Just voice ->
       div [] 
         [ h1 [ class "title" ] [ text "Voice Editor" ]
-        , voiceEditor voice ]
+        , voiceEditor voice sig ]
+
+justVoiceEditor : T.VoiceEditor -> Html U.EditVoice
+justVoiceEditor model  =
+  case model.current of 
+    Nothing -> 
+      div [] 
+        [ h1 [ class "title" ] [ text "Voice Editor, No Voices" ] ]
+
+
+    Just voice ->
+      div [] 
+        [ h1 [ class "title" ] [ text "Voice Editor" ]
+        , voiceEditor voice identity]
 
 
 editPreset : T.Voice -> Html U.UpdateMsg
@@ -913,6 +939,28 @@ overviewScore score =
     , p [ class "subtitle" ] [ text <| "It takes stems " ++ (String.fromInt <| countStems score ) ++ " to write this song."]
     , button [ class "button" ] [ text "Print Song" ]
     ]
+
+
+
+editScope2 : T.Scope -> (U.EditScope -> msg) -> Html msg
+editScope2 model sig = 
+  let
+    updateLabel =  (\str -> sig <| U.UScope { model | label = str })
+    updateCPC =  (\int -> sig <| U.UScope { model | cpc = int })
+    updateSize = (\int -> sig <| U.UScope { model | cpc = int })
+    updateCPS =  (\flt -> sig <| U.UScope { model | cps = flt })
+    updateRoot = (\flt -> sig <| U.UScope { model | root = flt })
+  in 
+  div [ class "scope-editor" ]
+   [ 
+   Components.editText "Label" labelInfo model.label updateLabel
+   , Components.editInt "Meter" (meterMessage model) D.rangeCPC model.cpc updateCPC
+   , Components.editInt "Size" (sizeMessage model) D.rangeScopeSize model.size updateSize 
+   , Components.editRange "Tempo" (tempoMessage model) D.rangeCPS model.cps updateCPS 
+   , Components.keyPicker False model.root updateRoot 
+   ] 
+
+
 
 
 main =

@@ -122,12 +122,23 @@ type alias EditState a =
   }
 
 
+type alias ScopeEditor = 
+  { time : Int
+  , current : Maybe Scope
+  , presets: List Scope
+  }
+
+type alias VoiceEditor = 
+  { time : Int
+  , current : Maybe Voice
+  , presets: List Voice
+  }
+
+
+
 -- type alias SynthState 
   -- = EditState Voice
 
-
-type alias VoiceEditor
-  = (EditState Voice) 
 
 
 type alias EnsembleEditor

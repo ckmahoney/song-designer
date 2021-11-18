@@ -152,7 +152,7 @@ subsVoice model =
 mainVoiceEditor =
   Browser.element { init = initVoiceEditor
                   , update = U.updateVoiceEditor
-                  , view = View.viewVoiceEditor
+                  , view = View.justVoiceEditor
                   , subscriptions = subsVoice
                   }
 
@@ -207,7 +207,7 @@ mainRouter =
 main = 
   -- mainSongDesigner
   -- mainEnsembleEditor 
-  mainVoiceEditor
+  -- mainVoiceEditor
   -- mainLayoutEditor 
   -- mainScoreEditor 
-  -- mainRouter
+  mainRouter
