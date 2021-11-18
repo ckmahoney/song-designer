@@ -241,28 +241,28 @@ presets = [p1,p2,p3,p4]
 
 kitAll : Ensemble
 kitAll =
-  [ Voice 0 Structure Kick "clock" 1 1 0
-  , Voice 1 Structure Perc "clap" 3 2 0
-  , Voice 2 Structure Hat "offbeat" 5 3 1
-  , Voice 3 Structure Bass "pedal" 5 3 1
-  , Voice 4 Structure Chords "hook" 5 3 1
-  , Voice 5 Structure Melody "phrase" 5 3 1
+  [ Voice 20 Structure Kick "clock" 1 1 0
+  , Voice 21 Structure Perc "clap" 3 2 0
+  , Voice 22 Structure Hat "offbeat" 5 3 1
+  , Voice 23 Structure Bass "pedal" 5 3 1
+  , Voice 24 Structure Chords "hook" 5 3 1
+  , Voice 25 Structure Melody "phrase" 5 3 1
   ]
 
 
 kitBeat : Ensemble
 kitBeat =
-  [ Voice 0 Structure Kick "clock" 1 1 0
-  , Voice 1 Structure Perc "clap" 3 2 0
-  , Voice 2 Structure Hat "offbeat" 5 3 1
+  [ Voice 30 Structure Kick "clock" 1 1 0
+  , Voice 31 Structure Perc "clap" 3 2 0
+  , Voice 32 Structure Hat "offbeat" 5 3 1
   ]
 
 
 kitSynth : Ensemble
 kitSynth =
-  [ Voice 0 Structure Bass "pedal" 5 3 1
-  , Voice 1 Structure Chords "hook" 5 3 1
-  , Voice 2 Structure Melody "phrase" 5 3 1
+  [ Voice 40 Structure Bass "pedal" 5 3 1
+  , Voice 41 Structure Chords "hook" 5 3 1
+  , Voice 42 Structure Melody "phrase" 5 3 1
   ]
 
 
@@ -402,7 +402,7 @@ roleDuty role =
 
 
 v1 =
-  { id = -1
+  { id = -11
   , label = "verse"
   , cps = 2
   , cpc = 4 
@@ -412,7 +412,7 @@ v1 =
 
 
 c1 =
-  { id = -2
+  { id = -12
   , label = "chorus"
   , cps = 2
   , cpc = 4 
@@ -434,12 +434,12 @@ kitVC1 =
 
 kitVC2 : Ensemble
 kitVC2 =
-  [ Voice 0 Structure Hat "clock" 1 1 0
-  , Voice 1 Structure Hat "clap" 3 2 0
-  , Voice 2 Expression Hat "clap" 3 2 0
-  , Voice 3 Structure Bass "clap" 3 3 1
-  , Voice 4 Structure Melody "hook" 5 3 1
-  , Voice 5 Structure Chords "phrase" 5 3 1
+  [ Voice 10 Structure Hat "clock" 1 1 0
+  , Voice 11 Structure Hat "clap" 3 2 0
+  , Voice 12 Expression Hat "clap" 3 2 0
+  , Voice 13 Structure Bass "clap" 3 3 1
+  , Voice 14 Structure Melody "hook" 5 3 1
+  , Voice 15 Structure Chords "phrase" 5 3 1
   ]
 
 

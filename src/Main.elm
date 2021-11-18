@@ -149,12 +149,12 @@ subsVoice model =
 
 
 
-mainVoiceEditor =
-  Browser.element { init = initVoiceEditor
-                  , update = U.updateVoiceEditor
-                  , view = View.justVoiceEditor
-                  , subscriptions = subsVoice
-                  }
+-- mainVoiceEditor =
+--   Browser.element { init = initVoiceEditor
+--                   , update = U.updateVoiceEditor
+--                   , view = View.justVoiceEditor
+--                   , subscriptions = subsVoice
+--                   }
 
 
 mainEnsembleEditor =

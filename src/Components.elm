@@ -7,6 +7,13 @@ import Html.Events exposing (..)
 import Data as D
 
 
+svg : String -> Html msg
+svg name = 
+  Html.img [ width 50
+      , height 50
+      , src <| "/svg/" ++ name ++ ".svg"] []
+
+
 keyButtonMobile : String -> Int -> (Int -> msg) -> Int -> Html msg
 keyButtonMobile name curr toMsg val =
   Html.button [ onClick (toMsg val)
@@ -48,9 +55,7 @@ keyPicker useSharps val toMsg =
 
 noClickButton : Html msg
 noClickButton =
-  Html.button [ class "m-0 button image is-48x48 has-background-black"
-         , style "border-radius" "50%"
-         , style "cursor" "initial"] []
+  svg "empty"
 
 
 strvalToFloat : Float -> Float ->  String -> Float
@@ -78,9 +83,11 @@ editInt : String -> Html msg -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
 editInt title html (min, max) val toMsg =
   let 
     less = if min == val then noClickButton else
-             button (toMsg <| val - 1) [class "image button is-48x48"] "-"
+             -- button (toMsg <| val - 1) [class "image button is-48x48"] "-"
+             div [onClick (toMsg <| val - 1)] [ svg "minus" ]
     more = if max == val then noClickButton else 
-             button (toMsg <| val + 1) [class "image button is-48x48" ] "+ "
+             div [onClick (toMsg <| val + 1)] [ svg "plus-1" ]
+             -- button (toMsg <| val + 1) [class "image button is-48x48" ] "+ "
   in 
   div [ class "m-3 box"]
     [ div [ class "columns is-multiline"]
@@ -159,16 +166,13 @@ designer view editor thing =
     [ view, editor thing ]
 
 
-editOneOfMany : List (Html msg) -> Maybe a -> (a -> Html msg) -> Html msg
-editOneOfMany xs x editor =
-  let
-    v = case x of
-          Nothing -> text "" 
-          Just xx -> editor xx
-  in 
-  div [] 
-    ([ v ] ++ xs)
-
+editToggle : String -> (a, String) -> (a, String) -> a -> (a -> msg) -> Html msg
+editToggle label (x, labelX) (y, labelY) curr toMsg =
+  div []
+    [ Html.label [] [ text label]
+    , button (toMsg x) [class <| if curr == x then "is-success" else ""] labelX
+    , button (toMsg y) [class <| if curr == y then "is-success" else ""] labelY
+    ]
 
 type alias Model 
   = ()

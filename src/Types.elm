@@ -59,7 +59,7 @@ type alias Voice =
   , duty : SynthDuty
   , role : SynthRole
   , label : String
-  , voice : Int
+  , voice : Int -- not editable by user
   , density : Int
   , complexity : Int
   }

@@ -11,10 +11,9 @@ import Types as T
 import Data as D
 import Update as U
 import String exposing (String(..))
-
+import Tools
 
 useSharps = False
-
 
 
 invertColor : Html msg -> Html msg
@@ -124,12 +123,6 @@ bindInt min max val =
     val 
 
 
-noClickButton : Html msg
-noClickButton =
-  button [ class "m-0 button image is-48x48 has-background-black"
-         , style "border-radius" "50%"
-         , style "cursor" "initial"] []
-  
 
 editInt : String -> String -> Int -> (Int -> msg) -> Html msg
 editInt title name val toMsg =
@@ -180,85 +173,6 @@ editRangeDesktop title html (mn, mx) step_ val toMsg =
       , div [class "column"] [ html ] ] ]
 
 
-editRange : String -> Html msg -> (Float, Float) -> Float -> Float -> (Float -> msg) -> Html msg
-editRange title html (mn, mx) step_ val toMsg =
-  div []
-   [ div [class "is-hidden-tablet"] [ editRangeMobile title html (mn, mx) step_ val toMsg ]
-   , div [class "is-hidden-mobile"] [ editRangeDesktop title html (mn, mx) step_ val toMsg ] ]
-
-editBoundInt : String -> String -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
-editBoundInt title name (min, max) val toMsg =
-  let 
-    less = if min == val then noClickButton else
-             button [class "image button is-48x48", onClick (toMsg <| val - 1)] [text  "-" ]
-    more = if max == val then noClickButton else 
-             button [class "image button is-48x48", onClick (toMsg <| val + 1)] [text  "+ "]
-  in 
-  div [class "level"]
-    [ less
-    , label [] [text name, b [] [" " ++ String.fromInt val |> text]]
-    , more ]
-
-editBoundInt2 : String -> String -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
-editBoundInt2 title name (min, max) val toMsg =
-  let 
-    less = if min == val then noClickButton else
-             button [class "image button is-48x48", onClick (toMsg <| val - 1)] [text  "-" ]
-    more = if max == val then noClickButton else 
-             button [class "image button is-48x48", onClick (toMsg <| val + 1)] [text  "+ "]
-  in 
-  div [class "m-3 column box"]
-    [ h3 [class "subtitle"] [text title]
-    , div [] [ less
-    , label [] [text name, b [] [" " ++ String.fromInt val |> text]]
-    , more ] ]
-
-
-editBoundInt3 : String -> Html msg -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
-editBoundInt3 title html (min, max) val toMsg =
-  let 
-    less = if min == val then noClickButton else
-             button [class "image button is-48x48", onClick (toMsg <| val - 1)] [text  "-" ]
-    more = if max == val then noClickButton else 
-             button [class "image button is-48x48", onClick (toMsg <| val + 1)] [text  "+ "]
-  in 
-  div [ class "m-3 box"]
-    [ div [ class "columns is-multiline"]
-      [ div [ class "columns is-multiline column is-full is-flex is-flex-row is-justify-content-space-between"] 
-            [ h5 [ class "column is-full subtitle"] [ text title ]
-            , div [ class "mt-0 column is-full is-flex is-flex-row level"] 
-                     [ less
-                     , b [] [" " ++ String.fromInt val |> text ]
-                     , more ] ] 
-      , div [ class "column box has-text-light has-background-info is-full"] [ html ] ] ]
-
-
-editBoundFloat : String -> String -> (Float,  Float) -> Float -> (Float -> msg) -> Html msg
-editBoundFloat title name (min, max) val toMsg =
-  let 
-    less = if min == val then noClickButton else
-             button [class "image button is-48x48", onClick (toMsg <| val - 1)] [text  "-" ]
-    more = if max == val then noClickButton else 
-             button [class "image button is-48x48", onClick (toMsg <| val + 1)] [text  "+ "]
-  in 
-  div [class "level"]
-    [ less
-    , label [] [text name, b [] [" " ++ String.fromFloat val |> text]]
-    , more ]
-
-
-editTexture : T.Voice -> Html U.UpdateMsg
-editTexture preset =
-  let 
-    textD = D.textureLabel T.Density
-    textC = D.textureLabel T.Complexity
-  in 
-  div [class "is-two-thirds"]
-    [ editBoundInt (Tuple.second textD) (Tuple.first textD) D.rangeDensity preset.density U.UpdateDensity 
-    , editBoundInt (Tuple.second textC) (Tuple.first textC) D.rangeComplexity preset.complexity U.UpdateComplexity
-    ]
-
-
 buttonOpt : T.SynthRole -> msg -> Html msg
 buttonOpt role msg =
   button [] [text (Tuple.first (D.roleLabel role))]
@@ -272,39 +186,6 @@ synthDescription preset =
     , p [class "content is-6"] [text <| D.roleDescription preset.role] ] ]
 
 
-texEdit preset =
-  div [class "texture-editor column is-two-thirds mx-auto is-centered"] 
-    [ editTexture preset ] 
-
-
-synthCardContent : T.Voice -> Html U.UpdateMsg
-synthCardContent preset = 
-  let 
-    saveSynth = (U.AddPreset preset)
-    killSynth = (U.KillPreset preset)
-  in 
-  div [class "column card-content has-background-white "]
-    [ button [onClick (U.ChangeSelection Nothing), class "delete is-large"] []
-    , div [class "column media is-centered p-3"]
-        <| [ figure [class "image mx-auto is-96x96"] [roleThumb preset.role]
-           , synthDescription preset 
-           , rolePicker (U.UpdateSynthRole preset) 
-           , texEdit preset
-           , (Components.skButtons saveSynth killSynth)
-           ] ]
-
-
-hisIsForEditingInstruments : T.Voice -> List (Html msg) -> msg -> (Int -> msg) -> msg -> msg -> Html msg
-hisIsForEditingInstruments preset editors selectNone select update delete = 
-  div [class "column card-content has-background-white "]
-    [ button [onClick selectNone, class "delete is-large"] []
-    , div [class "column media is-centered p-3"]
-        <| ([ figure [class "image mx-auto is-96x96"] [roleThumb preset.role]
-           , synthDescription preset
-           , Components.picker [text "one"] select
-           ] ++ editors ++ [ (Components.skButtons update delete) ])  ]
-
-
 complexityMessage : T.Voice -> Html msg
 complexityMessage voice =
   text ""
@@ -315,131 +196,52 @@ densityMessage voice =
   text ""
 
 
-voiceEditor : T.Voice -> (U.EditVoice -> msg) -> Html msg
-voiceEditor voice sig =
-  let 
-    updateComplexity = (\n -> sig <| U.UVoice { voice | complexity = n })
-    updateDensity = (\n -> sig <| U.UVoice { voice | density = n })
-    uLabel = (\s -> sig <| U.UVoice { voice | label = s })
+rolePicker2 :(T.SynthRole -> msg) -> Html msg
+rolePicker2 select =
+  div [] <|
+    List.map (\role -> 
+      div [onClick (select role)] [roleIcon role]) D.roles
 
-    complexity = Components.editInt "Complexity" (complexityMessage voice) D.rangeComplexity voice.complexity updateComplexity
-    density = Components.editInt "Density" (densityMessage voice) D.rangeDensity voice.density updateDensity
 
-    roleOptions = List.map roleIcon D.roles
-    updateRole = (\i -> 
-      case Array.get i <| Array.fromList D.roles of 
-        Just r ->
-          sig <| U.UVoice { voice | role = r }
-
-        _ ->
-          sig <| U.UVoice voice)
-
-    editors = [ complexity, density ] 
-  in
-  div [] 
-    [ h1 [ class "title" ] [ text "Voice Editor" ]
-    , h1 [ class "title" ] [ text <| D.roleDescription voice.role ]
-    , Components.editText "Label" (text "") voice.label uLabel
-    , density
-    , complexity
-    , Components.picker roleOptions updateRole
-    ]
-
-editVoice2 : T.Voice -> ((Maybe T.Voice) -> msg) -> Html msg
-editVoice2 voice sig =
+editVoice : T.Voice -> ((Maybe T.Voice) -> msg) -> Html msg
+editVoice voice sig =
   let 
     justSig = (\x -> sig (Just x))
     updateComplexity = (\n -> justSig { voice | complexity = n })
     updateDensity = (\n -> justSig { voice | density = n })
-    uLabel = (\s -> justSig { voice | label = s })
-
-    roleOptions = List.map roleIcon D.roles
-    updateRole = (\i -> 
-      case Array.get i <| Array.fromList D.roles of 
-        Just r ->
-          justSig { voice | role = r }
-
-        _ ->
-          justSig voice)
-
-    done = (sig Nothing)
+    updateLabel = (\s -> justSig { voice | label = s })
+    updateRole = (\r -> justSig { voice | role = r } )
+    updateDuty = (\d -> justSig { voice | duty = d } )
   in
   div [] 
     [ h1 [ class "title" ] [ text "Voice Editor" ]
     , h1 [ class "title" ] [ text <| D.roleDescription voice.role ]
-    , Components.editText "Label" (text "") voice.label uLabel
+    , Components.editToggle "Duty" (T.Structure, "Structural") (T.Expression, "Expressive") voice.duty updateDuty
+    , Components.editText "Label" (text "") voice.label updateLabel
     , Components.editInt "Density" (densityMessage voice) D.rangeDensity voice.density updateDensity
     , Components.editInt "Complexity" (complexityMessage voice) D.rangeComplexity voice.complexity updateComplexity
-    , Components.picker roleOptions updateRole
+    , rolePicker2 updateRole
     ]
 
 
-scopeEditor : T.ScopeEditor -> (T.Scope -> msg) -> Html msg
-scopeEditor editor sig =
-  let
-    ee = Debug.log "editor:" editor
-  in 
-  case editor.current of
-    Nothing ->
-      text "No scope to touch"
- 
-    Just scope ->
-      text "this is the old editor"
-      -- editScope3 scope (\scope case scope of Nothing ->  sig
-
-scopeEditor2 :(Maybe T.Scope) -> ((Maybe T.Scope) -> msg) -> Html msg
-scopeEditor2 scope update =
+scopeEditor :(Maybe T.Scope) -> ((Maybe T.Scope) -> msg) -> Html msg
+scopeEditor scope update =
   case scope of
     Nothing ->
       text "No scope right now"
  
     Just s ->
-      -- text "Editing a scope"
-      editScope3 s update
+      editScope s update
 
 
-voiceEditor2 : (Maybe T.Voice) -> ((Maybe T.Voice) -> msg) -> Html msg
-voiceEditor2 voice update =
+voiceEditor : (Maybe T.Voice) -> ((Maybe T.Voice) -> msg) -> Html msg
+voiceEditor voice update =
   case voice of  
     Nothing ->
       text "No voice right now"
  
     Just v ->
-      -- text "Editing a scope"
-      editVoice2 v update
-
-
-viewVoiceEditor : T.VoiceEditor -> (U.EditVoice -> msg) -> Html msg
-viewVoiceEditor model sig =
-  case model.current of 
-    Nothing -> 
-      div [] 
-        [ h1 [ class "title" ] [ text "Voice Editor, No Voices" ] ]
-
-
-    Just voice ->
-      div [] 
-        [ h1 [ class "title" ] [ text "Voice Editor" ]
-        , voiceEditor voice sig ]
-
-justVoiceEditor : T.VoiceEditor -> Html U.EditVoice
-justVoiceEditor model  =
-  case model.current of 
-    Nothing -> 
-      div [] 
-        [ h1 [ class "title" ] [ text "Voice Editor, No Voices" ] ]
-
-
-    Just voice ->
-      div [] 
-        [ h1 [ class "title" ] [ text "Voice Editor" ]
-        , voiceEditor voice identity]
-
-
-editPreset : T.Voice -> Html U.UpdateMsg
-editPreset preset =
-  div [class "column card is-half px-6 py-4", style "background" (D.roleColor preset.role)]
-    [ synthCardContent preset ]
+      editVoice v update
 
 
 instrumentEditor : T.Voice -> msg -> msg -> Html msg
@@ -448,48 +250,18 @@ instrumentEditor synth keep kill =
     []
 
 
-changePresetButton : T.Voice -> Html U.UpdateMsg
-changePresetButton preset = 
-  div [ onClick (U.ChangeSelection (Just preset))
-      , class "my-5" ] 
-    [ presetIcon preset.role ]
-
-
 kitCol : (Maybe T.Voice) -> List T.Voice -> Html U.UpdateMsg
 kitCol curr presets =
   div [class "column level"] 
     <| [ h5 [class "title" ] [ text "Ensemble Designer" ] ]
-    ++ List.map changePresetButton presets
-
-
-synthEditor : (Maybe T.Voice) -> Html U.UpdateMsg
-synthEditor preset =
-  case preset of 
-    Nothing ->
-      button [ onClick U.RequestPreset
-             , class "button" ] [text "Create a Preset"]
-
-    Just synth ->
-      editPreset synth
-
-
-ensembleEditor : T.VoiceEditor -> Html U.UpdateMsg
-ensembleEditor model =
-  div [class "columns"]
-    [ kitCol  model.current model.presets
-    , synthEditor model.current ]
-
-
-editEnsemble : T.VoiceEditor -> Html U.UpdateMsg
-editEnsemble  =
-  ensembleEditor
+    -- ++ List.map changePresetButton presets
 
 
 view1 = 
   ol [] 
     [ li [] [text "functional designer: Ensemble"]
     , li [] [text "view the thing being edited" ]
-    ] 
+    ]
 
 
 edit1Ensemble : T.Ensemble -> Html msg
@@ -580,7 +352,6 @@ tempoMessage ({cps, size} as model) =
     , p [] [ text <| "With size " ++ (String.fromInt size) ++ " at " ++ (bpmString cps) ++ "BPM, that means this section is " ++ (String.fromFloat (duration model.cpc model.cps model.size)) ++  " seconds long." ] ]
 
 
-
 meterMessage : T.Scope -> Html msg
 meterMessage ({cpc} as model) =
   p [] [ text <| "This section has " ++ (timeSigString cpc) ++ " time." ]
@@ -611,7 +382,6 @@ timeString t =
   mm ++ ":" ++ ss
 
 
-
 sizeText : Int -> Int -> String
 sizeText cpc size =
   String.fromInt <| sizeToCycles cpc size
@@ -635,46 +405,6 @@ labelInfo =
   div [class "content"] [ text "A name to help you remember what this section is for." ]
 
 
-compoContentMobile : T.Scope -> Html U.EditLayout
-compoContentMobile model =
-  div [ class "content-mobile columns card-content is-multiline" ]
-    [ div [class "column"] 
-        [ div [class "column"] [ Components.editText "Label" labelInfo model.label U.UpdateLabel ]
-        , editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
-        , editBoundInt3 "Size" (sizeMessage model) D.rangeScopeSize model.size U.UpdateSize ]
-    , div [class "column"] [ editRange "Tempo" (tempoMessage model) D.rangeCPS D.rangeStep model.cps U.UpdateCPS ]
-    , div [class "column"] [ keyPicker model.root U.UpdateRoot ] ]
-
-compoContentDesktop : T.Scope -> Html U.EditLayout
-compoContentDesktop model =
-  div [ class "content-desktop columns card-content is-multiline" ]
-    [ Components.editText "Label" labelInfo model.label U.UpdateLabel
-    , editBoundInt3 "Size" (sizeMessage model) D.rangeScopeSize model.size U.UpdateSize
-    , editBoundInt3 "Meter" (meterMessage model) D.rangeCPC model.cpc U.UpdateCPC
-    , editRange "Tempo" (tempoMessage model) D.rangeCPS D.rangeStep model.cps U.UpdateCPS 
-    , keyPicker model.root U.UpdateRoot ]
-
-
-compoContent : T.Scope -> Html U.EditLayout
-compoContent model = 
-  div []
-  [ div [class "is-hidden-desktop is-block-mobile"] [ compoContentMobile model ]
-  , div [class "is-hidden-mobile is-block-desktop"] [ compoContentDesktop model ] 
-  ]
-
-
-eeeee : String -> (String -> msg) -> Int -> (Int -> msg) -> Int -> (Int -> msg) -> Html msg
-eeeee model toMsg intVal1 intMsg intVal2 intMsg2 = 
-  div [ class "content-desktop columns card-content is-multiline" ]
-    [ div [class "column"] 
-        [ div [class "column"]
-          [ Components.editText "Label" labelInfo model toMsg 
-          , Components.editInt "Meter" (text "") D.rangeCPC intVal1 intMsg
-          , Components.editInt "Size" (text "") D.rangeScopeSize intVal2 intMsg2 ] ] ]
-
-
-instance : Html U.EditLayout
-instance = div [] [ eeeee "test-data" U.UpdateLabel 4 U.UpdateCPC 3 U.UpdateSize ]
 
 
 layoutItem : T.Scope -> U.EditLayout -> Html U.EditLayout
@@ -791,21 +521,6 @@ killScopeButton model =
   button [ onClick (U.KillScope model), class "button" ] [ text "Delete Section" ]
 
 
-editScope : (Maybe T.Scope) -> Html U.EditLayout
-editScope mcompo =
-  case mcompo of 
-    Nothing ->
-      div []
-        [ p [ class "mb-3" ] [ text "Select an existing section below, or create a new one." ]
-        , button [ onClick U.RequestScope, class "button" ] [ text "Create a new Section"] ]
-
-    Just compo ->
-      div [ class "column card px-6 py-4"
-          , style  "background" "cyan" ]
-          [ killScopeButton compo
-          , compoContent compo]
-
-
 editLayoutMessage : Html msg
 editLayoutMessage = 
   p [class "content"] [text "Use this editor to create sections for your songs."]
@@ -814,16 +529,6 @@ editLayoutMessage =
 designLayoutMessage : Html msg
 designLayoutMessage = 
   p [class "content"] [text "Arrange your score here." ]
-
-
-editLayout : T.EditLayout -> Html U.EditLayout 
-editLayout model = 
-  div [ class "container" ]
-    [ h1 [ class "title" ] [ text "Layout Editor"]
-    , p [ class ""] [ editLayoutMessage]
-    , div [ class "columns is-multiline"] 
-      [ div [ class "column is-full" ] [ editScope model.current ]
-      , div [ class "column is-full" ] [ layoutOptions model.presets ] ] ]
 
 
 totalLength : List T.Scope -> Float
@@ -886,7 +591,6 @@ scoreView sections =
     , div [ class "columns" ] <| List.map scoreData  sections ]
 
 
-
 makeSection : T.Section -> Html msg
 makeSection (mScope, mEnsemble) =
   div [] [ text "it has some maybethings" ]
@@ -915,72 +619,6 @@ sectionThumb (compo, ensemble) =
     , ensembleBanner ensemble ]
 
 
-chooseScope : List T.Scope -> (T.Scope -> U.EditScore) -> (Maybe T.Scope) -> Html U.EditScore
-chooseScope compos toMsg compo =
-  let
-    picker = div [ class "columns my-3" ] <| List.map (\c -> compoThumb c (toMsg c)) compos
-  in 
-  case compo of 
-    Nothing -> 
-      div [] 
-        [ text "You need a compo for this section. Pick one here." 
-        , picker
-        ]
- 
-    Just comp -> 
-       picker
-
-
-chooseEnsemble : List T.Ensemble -> (T.Ensemble -> U.EditScore) -> (Maybe T.Ensemble) -> Html U.EditScore
-chooseEnsemble ensembles toMsg ensemble =
-  let 
-    picker = div [ class "" ] <| List.map (\e -> ensembleThumbClick e (toMsg e)) ensembles
-  in 
-  case ensemble of 
-    Nothing -> 
-      div [] 
-        [ text "You need an ensemble for this section. Pick one here." 
-        , picker
-        ]
-
-    Just ens -> 
-     picker
-
-
-sectionPreview : T.Scope -> T.Ensemble -> Html U.EditScore
-sectionPreview compo ensemble =
-  div [ class "columns", style "background" "linear-gradient(90deg, cyan, magenta)" ] 
-  [ div [ class "column is-half" ] [ h3 [] [ text "Details" ],  editScoreItem compo ] 
-  , div [ class "column is-half" ] [ h3 [] [ text "Ensemble" ],  ensembleThumbs ensemble ]
-  ] 
-
-
-editSection : List T.Scope -> List T.Ensemble ->  (Maybe T.Section) -> Html U.EditScore
-editSection cs es mSection = 
-  case mSection of 
-    Nothing ->
-      div [] 
-        [ button [ class "button", onClick U.NewSection ] [ text "Add a new section" ]
-        , p [] [ text "Or choose from one of the sections below to update it." ] ]
-    
-    Just (compo, ensemble) ->
-      div [] 
-        [ sectionPreview compo ensemble
-        , div [ class "columns" ]
-          [ div [ class "column is-half" ] [ b [] [ text "Change the Details" ],  chooseScope cs (\x -> U.UpdateSection x ensemble) (Just compo) ]
-          , div [ class "column is-half" ] [ b [] [ text "Change the Ensemble" ], chooseEnsemble es (\x -> U.UpdateSection compo x) (Just ensemble) ] ] ]
-
-
-editScore : T.EditScore -> Html U.EditScore
-editScore ({ current, list, layout, ensembles} as model) = 
-  div [ class "container" ]
-    [ h1 [ class "title" ] [ text "Score Designer"]
-    , div [ class "columns is-multiline"] 
-        [ div [ class "column is-full" ] [ editSection layout ensembles current] ]
-        -- , div [ class "column is-full" ] [ scoreView list ] 
-        , div [ class "column is-full" ] [ scorePreview list] ]
-
-
 overviewScore : List T.Section -> Html U.EditScore
 overviewScore score =
   div [] 
@@ -991,21 +629,19 @@ overviewScore score =
     ]
 
 
-
-editScope3 : T.Scope -> ((Maybe T.Scope) -> msg) -> Html msg
-editScope3 model sig = 
+editScope : T.Scope -> ((Maybe T.Scope) -> msg) -> Html msg
+editScope model sig = 
   let
     justSig = (\x -> sig (Just x))
     updateLabel = (\str -> justSig { model | label = str })
     updateCPC = (\int -> justSig { model | cpc = int })
-    updateSize = (\int -> justSig { model | cpc = int })
+    updateSize = (\int -> justSig { model | size = int })
     updateCPS = (\flt -> justSig { model | cps = flt })
     updateRoot = (\flt -> justSig { model | root = flt })
     done = (sig Nothing)
   in 
   div [ class "scope-editor v3" ]
-   [ 
-   Components.editText "Label" labelInfo model.label updateLabel
+   [ Components.editText "Label" labelInfo model.label updateLabel
    , Components.editInt "Meter" (meterMessage model) D.rangeCPC model.cpc updateCPC
    , Components.editInt "Size" (sizeMessage model) D.rangeScopeSize model.size updateSize 
    , Components.editRange "Tempo" (tempoMessage model) D.rangeCPS model.cps updateCPS 
@@ -1014,7 +650,65 @@ editScope3 model sig =
    ] 
 
 
+designEnsemble : List T.Voice -> (Maybe (List T.Voice)) -> ((Maybe (List T.Voice)) -> msg) -> Html msg
+designEnsemble options current update =
+  case current of 
+    Nothing ->
+      div [] <|
+        [ div [] [ text "Select a voice below to begin creating a new ensemble." ] ]
+        ++ List.map (\opt -> div [onClick (update (Just [opt]))] [text opt.label ]) options 
+
+    Just ens ->
+      div [] [ text "Add and remove voices from this ensemble to update it. When you are done, save your changes." ]
+
+
+viewEnsemble : T.Ensemble -> Html msg
+viewEnsemble ensemble =
+  div [] <|
+    [ h3 [ class "subtitle" ] [ text "Viewing Ensemble" ]
+    ] ++ List.map (\voice -> div [] [ roleIcon voice.role ] ) ensemble
+
+
+viewEnsembleWithRemover : T.Ensemble -> (T.Voice -> msg) -> Html msg
+viewEnsembleWithRemover ensemble remove =
+  div [] <|
+    [ h3 [ class "subtitle" ] [ text "Viewing Ensemble" ]
+    ] ++ List.map (\voice -> div [class "box", onClick (remove voice)] [ roleIcon voice.role, span [class "delete"] []]) ensemble
+
+
+ensembleAdder : List T.Voice -> T.Ensemble -> (T.Voice -> msg) -> Html msg
+ensembleAdder opts curr add =
+  div [] <|
+    [ p [] [ text "Add a voice to this ensemble" ] ]
+    ++ List.map (\voice -> div [class "box", onClick (add voice)] [ text voice.label, roleIcon voice.role ] ) opts
+
+
+ensembleEditor : List T.Voice -> List T.Ensemble -> (Maybe (List T.Voice)) -> (Int -> msg) -> ((Maybe T.Ensemble) -> msg) -> (List T.Ensemble -> msg) -> Html msg
+ensembleEditor options ensembles current chooseEnsemble updateCurrent updateAll =
+  let
+    done = 
+      Components.button (updateCurrent Nothing) [] "Done"
+    ensemblePicker = 
+      List.indexedMap (\i ens -> div [onClick (chooseEnsemble i)] [ text <| "ensemble " ++ String.fromInt i ]) ensembles 
+  in 
+  case current of 
+    Nothing ->
+      div [] <|
+        [ div [] [ text "Choose one of your ensembles here to make changes to it." ]
+        , done ]
+        ++ ensemblePicker
+
+    Just e ->
+      div [] <|
+        [ viewEnsembleWithRemover e (\voice -> updateCurrent (Just (Tools.remove (Just voice) e)))
+        , div [] [ text "Add or remove voices from this ensemble." ] ]
+        ++ ensemblePicker
+        ++ [ ensembleAdder options e (\voice -> updateCurrent (Just (Tools.conj voice e))) ]
+        ++ [ done
+
+        ]
+
 
 
 main =
-  instance
+  text ""
