@@ -345,8 +345,36 @@ voiceEditor voice sig =
     , Components.picker roleOptions updateRole
     ]
 
+editVoice2 : T.Voice -> ((Maybe T.Voice) -> msg) -> Html msg
+editVoice2 voice sig =
+  let 
+    justSig = (\x -> sig (Just x))
+    updateComplexity = (\n -> justSig { voice | complexity = n })
+    updateDensity = (\n -> justSig { voice | density = n })
+    uLabel = (\s -> justSig { voice | label = s })
 
-scopeEditor : T.ScopeEditor -> (U.EditScope -> msg) -> Html msg
+    roleOptions = List.map roleIcon D.roles
+    updateRole = (\i -> 
+      case Array.get i <| Array.fromList D.roles of 
+        Just r ->
+          justSig { voice | role = r }
+
+        _ ->
+          justSig voice)
+
+    done = (sig Nothing)
+  in
+  div [] 
+    [ h1 [ class "title" ] [ text "Voice Editor" ]
+    , h1 [ class "title" ] [ text <| D.roleDescription voice.role ]
+    , Components.editText "Label" (text "") voice.label uLabel
+    , Components.editInt "Density" (densityMessage voice) D.rangeDensity voice.density updateDensity
+    , Components.editInt "Complexity" (complexityMessage voice) D.rangeComplexity voice.complexity updateComplexity
+    , Components.picker roleOptions updateRole
+    ]
+
+
+scopeEditor : T.ScopeEditor -> (T.Scope -> msg) -> Html msg
 scopeEditor editor sig =
   let
     ee = Debug.log "editor:" editor
@@ -356,7 +384,29 @@ scopeEditor editor sig =
       text "No scope to touch"
  
     Just scope ->
-      editScope2 scope sig
+      text "this is the old editor"
+      -- editScope3 scope (\scope case scope of Nothing ->  sig
+
+scopeEditor2 :(Maybe T.Scope) -> ((Maybe T.Scope) -> msg) -> Html msg
+scopeEditor2 scope update =
+  case scope of
+    Nothing ->
+      text "No scope right now"
+ 
+    Just s ->
+      -- text "Editing a scope"
+      editScope3 s update
+
+
+voiceEditor2 : (Maybe T.Voice) -> ((Maybe T.Voice) -> msg) -> Html msg
+voiceEditor2 voice update =
+  case voice of  
+    Nothing ->
+      text "No voice right now"
+ 
+    Just v ->
+      -- text "Editing a scope"
+      editVoice2 v update
 
 
 viewVoiceEditor : T.VoiceEditor -> (U.EditVoice -> msg) -> Html msg
@@ -942,22 +992,25 @@ overviewScore score =
 
 
 
-editScope2 : T.Scope -> (U.EditScope -> msg) -> Html msg
-editScope2 model sig = 
+editScope3 : T.Scope -> ((Maybe T.Scope) -> msg) -> Html msg
+editScope3 model sig = 
   let
-    updateLabel =  (\str -> sig <| U.UScope { model | label = str })
-    updateCPC =  (\int -> sig <| U.UScope { model | cpc = int })
-    updateSize = (\int -> sig <| U.UScope { model | cpc = int })
-    updateCPS =  (\flt -> sig <| U.UScope { model | cps = flt })
-    updateRoot = (\flt -> sig <| U.UScope { model | root = flt })
+    justSig = (\x -> sig (Just x))
+    updateLabel = (\str -> justSig { model | label = str })
+    updateCPC = (\int -> justSig { model | cpc = int })
+    updateSize = (\int -> justSig { model | cpc = int })
+    updateCPS = (\flt -> justSig { model | cps = flt })
+    updateRoot = (\flt -> justSig { model | root = flt })
+    done = (sig Nothing)
   in 
-  div [ class "scope-editor" ]
+  div [ class "scope-editor v3" ]
    [ 
    Components.editText "Label" labelInfo model.label updateLabel
    , Components.editInt "Meter" (meterMessage model) D.rangeCPC model.cpc updateCPC
    , Components.editInt "Size" (sizeMessage model) D.rangeScopeSize model.size updateSize 
    , Components.editRange "Tempo" (tempoMessage model) D.rangeCPS model.cps updateCPS 
    , Components.keyPicker False model.root updateRoot 
+   , button [onClick done] [ text "done" ] 
    ] 
 
 

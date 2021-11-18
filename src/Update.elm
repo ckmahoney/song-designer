@@ -9,7 +9,7 @@ import Browser
 
 import Types as T
 import Data as D
-
+import Tools
 
 type UpdateMsg
   = Tick Time.Posix
@@ -57,8 +57,8 @@ type Main
 
 
 -- All configurable values for a Voice
-type EditVoice
-  = UVoice T.Voice
+type EditVoice 
+  = UVoice T.Voice 
   | UVoiceRole T.SynthRole
   | UVoiceDuty T.SynthDuty
 
@@ -113,8 +113,8 @@ ptoInt t =
   Time.posixToMillis t
 
 
-conj x xs =
-  List.append xs [x]
+conj =
+  Tools.conj
 
 
 rint : Random.Generator Int
@@ -149,6 +149,7 @@ createPreset id_ =
   in
   { ref | id = id_ }
 
+
 createScope : Int -> T.Scope
 createScope id_ =   
   let 
@@ -162,34 +163,15 @@ createScore id =
   []
 
 
-remove : Maybe a -> List a -> List a
-remove x xs =
-  case x of 
-   Nothing ->
-     xs
+remove = 
+  Tools.remove
 
-   Just jx ->
-     List.filter (\a -> not (jx == a)) xs
+removeAt =
+  Tools.removeAt
 
 
-removeAt : Int -> List a -> List a
-removeAt index els =
-  case index of 
-  0 ->
-    List.drop 1 els
-
-  n -> 
-    List.concat [ (List.take n els), (List.drop (n + 1) els) ]
-
-
-replace : a -> a -> List a -> List a 
-replace prev next xs =
-  let
-    arr = Array.fromList xs
-  in
-  Array.set (D.findIndex prev xs) next arr
-  |> Array.toList
-
+replace =
+  Tools.replace
 
 noCmd : a -> (a, Cmd UpdateMsg)
 noCmd x =

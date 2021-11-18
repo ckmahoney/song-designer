@@ -2,6 +2,7 @@ module Data exposing (..)
 
 
 import Types exposing (..)
+import Tools
 import Array
 import Html
 
@@ -328,21 +329,8 @@ get i xs =
     Array.get i tmp
 
 
--- Returns the index of an element in list, or -1
-findIndex : a -> List a -> Int
-findIndex x xs =
-  let 
-    i = List.indexedMap (\j a -> if x == a then j else -1) xs
-      |> List.filter (\j -> not (j == -1))
-      |> List.head
-  in 
-  case i of
-  Nothing -> 
-    -1
-  
-  Just y ->
-    y
-
+findIndex = 
+  Tools.findIndex
 
 -- Given an item, gets the related index of the next item
 relate : a -> List a -> List b -> Maybe b
