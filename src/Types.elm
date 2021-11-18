@@ -104,7 +104,6 @@ type alias HTTPData =
   }
 
 
-
 type alias Scope  =
   { id : Int
   , label : String
@@ -180,6 +179,10 @@ type alias EditScore =
   , layout : List Scope
   , ensembles : List Ensemble
   }
+
+
+type alias NamedEnsemble 
+  = (String, Ensemble)
 
 
 main =

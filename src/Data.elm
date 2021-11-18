@@ -490,6 +490,14 @@ initEditScore =
   } 
 
 
+coreNamedEnsembles : List NamedEnsemble
+coreNamedEnsembles =
+  [ ("Beat", kitBeat)
+  , ("Everything", kitAll)
+  , ("Synth", kitSynth)
+  ]
+
+
 main = 
   Html.text ""
 

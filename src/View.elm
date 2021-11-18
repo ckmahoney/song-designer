@@ -669,27 +669,27 @@ viewEnsemble ensemble =
     ] ++ List.map (\voice -> div [] [ roleIcon voice.role ] ) ensemble
 
 
-viewEnsembleWithRemover : T.Ensemble -> (T.Voice -> msg) -> Html msg
+viewEnsembleWithRemover : T.NamedEnsemble -> (T.Voice -> msg) -> Html msg
 viewEnsembleWithRemover ensemble remove =
   div [] <|
-    [ h3 [ class "subtitle" ] [ text "Viewing Ensemble" ]
-    ] ++ List.map (\voice -> div [class "box", onClick (remove voice)] [ roleIcon voice.role, span [class "delete"] []]) ensemble
+    [ h3 [ class "subtitle" ] [ text <| "Viewing Ensemble " ++ Tuple.first ensemble]
+    ] ++ List.map (\voice -> div [class "box", onClick (remove voice)] [ roleIcon voice.role, span [class "delete"] []]) (Tuple.second ensemble)
 
 
-ensembleAdder : List T.Voice -> T.Ensemble -> (T.Voice -> msg) -> Html msg
-ensembleAdder opts curr add =
+ensembleAdder : List T.Voice -> (T.Voice -> msg) -> Html msg
+ensembleAdder opts add =
   div [] <|
     [ p [] [ text "Add a voice to this ensemble" ] ]
     ++ List.map (\voice -> div [class "box", onClick (add voice)] [ text voice.label, roleIcon voice.role ] ) opts
 
 
-ensembleEditor : List T.Voice -> List T.Ensemble -> (Maybe (List T.Voice)) -> (Int -> msg) -> ((Maybe T.Ensemble) -> msg) -> (List T.Ensemble -> msg) -> Html msg
+ensembleEditor : List T.Voice -> List T.NamedEnsemble -> (Maybe T.NamedEnsemble) -> (Int -> msg) -> ((Maybe T.NamedEnsemble) -> msg) -> (List T.NamedEnsemble -> msg) -> Html msg
 ensembleEditor options ensembles current chooseEnsemble updateCurrent updateAll =
   let
     done = 
       Components.button (updateCurrent Nothing) [] "Done"
     ensemblePicker = 
-      List.indexedMap (\i ens -> div [onClick (chooseEnsemble i)] [ text <| "ensemble " ++ String.fromInt i ]) ensembles 
+      List.indexedMap (\i ens -> div [onClick (chooseEnsemble i)] [ text <| Tuple.first ens ]) ensembles 
   in 
   case current of 
     Nothing ->
@@ -699,11 +699,14 @@ ensembleEditor options ensembles current chooseEnsemble updateCurrent updateAll 
         ++ ensemblePicker
 
     Just e ->
+      let 
+        swapEns = (\ee -> Just ((Tuple.first e), ee))
+      in 
       div [] <|
-        [ viewEnsembleWithRemover e (\voice -> updateCurrent (Just (Tools.remove (Just voice) e)))
+        [ viewEnsembleWithRemover e (\voice -> updateCurrent (swapEns (Tools.remove (Just voice) (Tuple.second e))))
         , div [] [ text "Add or remove voices from this ensemble." ] ]
         ++ ensemblePicker
-        ++ [ ensembleAdder options e (\voice -> updateCurrent (Just (Tools.conj voice e))) ]
+        ++ [ ensembleAdder options (\voice -> updateCurrent (swapEns (Tools.conj voice (Tuple.second e)))) ]
         ++ [ done
 
         ]
