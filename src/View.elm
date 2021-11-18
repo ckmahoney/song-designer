@@ -58,25 +58,9 @@ roleThumb role =
            , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ]
 
 
-roleIconButton : (T.SynthRole -> U.UpdateMsg) -> T.SynthRole -> Html U.UpdateMsg
-roleIconButton update role =
-  div [class "column columns is-centered is-one-third mb-0 p-0"]
-   [ div [class "box p-1 m-3"]
-     [ div [class "image is-48x48", style "box-shadow" ("0px 0px 13px " ++ D.roleColor role)]
-       [ img  [ width 50
-               , height 50
-               , onClick (update role)
-               , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ] ] ]
-
-
 roleRow : Html msg
 roleRow = 
   div [] (List.map roleIcon D.roles)
-
-
-rolePicker : (T.SynthRole -> U.UpdateMsg) -> Html U.UpdateMsg
-rolePicker update =
-  div [class "mt-3 columns is-multiline is-centered margin-auto"] <| List.map (roleIconButton update) D.roles
 
 
 ensemblePreviewIcon : String -> T.SynthRole -> Html msg
@@ -105,13 +89,6 @@ ensembleThumbs ensemble =
     <| List.map (\synth ->  ensembleThumbIcon "" (.role synth) ) ensemble
 
 
-ensembleThumbClick : T.Ensemble -> U.EditScore -> Html U.EditScore
-ensembleThumbClick ensemble toMsg=
-  div [class "box columns my-3",  onClick toMsg]
-    <| List.map (\synth ->  ensembleThumbIcon "" (.role synth) ) ensemble
-
-
-
 -- Guarantees the integer will be in the range provided, inclusive
 bindInt : Int -> Int -> Int ->  Int
 bindInt min max val =
@@ -121,7 +98,6 @@ bindInt min max val =
     min
   else 
     val 
-
 
 
 editInt : String -> String -> Int -> (Int -> msg) -> Html msg
@@ -250,11 +226,6 @@ instrumentEditor synth keep kill =
     []
 
 
-kitCol : (Maybe T.Voice) -> List T.Voice -> Html U.UpdateMsg
-kitCol curr presets =
-  div [class "column level"] 
-    <| [ h5 [class "title" ] [ text "Ensemble Designer" ] ]
-    -- ++ List.map changePresetButton presets
 
 
 view1 = 
@@ -262,21 +233,6 @@ view1 =
     [ li [] [text "functional designer: Ensemble"]
     , li [] [text "view the thing being edited" ]
     ]
-
-
-edit1Ensemble : T.Ensemble -> Html msg
-edit1Ensemble ens =
- div [] <| List.map synthDescription ens
-
-
-ensembleEditorNew : T.EnsembleEditor -> Html U.EditEnsemble
-ensembleEditorNew model =
-  case model.current of 
-    Just ensemble -> 
-      Components.designer view1 edit1Ensemble ensemble
-
-    Nothing ->
-      Html.text "no ens"
 
 
 csv : List String -> String
@@ -289,7 +245,6 @@ csv strs =
 
 keys : Html msg
 keys =
-  -- div [] (List.map (\x -> text (String.fromFloat x)) D.chromaticRoots)
   div [] [ text <| csv  (List.map String.fromFloat D.chromaticRoots)]
 
 
@@ -304,26 +259,6 @@ kitItem preset =
   div [ class "is-hidden-mobile column is-half is-centered has-text-centered" ]
     [ h5 [ class "subtitle has-text-black"] [ text preset.label ]
     , span [style "filter" "invert(1)"] [ roleIcon preset.role ] ]
-
-
-presetRow : T.NPresetKit -> Html U.UpdateMsg
-presetRow (name, kit) =
-  div [ onClick (U.ChangePreset kit)
-      , class "is-clickable my-3 box column columns is-centered is-multiline is-one-quarter "
-      , backgroundGradient ["cyan", "magenta"]] 
-     [ h3 [class "column is-full title has-text-centered"] [text name] 
-      , div [ class "columns column is-centered is-multiline is-mobile" ] <| List.map kitItem kit ]
-
-
-
-presetMenu : List T.NPresetKit -> Html U.UpdateMsg
-presetMenu kits =
-  div [] <|
-    [ h5 [class "title" ] [ text "Presets" ] 
-    , div [ class "columns is-multiline is-mobile mx-auto is-centered is-flex is-justify-content-space-around py-3"
-      ] <| List.map presetRow kits
-    ]
-
 
 
 cpsToBPM : Float -> Float
@@ -410,8 +345,6 @@ labelInfo =
   div [class "content"] [ text "A name to help you remember what this section is for." ]
 
 
-
-
 layoutItem : T.Scope -> U.EditLayout -> Html U.EditLayout
 layoutItem ({cps, cpc, size, root} as model) msg =
   div [class "m-3 column box is-flex is-flex-direction-column", onClick msg]
@@ -433,6 +366,7 @@ layoutItem ({cps, cpc, size, root} as model) msg =
       , b [] [text <| timeString <| duration cpc cps size] ]
     ]
 
+
 editScoreItem : T.Scope -> Html U.EditScore
 editScoreItem ({cps, cpc, size, root} as model) =
   div [class "m-3 column box is-flex is-flex-direction-column" ]
@@ -452,72 +386,6 @@ editScoreItem ({cps, cpc, size, root} as model) =
     , div [] 
       [ label [] [text  "Duration"]
       , b [] [text <| timeString <| duration cpc cps size] ]
-    ]
-
-
-layoutPreview : List T.Scope -> Html U.EditLayout
-layoutPreview score = 
-  div [class "box", style "background" "magenta" ] 
-    [ div [class "columns"]
-      <| List.map (\c -> layoutItem c (U.ChangeLayoutSelection (Just c))) score ]
-
-
-designPreview : List T.Scope -> Html U.EditLayout
-designPreview score = 
-  div [class "box", style "background" "magenta" ] 
-    [ div [class "columns is-multiline"]
-      <| List.indexedMap (\i c -> layoutItem c (U.RemoveLayoutAt i)) score ]
-
-
-designOptions : List T.Scope -> Html U.EditLayout
-designOptions score = 
-  div [class "box", style "background" "orange" ] 
-    [ div [class "columns"]
-      <| List.indexedMap (\i c -> layoutItem c (U.AddLayoutSection c)) score ]
-
-
-layoutOptions : List T.Scope -> Html U.EditLayout
-layoutOptions opts = 
-  div [class "box", style "background" "orange" ] 
-    [ div [class "columns"]
-      <| List.map (\c -> layoutItem c (U.ChangeLayoutSelection <| Just c)) opts ]
-
-
-keyButtonMobile : String -> Int -> (Int -> U.EditLayout) -> Int -> Html U.EditLayout
-keyButtonMobile name curr toMsg val =
-  button [ onClick (toMsg val)
-         , class <| if curr == val then "is-success is-selected" else ""
-         , class "column p-0 is-4 button" ] [text name]
-
-
-keyButtonDesktop : String -> Int -> (Int -> U.EditLayout) -> Int -> Html U.EditLayout
-keyButtonDesktop name curr toMsg val =
-  button [ onClick (toMsg val)
-         , class <| if curr == val then "is-success is-selected" else ""
-         , class "column is-3 button p-0" ] [text name]
-
-
-keyPickerMobile : Int -> (Int -> U.EditLayout) -> Html U.EditLayout
-keyPickerMobile val toMsg =
-  div [class "key-picker-mobile"] 
-    <| [ h5 [class "subtitle"] [text "Key"] ]
-    ++ [ div [class "columns is-multiline is-mobile"] 
-       <| List.map (\(v, name) -> keyButtonDesktop name val toMsg v) (if useSharps then D.indexedSharps else D.indexedFlats) ]
-
-
-keyPickerDesktop : Int -> (Int -> U.EditLayout) -> Html U.EditLayout
-keyPickerDesktop val toMsg =
-  div [class ""] 
-    <| [ h5 [class "subtitle"] [text "Key"] ] 
-    ++ [ div [class "columns is-multiline"] 
-       <| List.map (\(v, name) -> keyButtonDesktop name val toMsg v) (if useSharps then D.indexedSharps else D.indexedFlats) ]
-
-
-keyPicker : Int -> (Int -> U.EditLayout) -> Html U.EditLayout
-keyPicker val toMsg =
-  div [class "m-3 box container"] 
-    [ div [class "is-hidden-tablet"] [keyPickerMobile val toMsg]
-    , div [class "is-hidden-mobile"] [keyPickerDesktop val toMsg]
     ]
 
 
@@ -546,21 +414,6 @@ countStems : List T.Section -> Int
 countStems score =
   List.foldl (\(compo, ensemble) sum ->  
     sum + (List.length ensemble)) 0 score
-
-
-designLayout : T.EditLayout -> Html U.EditLayout 
-designLayout model = 
-  let
--- duration cpc cps size  =
-    length = totalLength model.list
-  in 
-  div [ class "container" ]
-    [ h1 [ class "title" ] [ text "Layout Designer"]
-    , p [ class ""] [ designLayoutMessage]
-    , p [] [text <| timeString length ]
-    , div [ class "columns is-multiline"] 
-      [ div [ class "column is-full" ] [ designPreview model.list ] ]
-      , div [ class "column is-full" ] [ designOptions model.presets ] ]
 
 
 scorePreviewItem : T.Section -> (T.Section -> U.EditScore) -> Html U.EditScore
@@ -734,6 +587,7 @@ scopeIcon scope =
     , Components.svg "scope"
     , text (scopeTimeString scope)
     ] 
+
 
 viewLayoutWithRemover : T.Layout -> (T.Scope -> msg) -> Html msg
 viewLayoutWithRemover layout remove =
