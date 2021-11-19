@@ -16,13 +16,33 @@ import Tools
 useSharps = False
 
 
-invertColor : Html msg -> Html msg
-invertColor el =
-  div [ style "filter" "invert(1)" ] [ el ] 
-
-
 keyNames =
   if useSharps then D.sharps else D.flats
+
+
+roleRow : Html msg
+roleRow = 
+  div [] (List.map roleIcon D.roles)
+
+
+roleDescription : T.SynthRole -> Html msg
+roleDescription role =
+  div [ class "content" ] [ b [] [ text <| Tuple.first <| D.roleLabel role],  p [] [text <| D.roleDescription role ] ]
+
+
+labelInfo : Html msg
+labelInfo =
+  div [class "content"] [ text "Descriptive name for this scope of music." ]
+
+
+editLayoutMessage : Html msg
+editLayoutMessage = 
+  p [class "content"] [text "Use this editor to create sections for your songs."]
+
+
+designLayoutMessage : Html msg
+designLayoutMessage = 
+  p [class "content"] [text "Arrange your score here." ]
 
 
 reduceScopes : List T.Scope -> T.Scope
@@ -33,13 +53,6 @@ reduceScopes  scopes =
  
     (first :: rest) ->
       List.foldl(\next prev -> prev) first rest
-
-
-backgroundInvert : String -> Html msg -> Html msg
-backgroundInvert color el =
-  div [style "background" color]
-    [ div [style "filter" "invert(1)"] 
-      [ el ] ]
 
 
 roleIcon : T.SynthRole -> Html msg
@@ -68,8 +81,6 @@ ensembleIcon (name, ensemble) =
     ] 
   
 
-
-
 asset = 
   Components.card "Assets" <|
     div [ class "columns" ]
@@ -91,120 +102,13 @@ scoreIcon _ =
     , p [ class "content" ] [ text "all the score details go here once you make a score editor" ]
     ] 
   
-  
-
-
-roleThumb : T.SynthRole -> Html msg
-roleThumb role =
-  div [class "p-3 box", style "background" <| D.roleColor role]
-    [ img [ style "filter" "invert(1)"
-           , width 250
-           , height 250
-           , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ]
-
-
-roleRow : Html msg
-roleRow = 
-  div [] (List.map roleIcon D.roles)
-
-
-ensemblePreviewIcon : String -> T.SynthRole -> Html msg
-ensemblePreviewIcon title role =
-  div [ class "ensemble-preview-icon column" ]
-     [ div [ class "is-radiusless box is-block p-3 is-flex is-justify-content-space-around is-align-items-center"
-           , style "background" <| D.roleColor role ]
-        [ invertColor <| roleIcon role, label [ class "is-size-4 has-text-black" ] [ text title ]  ] ]
-
-
-ensembleThumbIcon : String -> T.SynthRole -> Html msg
-ensembleThumbIcon title role =
-  div [ class "column box m-3" , style "background" <| D.roleColor role ]
-    [ div [ style "text-align" "center", style "filter" "invert(1)" ] [ roleIcon role] ] 
-
-
-ensemblePreview : T.Ensemble -> Html msg
-ensemblePreview ensemble =
-  div [class "mt-3 is-multiline"]
-    <| List.map (\synth ->  ensemblePreviewIcon (Tuple.first (D.roleLabel <| .role synth)) (.role synth) ) ensemble
-
-
-ensembleThumbs : T.Ensemble -> Html msg
-ensembleThumbs ensemble =
-  div [class "box m-3 columns"]
-    <| List.map (\synth ->  ensembleThumbIcon "" (.role synth) ) ensemble
-
-
--- Guarantees the integer will be in the range provided, inclusive
-bindInt : Int -> Int -> Int ->  Int
-bindInt min max val =
-  if val > max then 
-    max
-  else if val < min then
-    min
-  else 
-    val 
-
-
-editInt : String -> String -> Int -> (Int -> msg) -> Html msg
-editInt title name val toMsg =
-  div [class "level"]
-    [ button [class "button", onClick (toMsg <| val - 1)] [text  "-" ]
-    , label [] [text name, b [] [" " ++ String.fromInt val |> text]]
-    , button [class "button", onClick (toMsg <| val + 1)] [text  "+ "]]
-
-
-editFloat : String -> String -> Float -> (Float -> msg) -> Html msg
-editFloat title name val toMsg =
-  div [class "level"]
-    [ button [class "button", onClick (toMsg <| val - 1)] [text  "-" ]
-    , label [] [text name, b [] [" " ++ String.fromFloat val |> text]]
-    , button [class "button", onClick (toMsg <| val + 1)] [text  "+ "]]
-
-
-
-editRangeMobile : String -> Html msg -> (Float, Float) -> Float -> Float -> (Float -> msg) -> Html msg
-editRangeMobile title html (mn, mx) step_ val toMsg =
-  div [class "m-3 box level"
-      , onInput (\s -> toMsg <| Maybe.withDefault 0.0 <| String.toFloat s) ]
-    [ div [class "columns is-multiline"]
-      [ div [class "column is-full level is-flex is-justify-content-space-around"] 
-        [ label [class "m-0 subtitle"] [text title]
-        , input [ type_ "range"
-                , class "m-0"
-                , value <| String.fromFloat val
-                , step <| String.fromFloat step_
-                , Attr.min <| String.fromFloat mn
-                , Attr.max <| String.fromFloat mx ] [] ]
-      , div [class "column"] [ html ] ] ]
-
-
-editRangeDesktop : String -> Html msg -> (Float, Float) -> Float -> Float -> (Float -> msg) -> Html msg
-editRangeDesktop title html (mn, mx) step_ val toMsg =
-  div [class "m-3 box level"
-      , onInput (\s -> toMsg <| Maybe.withDefault 0.0 <| String.toFloat s) ]
-    [ div [class "columns is-multiline"]
-      [ div [class "column is-full level"] 
-        [ label [class "m-0 subtitle"] [text title]
-        , input [ type_ "range"
-                , class "m-0"
-                , value <| String.fromFloat val
-                , step <| String.fromFloat step_
-                , Attr.min <| String.fromFloat mn
-                , Attr.max <| String.fromFloat mx ] [] ]
-      , div [class "column"] [ html ] ] ]
-
-
-buttonOpt : T.SynthRole -> msg -> Html msg
-buttonOpt role msg =
-  button [] [text (Tuple.first (D.roleLabel role))]
-
 
 synthDescription : T.Voice -> Html msg
 synthDescription preset =
   div [class "column media-left"]
     [ div [class "media-content"]
     [ p [class "title is-4"] [text preset.label]
-    , p [class "content is-6"] [text <| D.roleDescription preset.role] ] ]
+    ,roleDescription preset.role ] ]
 
 
 complexityMessage : T.Voice -> Html msg
@@ -219,21 +123,12 @@ complexityMessage {complexity} =
 
 densityMessage : T.Voice -> Html msg
 densityMessage {density} =
-  if density < 2 then 
+  if density == 1 then 
     text "Very basic structure."
-  else if density < 5 then 
+  else if density < 3 then 
     text "A good amount of structural variation for interest and stability."
   else
     text "A lot of motion, sometimes causing blurriness or obscurity."
-
-
-
-
-rolePicker2 :(T.SynthRole -> msg) -> Html msg
-rolePicker2 select =
-  div [] <|
-    List.map (\role -> 
-      div [onClick (select role)] [roleIcon role]) D.roles
 
 
 editVoice : T.Voice -> ((Maybe T.Voice) -> msg) -> Html msg
@@ -253,34 +148,8 @@ editVoice voice sig =
     , Components.editText "Label" (text "") voice.label updateLabel
     , Components.editInt "Density" (densityMessage voice) D.rangeDensity voice.density updateDensity
     , Components.editInt "Complexity" (complexityMessage voice) D.rangeComplexity voice.complexity updateComplexity
-    , Components.editSelection "Role" (text <| D.roleDescription voice.role) options voice.role updateRole 
+    , Components.editSelection voice.role "Role" (roleDescription voice.role) options voice.role updateRole 
     ]
-
-
-scopePicker : List T.Scope -> (Int -> msg) -> Html msg
-scopePicker scopes select =
-  div [ class "columns is-multiline level is-vcentered" ] <|
-     List.indexedMap (\i scope ->
-       div [ class "column is-vcentered has-text-centered", onClick (select i) ]
-         [ scopeIcon scope ]) scopes
-
-
-scopeEditor : List T.Scope -> (Maybe T.Scope) -> (Int -> msg) -> ((Maybe T.Scope) -> msg) -> Html msg
-scopeEditor scopes scope select update =
-  case scope of
-    Nothing ->
-      scopePicker scopes select
- 
-    Just s ->
-      editScope s update
-
-
-voicePicker : List T.Voice -> (Int -> msg) -> Html msg
-voicePicker voices select =
-  div [ class "columns is-multiline level is-vcentered" ] <|
-     List.indexedMap (\i voice ->
-       div [ class "column is-vcentered has-text-centered", onClick (select i) ]
-         [ voiceIcon voice ]) voices
 
 
 voiceEditor : List T.Voice -> (Maybe T.Voice) -> (Int -> msg) ->  ((Maybe T.Voice) -> msg) -> Html msg
@@ -293,17 +162,40 @@ voiceEditor voices voice select update =
       editVoice v update
 
 
+scopeEditor : List T.Scope -> (Maybe T.Scope) -> (Int -> msg) -> ((Maybe T.Scope) -> msg) -> Html msg
+scopeEditor scopes scope select update =
+  case scope of
+    Nothing ->
+      scopePicker scopes select
+ 
+    Just s ->
+      editScope s update
+
+
+scopePicker : List T.Scope -> (Int -> msg) -> Html msg
+scopePicker scopes select =
+  Components.picker scopes scopeIcon select
+
+
+voicePicker : List T.Voice -> (Int -> msg) -> Html msg
+voicePicker voices select =
+  Components.picker voices voiceIcon select
+
+
+layoutPicker : List T.Layout -> (Int -> msg) -> Html msg
+layoutPicker layouts select = 
+  Components.picker layouts layoutIcon select
+
+
+ensemblePicker : List T.NamedEnsemble -> (Int -> msg) -> Html msg
+ensemblePicker ensembles select =
+  Components.picker ensembles ensembleIcon select
+
+
 instrumentEditor : T.Voice -> msg -> msg -> Html msg
 instrumentEditor synth keep kill =
   div [class "column card is-half px-6 py-4", style "background" (D.roleColor synth.role)]
     []
-
-
-view1 = 
-  ol [] 
-    [ li [] [text "functional designer: Ensemble"]
-    , li [] [text "view the thing being edited" ]
-    ]
 
 
 csv : List String -> String
@@ -312,11 +204,6 @@ csv strs =
     s = List.foldl (\str all -> all ++ str ++ "," )  "" strs 
   in
   String.slice 0 ((String.length s) - 1) s
-
-
-keys : Html msg
-keys =
-  div [] [ text <| csv  (List.map String.fromFloat D.chromaticRoots)]
 
 
 backgroundGradient : List String -> Attribute msg
@@ -405,27 +292,6 @@ sizeMessage ({size, cpc} as model) =
     , p [] [ text <| "That means this section is " ++ (sizeText cpc size) ++ " cycles long." ] ]
 
 
-keyToLabel : Int -> String
-keyToLabel index =
-   Maybe.withDefault "Key Not Found"
-     <| Array.get index <| Array.fromList keyNames
-
-
-labelInfo : Html msg
-labelInfo =
-  div [class "content"] [ text "A name to help you remember what this section is for." ]
-
-
-editLayoutMessage : Html msg
-editLayoutMessage = 
-  p [class "content"] [text "Use this editor to create sections for your songs."]
-
-
-designLayoutMessage : Html msg
-designLayoutMessage = 
-  p [class "content"] [text "Arrange your score here." ]
-
-
 totalLength : List T.Scope -> Float
 totalLength score =
   List.foldl (\{cpc, cps, size} sum -> 
@@ -472,21 +338,21 @@ designEnsemble options current update =
 
 viewEnsemble : T.Ensemble -> Html msg
 viewEnsemble ensemble =
-  div [] <|
+  Components.card "Ensemble" <| Components.wraps <|
     [ h3 [ class "subtitle" ] [ text "Viewing Ensemble" ]
     ] ++ List.map (\voice -> div [] [ roleIcon voice.role ] ) ensemble
 
 
 viewEnsembleWithRemover : T.NamedEnsemble -> (T.Voice -> msg) -> Html msg
 viewEnsembleWithRemover ensemble remove =
-  div [] <|
-    [ h3 [ class "subtitle" ] [ text <| "Viewing Ensemble " ++ Tuple.first ensemble]
-    ] ++ List.map (\voice -> div [class "box", onClick (remove voice)] [ roleIcon voice.role, span [class "delete"] []]) (Tuple.second ensemble)
+  Components.card "Ensemble" <| Components.wraps <|
+    [ h3 [ class "subtitle" ] [ text <| "Viewing Ensemble " ++ Tuple.first ensemble] ]
+    ++ List.map (\voice -> div [class "box", onClick (remove voice)] [ roleIcon voice.role, span [class "delete"] []]) (Tuple.second ensemble)
 
 
 ensembleAdder : List T.Voice -> (T.Voice -> msg) -> Html msg
 ensembleAdder opts add =
-  div [] <|
+  Components.wraps <|
     [ p [] [ text "Add a voice to this ensemble" ] ]
     ++ List.map (\voice -> div [class "box", onClick (add voice)] [ text voice.label, roleIcon voice.role ] ) opts
 
@@ -497,34 +363,11 @@ ensembleNamer curr rename =
 
 
 
-thingPicker : List a -> (a -> Html msg) -> (Int -> msg) -> Html msg
-thingPicker things icon select = 
-  div [ class "columns is-multiline level is-vcentered" ] <|
-     List.indexedMap (\i thing ->
-       div [ class "column is-vcentered has-text-centered", onClick (select i) ]
-         [ icon thing ]) things
-
-
-layoutPicker : List T.Layout -> (Int -> msg) -> Html msg
-layoutPicker layouts select = 
-  thingPicker layouts layoutIcon select
-
-
-ensemblePicker : List T.NamedEnsemble -> (Int -> msg) -> Html msg
-ensemblePicker ensembles select =
-  div [ class "columns is-multiline level is-vcentered" ] <|
-     List.indexedMap (\i ensemble ->
-       div [ class "column is-vcentered has-text-centered", onClick (select i) ]
-         [ ensembleIcon ensemble ]) ensembles
-
-
 ensembleEditor : List T.Voice -> List T.NamedEnsemble -> (Maybe T.NamedEnsemble) -> (Int -> msg) -> ((Maybe T.NamedEnsemble) -> msg) -> (List T.NamedEnsemble -> msg) -> Html msg
 ensembleEditor options ensembles current select updateCurrent updateAll =
   case current of 
     Nothing ->
-      div [] <|
-        [ div [] [ text "Choose one of your ensembles here to make changes to it." ]
-        , ensemblePicker ensembles select ]
+      ensemblePicker ensembles select
 
     Just e ->
       let 
@@ -591,20 +434,11 @@ layoutNamer title rename =
   Components.editText "Label" (text content) title rename 
 
 
--- layoutPicker :  (List T.Layout) -> (Int -> msg) -> Html msg
--- layoutPicker layouts select =
-  -- div [] <| 
-    -- List.indexedMap (\i (label, scopes) -> div [onClick (select i)] [ text label ]) layouts 
-
-
 layoutEditor : List T.Scope -> List T.Layout -> (Maybe T.Layout) -> (Int -> msg) -> ((Maybe T.Layout) -> msg) -> (List T.Layout -> msg) -> Html msg
 layoutEditor options layouts current select updateCurrent updateAll =
   case current of 
     Nothing ->
-      div [] <|
-        [ div [] [ text "Choose one of your layouts here to make changes to it." ]
-        , layoutPicker layouts select
-        ] 
+      layoutPicker layouts select
 
     Just ((label, scopes) as l) ->
       div [] <|
@@ -616,39 +450,6 @@ layoutEditor options layouts current select updateCurrent updateAll =
         ]
 
 
-
 main =
   text ""
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-lalala = (text "abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc ") 

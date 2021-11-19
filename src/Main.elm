@@ -30,68 +30,12 @@ joe =
   }
 
 
-toInt : Maybe Int ->  Int
-toInt x =
-  Maybe.withDefault 0 x
-
-
-initEnsemble : Maybe Int -> (T.VoiceEditor, Cmd U.UpdateMsg)
-initEnsemble ini = 
-  case ini of 
-    _ ->
-      (Data.initEditEnsemble, Cmd.none)
-
-
-initVoiceEditor : Maybe Int -> (T.VoiceEditor, Cmd U.EditVoice)
-initVoiceEditor ini =
-  case ini of 
-    _ ->
-     (Data.initVoiceEditor, Cmd.none)
-
-
-initEnsembleEditor : Maybe Int -> (T.EnsembleEditor, Cmd U.EditEnsemble)
-initEnsembleEditor ini = 
-  case ini of 
-    _ ->
-      (Data.initEnsembleEditor, Cmd.none)
-
-
-initScore : Maybe Int -> (T.EditScore, Cmd U.EditScore)
-initScore ini = 
-  let
-    w = Debug.log "initializing score: " ini
-  in
-  case ini of 
-    _ ->
-      (Data.initEditScore, Cmd.none)
-
-
 initApp : Maybe Int -> (App.Module, Cmd msg)
 initApp = 
    App.init
 
 
-subsEnsemble : a -> Sub U.UpdateMsg
-subsEnsemble model =
-  Time.every 1000 U.Tick
-
-
-subsEnsembleEditor : T.EnsembleEditor -> Sub U.EditEnsemble
-subsEnsembleEditor model =
-  Sub.none
-
-
-subsLayout : T.EditLayout -> Sub U.EditLayout
-subsLayout model =
-  Sub.none
-
-
 subsScore model =
-  Sub.none
-
-
-subsVoice : T.VoiceEditor -> Sub U.EditVoice
-subsVoice model =
   Sub.none
 
 
@@ -113,6 +57,4 @@ mainRouter =
 
 main = 
   -- mainSongDesigner
-  -- mainVoiceEditor
-  -- mainLayoutEditor 
   mainRouter

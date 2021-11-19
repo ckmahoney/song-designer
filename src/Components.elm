@@ -7,6 +7,23 @@ import Html.Events exposing (..)
 import Data as D
 
 
+invertColor : Html msg -> Html msg
+invertColor el =
+  div [ style "filter" "invert(1)" ] [ el ] 
+
+
+wrap : Html msg -> Html msg
+wrap html =
+  div [] [ html ]
+
+
+wraps : List (Html msg)  -> Html msg
+wraps htmls =
+  div [] htmls
+
+
+
+
 svg : String -> Html msg
 svg name = 
   Html.img [ width 50
@@ -134,12 +151,17 @@ editText title html val toMsg =
     , div [ class "is-hidden-mobile" ] [ editTextDesktop title html val toMsg ] ] 
 
 
-editSelection : String -> Html msg -> List (a, (Html msg)) -> a -> (a -> msg) -> Html msg
-editSelection label info options current select =
+editSelection : a -> String -> Html msg -> List (a, (Html msg)) -> a -> (a -> msg) -> Html msg
+editSelection curr label info options current select =
   div [ class "m-3 box" ]
     [ Html.h5 [ class "subtitle" ] [ Html.label [] [ text label ] ]
+    , info
     , div [ class "columns is-multiline" ] <|
-      List.map (\(val, html) -> div [ class "column", onClick (select val) ] [ html ]) options ] 
+      List.map (\(val, html) -> 
+        let 
+          fx = if (val == curr) then invertColor  else wrap
+        in 
+        fx <| div [ class "has-background-white column", onClick (select val) ] [ html ]) options ]
 
 
 card : String -> Html msg-> Html msg
@@ -165,29 +187,6 @@ skButtons saveMsg killMsg  =
     , button saveMsg [] "Save" ]
 
 
-picker : List (Html msg) -> (Int -> msg) -> Html msg
-picker options select =
-  div [] 
-    <| List.indexedMap (\index opt -> div [ onClick (select index) ] [ opt ]) options
-
-
--- everything you need to create, read, update, and delete a thing
-crud : Html msg -> ( x -> Html msg ) -> x -> msg -> msg -> msg -> msg -> Html msg
-crud viewer editor thing add kill select patch =
-  div [] [ viewer, editor thing ]
-
-
-edit : a -> (a -> Html a) -> msg -> Html msg
-edit thing view patch =
-  div [] []
-
-
-designer : Html msg -> (a -> Html msg) -> a -> Html msg
-designer view editor thing = 
-  div [] 
-    [ view, editor thing ]
-
-
 modal : Html msg -> msg -> Html msg
 modal content close =
   div [ class "modal is-active" ]
@@ -207,6 +206,15 @@ editToggle label (x, labelX) (y, labelY) curr toMsg =
           [ button (toMsg x) [class <| if curr == x then "is-success" else ""] labelX
           , button (toMsg y) [class <| if curr == y then "is-success" else ""] labelY
           ] ] ] ]
+
+
+picker : List a -> (a -> Html msg) -> (Int -> msg) -> Html msg
+picker things icon select = 
+  div [ class "columns is-multiline level is-vcentered" ] <|
+     List.indexedMap (\i thing ->
+       div [ class "column is-vcentered has-text-centered", onClick (select i) ]
+         [ icon thing ]) things
+
 
 type alias Model 
   = ()
