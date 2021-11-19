@@ -134,6 +134,10 @@ palette =
   , "#ee00ff"
   ]
 
+
+palette2 = 
+  paletteTrioDark ++ paletteTrioLight
+
 palette3 = 
   [ "#B81A0C"
   , "#F24738"
