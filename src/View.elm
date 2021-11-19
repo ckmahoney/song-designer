@@ -142,10 +142,9 @@ editVoice voice sig =
     updateDuty = (\d -> justSig { voice | duty = d } )
     options = List.map (\r -> (r, roleIcon r)) D.roles
   in
-  div [ class "container box" ] 
-    [ h1 [ class "title" ] [ text "Voice Editor" ]
+  Components.card ("Voice: " ++ voice.label) <| div [ class "container" ] 
+    [ Components.editText "Label" (text "") voice.label updateLabel
     , Components.editToggle "Duty" (T.Structure, "Structural") (T.Expression, "Expressive") voice.duty updateDuty
-    , Components.editText "Label" (text "") voice.label updateLabel
     , Components.editInt "Density" (densityMessage voice) D.rangeDensity voice.density updateDensity
     , Components.editInt "Complexity" (complexityMessage voice) D.rangeComplexity voice.complexity updateComplexity
     , Components.editSelection voice.role "Role" (roleDescription voice.role) options voice.role updateRole 
@@ -315,7 +314,7 @@ editScope model sig =
     updateRoot = (\flt -> justSig { model | root = flt })
     -- done = (sig Nothing)
   in 
-  div [ class "scope-editor v3" ]
+  Components.card ("Scope: " ++ model.label) <| div [ class "scope-editor v3" ]
    [ Components.editText "Label" labelInfo model.label updateLabel
    , Components.editInt "Meter" (meterMessage model) D.rangeCPC model.cpc updateCPC
    , Components.editInt "Size" (sizeMessage model) D.rangeScopeSize model.size updateSize 
@@ -340,22 +339,43 @@ viewEnsembleWithRemover : T.NamedEnsemble -> (T.Voice -> msg) -> Html msg
 viewEnsembleWithRemover (label, ensemble) remove =
   Components.box 
     [ p [ class "mb-3" ] [ text "Remove voices from this ensemble." ] 
-    , div [ class "columns is-mobile" ] <| List.map (\voice -> 
+    , div [ class "columns is-mobile is-multiline" ] <| 
+       List.map (\voice -> 
         div [ class "column has-text-centered" ] 
           [ roleIcon voice.role
           , p [] [ text voice.label ]
           , span [class "delete", onClick (remove voice) ] [] ] ) ensemble ]
+
+  
+viewLayoutWithRemover : T.Layout -> (T.Scope -> msg) -> Html msg
+viewLayoutWithRemover ((label, scopes) as layout) remove =
+  Components.box <|
+    [ p [ class "mb-3"] [ text "Remove scopes from this layout." ]
+    , div [ class "columns is-mobile is-multiline" ] <| 
+        List.map (\scope -> 
+          div [ class "column has-text-centered" ]
+           [ scopeIcon scope
+           , Components.deleteIcon (remove scope) ]) scopes]
 
 
 ensembleAdder : List T.Voice -> (T.Voice -> msg) -> Html msg
 ensembleAdder opts add =
   Components.box
     [ p [ class "mb-3" ] [ text "Add a voice to this ensemble" ]
-    , div [ class "columns is-mobile" ] <| 
+    , div [ class "columns is-mobile is-multiline" ] <| 
       List.map (\voice -> 
         div [ class "column has-text-centered", onClick (add voice) ] 
           [ roleIcon voice.role
           , p [] [ text voice.label ] ] ) opts ]
+
+
+layoutAdder : List T.Scope -> (T.Scope -> msg) -> Html msg
+layoutAdder opts add =
+  Components.box 
+    [ p [ class "mb-3" ] [ text "Add a scope to this layout." ] 
+    , div [ class "columns is-mobile is-multiline" ] <| 
+        List.map (\scope -> 
+          div [ class "column has-text-centered", onClick (add scope) ] [ scopeIcon scope ] ) opts ]
 
 
 ensembleNamer : T.NamedEnsemble -> (String -> msg) -> Html msg
@@ -406,29 +426,11 @@ layoutIcon (name, scopes) =
     , p [ class "content" ] [ text <| (String.fromInt <| List.length scopes) ++ " scopes" ]
     ] 
 
-  
-viewLayoutWithRemover : T.Layout -> (T.Scope -> msg) -> Html msg
-viewLayoutWithRemover ((label, scopes) as layout) remove =
-  div [] <|
-    [ h3 [ class "subtitle" ] [ text <| "Ensemble " ++ label] 
-    , div [] [ text "Remove scopes from this layout." ] ]
-    ++ List.map (\scope -> 
-           div [class "box"] 
-             [ Components.deleteIcon (remove scope)
-             , scopeIcon scope ]) scopes
-
-
-layoutAdder : List T.Scope -> (T.Scope -> msg) -> Html msg
-layoutAdder opts add =
-  div [] <|
-    [ p [] [ text "Add a voice to this layout" ] ]
-    ++ List.map (\scope -> div [class "box", onClick (add scope)] [ scopeIcon scope ] ) opts
-
 
 layoutNamer : String -> (String -> msg) -> Html msg
 layoutNamer title rename =
   let 
-    content = "A nickname on this scope of music."
+    content = "A nickname for this pattern of scopes.."
   in 
   Components.editText "Label" (text content) title rename 
 
@@ -440,10 +442,9 @@ layoutEditor options layouts current select updateCurrent updateAll =
       layoutPicker layouts select
 
     Just ((label, scopes) as l) ->
-      div [] <|
-        [ viewLayoutWithRemover l (\layout -> updateCurrent (Just (label, (Tools.remove (Just layout) scopes))))
-        , layoutPicker layouts select
-        , layoutNamer label (\str -> updateCurrent (Just (str, scopes)))
+      Components.card ("Layout: " ++ label) <| Components.wraps <|
+        [ layoutNamer label (\str -> updateCurrent (Just (str, scopes)))
+        , viewLayoutWithRemover l (\layout -> updateCurrent (Just (label, (Tools.remove (Just layout) scopes))))
         , layoutAdder options (\scope -> updateCurrent (Just (label, Tools.conj scope scopes)))
         ]
 
