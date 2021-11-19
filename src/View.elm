@@ -25,6 +25,16 @@ keyNames =
   if useSharps then D.sharps else D.flats
 
 
+reduceScopes : List T.Scope -> T.Scope
+reduceScopes  scopes =
+  case scopes of 
+    [] ->
+      D.emptyScope
+ 
+    (first :: rest) ->
+      List.foldl(\next prev -> prev) first rest
+
+
 backgroundInvert : String -> Html msg -> Html msg
 backgroundInvert color el =
   div [style "background" color]
@@ -47,6 +57,25 @@ presetIcon role =
       img [ width 50
           , height 50
           , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ] ]
+
+
+ensembleIcon : T.NamedEnsemble -> Html msg
+ensembleIcon (name, ensemble) = 
+  div [ class "box" ] 
+    [ label [ class "label" ] [ text name ]
+    , Components.svg "ensemble"
+    , p [ class "content" ] [ text <| (String.fromInt <| List.length ensemble) ++ " voices" ]
+    ] 
+  
+
+layoutIcon : T.Layout -> Html msg
+layoutIcon (name, scopes) = 
+  div [ class "box" ] 
+    [ label [ class "label" ] [ text name ]
+    , Components.svg "layout"
+    , p [ class "content" ] [ text <| (String.fromInt <| List.length scopes) ++ " layouts" ]
+    ] 
+  
 
 
 roleThumb : T.SynthRole -> Html msg
@@ -212,11 +241,19 @@ editVoice voice sig =
     ]
 
 
-scopeEditor :(Maybe T.Scope) -> ((Maybe T.Scope) -> msg) -> Html msg
-scopeEditor scope update =
+scopePicker : List T.Scope -> (Int -> msg) -> Html msg
+scopePicker scopes select =
+  div [ class "columns is-multiline level is-vcentered" ] <|
+     List.indexedMap (\i scope ->
+       div [ class "column is-vcentered has-text-centered", onClick (select i) ]
+         [ scopeIcon scope ]) scopes
+
+
+scopeEditor : List T.Scope -> (Maybe T.Scope) -> (Int -> msg) -> ((Maybe T.Scope) -> msg) -> Html msg
+scopeEditor scopes scope select update =
   case scope of
     Nothing ->
-      text "No scope right now"
+      scopePicker scopes select
  
     Just s ->
       editScope s update
@@ -226,9 +263,8 @@ voicePicker : List T.Voice -> (Int -> msg) -> Html msg
 voicePicker voices select =
   div [ class "columns is-multiline level is-vcentered" ] <|
      List.indexedMap (\i voice ->
-       div [ class "column is-vcentered", onClick (select i) ]
+       div [ class "column is-vcentered has-text-centered", onClick (select i) ]
          [ voiceIcon voice ]) voices
-
 
 
 voiceEditor : List T.Voice -> (Maybe T.Voice) -> (Int -> msg) ->  ((Maybe T.Voice) -> msg) -> Html msg
@@ -445,10 +481,26 @@ ensembleNamer curr rename =
   Components.editText "Label" (text "") (Tuple.first curr) rename 
 
 
-ensemblePicker :  (List T.NamedEnsemble) -> (Int -> msg) -> Html msg
-ensemblePicker ensembles chooseEnsemble =
-  div [] <| 
-    List.indexedMap (\i ens -> div [onClick (chooseEnsemble i)] [ text <| Tuple.first ens ]) ensembles 
+
+thingPicker : List a -> (a -> Html msg) -> (Int -> msg) -> Html msg
+thingPicker things icon select = 
+  div [ class "columns is-multiline level is-vcentered" ] <|
+     List.indexedMap (\i thing ->
+       div [ class "column is-vcentered has-text-centered", onClick (select i) ]
+         [ icon thing ]) things
+
+
+layoutPicker : List T.Layout -> (Int -> msg) -> Html msg
+layoutPicker layouts select = 
+  thingPicker layouts layoutIcon select
+
+
+ensemblePicker : List T.NamedEnsemble -> (Int -> msg) -> Html msg
+ensemblePicker ensembles select =
+  div [ class "columns is-multiline level is-vcentered" ] <|
+     List.indexedMap (\i ensemble ->
+       div [ class "column is-vcentered has-text-centered", onClick (select i) ]
+         [ ensembleIcon ensemble ]) ensembles
 
 
 ensembleEditor : List T.Voice -> List T.NamedEnsemble -> (Maybe T.NamedEnsemble) -> (Int -> msg) -> ((Maybe T.NamedEnsemble) -> msg) -> (List T.NamedEnsemble -> msg) -> Html msg
@@ -484,7 +536,7 @@ scopeIcon scope =
   div [ class "box" ] 
     [ label [ class "label" ] [ text scope.label ]
     , Components.svg "scope"
-    , text (scopeTimeString scope)
+    , p [ class "content" ] [ text (scopeTimeString scope) ]
     ] 
 
 
@@ -522,10 +574,10 @@ layoutNamer title rename =
   Components.editText "Label" (text content) title rename 
 
 
-layoutPicker :  (List T.Layout) -> (Int -> msg) -> Html msg
-layoutPicker layouts select =
-  div [] <| 
-    List.indexedMap (\i (label, scopes) -> div [onClick (select i)] [ text label ]) layouts 
+-- layoutPicker :  (List T.Layout) -> (Int -> msg) -> Html msg
+-- layoutPicker layouts select =
+  -- div [] <| 
+    -- List.indexedMap (\i (label, scopes) -> div [onClick (select i)] [ text label ]) layouts 
 
 
 layoutEditor : List T.Scope -> List T.Layout -> (Maybe T.Layout) -> (Int -> msg) -> ((Maybe T.Layout) -> msg) -> (List T.Layout -> msg) -> Html msg

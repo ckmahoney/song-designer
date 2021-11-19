@@ -144,6 +144,11 @@ palette3 =
   ]
 
 
+emptyScope : Scope
+emptyScope = 
+  Scope -99 "Scope" 1 1 1 1
+
+
 s1 : Scope
 s1 =
   { id = -1
