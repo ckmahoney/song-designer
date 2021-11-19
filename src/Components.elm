@@ -142,6 +142,17 @@ editSelection label info options current select =
       List.map (\(val, html) -> div [ class "column", onClick (select val) ] [ html ]) options ] 
 
 
+card : String -> Html msg-> Html msg
+card title content = 
+  div [ class "card my-3" ] 
+    [ Html.header [ class "card-header" ] 
+      [ Html.p [ class "card-header-title" ] [ text title ]
+      ]
+   , div [ class "card-content" ] 
+        [ content ] ] 
+
+
+
 button : msg -> List (Html.Attribute msg) -> String -> Html.Html msg
 button toMsg attrs content =
   Html.button ([class "button", onClick toMsg] ++ attrs) [ text content ]

@@ -68,13 +68,29 @@ ensembleIcon (name, ensemble) =
     ] 
   
 
-layoutIcon : T.Layout -> Html msg
-layoutIcon (name, scopes) = 
-  div [ class "box" ] 
-    [ label [ class "label" ] [ text name ]
-    , Components.svg "layout"
-    , p [ class "content" ] [ text <| (String.fromInt <| List.length scopes) ++ " layouts" ]
+
+
+asset = 
+  Components.card "Assets" <|
+    div [ class "columns" ]
+      [ div [ class "column is-half" ] 
+        [ scoreIcon True ]
+      , div [ class "is-half" ]
+        [ div [class "level"] [ (Components.svg "sheet-music"), text "Download sheet music" ]
+        , div [class "level"] [ (Components.svg "midi-logo"), text "Download MIDI files" ]
+        , div [class "level"] [ (Components.svg "file-zip"), text "Download Sample Pack/Stems" ]
+        , div [class "level"] [ (Components.svg "yin-yang"), text "Create Another Like This" ]
+        ] ] 
+
+
+scoreIcon : a ->  Html msg
+scoreIcon _ =
+  div [ class "container" ] 
+    [ label [ class "label" ] [ text "scorelabel" ]
+    , Components.svg "score"
+    , p [ class "content" ] [ text "all the score details go here once you make a score editor" ]
     ] 
+  
   
 
 
@@ -540,6 +556,15 @@ voiceIcon voice =
     , p [ class "content" ] [ text (Tuple.first <| D.roleLabel voice.role) ]
     ] 
 
+
+layoutIcon : T.Layout -> Html msg
+layoutIcon (name, scopes) = 
+  div [ class "box" ] 
+    [ label [ class "label" ] [ text name ]
+    , Components.svg "layout"
+    , p [ class "content" ] [ text <| (String.fromInt <| List.length scopes) ++ " scopes" ]
+    ] 
+
   
 viewLayoutWithRemover : T.Layout -> (T.Scope -> msg) -> Html msg
 viewLayoutWithRemover ((label, scopes) as layout) remove =
@@ -589,6 +614,7 @@ layoutEditor options layouts current select updateCurrent updateAll =
         , layoutNamer label (\str -> updateCurrent (Just (str, scopes)))
         , layoutAdder options (\scope -> updateCurrent (Just (label, Tools.conj scope scopes)))
         ]
+
 
 
 main =
