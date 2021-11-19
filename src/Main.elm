@@ -35,14 +35,6 @@ toInt x =
   Maybe.withDefault 0 x
 
 
-viewScoreEditor : T.EditScore -> Html U.EditScore
-viewScoreEditor model =
-  div [Attr.class "syn-main section"] 
-    -- [ View.editScore model ]
-    [ View.overviewScore model.list ]
-
-
-
 initEnsemble : Maybe Int -> (T.VoiceEditor, Cmd U.UpdateMsg)
 initEnsemble ini = 
   case ini of 
@@ -103,14 +95,6 @@ subsVoice model =
   Sub.none
 
 
-mainScoreEditor =
-  Browser.element { init = initScore
-                  , update = U.updateScore
-                  , view = viewScoreEditor
-                  , subscriptions = subsScore
-                  }
-
-
 mainSongDesigner =
   Browser.element { init = App.init
                   , update = App.update
@@ -131,5 +115,4 @@ main =
   -- mainSongDesigner
   -- mainVoiceEditor
   -- mainLayoutEditor 
-  -- mainScoreEditor 
   mainRouter

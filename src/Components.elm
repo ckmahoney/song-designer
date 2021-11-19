@@ -14,6 +14,11 @@ svg name =
       , src <| "/svg/" ++ name ++ ".svg"] []
 
 
+deleteIcon : msg -> Html msg
+deleteIcon click =
+  Html.span [ class "delete", onClick click ] []
+
+
 keyButtonMobile : String -> Int -> (Int -> msg) -> Int -> Html msg
 keyButtonMobile name curr toMsg val =
   Html.button [ onClick (toMsg val)
@@ -83,17 +88,15 @@ editInt : String -> Html msg -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
 editInt title html (min, max) val toMsg =
   let 
     less = if min == val then noClickButton else
-             -- button (toMsg <| val - 1) [class "image button is-48x48"] "-"
-             div [onClick (toMsg <| val - 1)] [ svg "minus" ]
+             button (toMsg <| val - 1) [class "image button is-48x48"] "-"
     more = if max == val then noClickButton else 
-             div [onClick (toMsg <| val + 1)] [ svg "plus-1" ]
-             -- button (toMsg <| val + 1) [class "image button is-48x48" ] "+ "
+             button (toMsg <| val + 1) [class "image button is-48x48" ] "+ "
   in 
   div [ class "m-3 box"]
     [ div [ class "columns is-multiline"]
-      [ div [ class "columns is-multiline column is-full is-flex is-flex-row is-justify-content-space-between"] 
-            [ Html.h5 [ class "column is-full subtitle"] [ text title ]
-            , div [ class "mt-0 column is-full is-flex is-flex-row level"] 
+      [ div [ class "columns is-multiline column is-full"] 
+            [ Html.h5 [ class "column is-one-quarter subtitle"] [ text title ]
+            , div [ class "column is-half is-flex is-flex-row level"] 
                      [ less
                      , Html.b [] [" " ++ String.fromInt val |> text ]
                      , more ] ] 
@@ -115,7 +118,7 @@ editTextMobile title html val toMsg =
 editTextDesktop : String -> Html msg -> String -> ( String -> msg ) -> Html msg
 editTextDesktop title html val toMsg =
   div []
-    [ Html.label [ ] [ text title ]
+    [ Html.h5 [ class "subtitle" ] [ Html.label [] [ text title ] ]
     , Html.input [ type_ "text"
             , class "input my-3 is-info"
             , value val
@@ -129,6 +132,14 @@ editText title html val toMsg =
   div [class "m-3 box"]
     [ div [ class "is-hidden-tablet" ] [ editTextMobile title html val toMsg ]
     , div [ class "is-hidden-mobile" ] [ editTextDesktop title html val toMsg ] ] 
+
+
+editSelection : String -> Html msg -> List (a, (Html msg)) -> a -> (a -> msg) -> Html msg
+editSelection label info options current select =
+  div [ class "m-3 box" ]
+    [ Html.h5 [ class "subtitle" ] [ Html.label [] [ text label ] ]
+    , div [ class "columns is-multiline" ] <|
+      List.map (\(val, html) -> div [ class "column", onClick (select val) ] [ html ]) options ] 
 
 
 button : msg -> List (Html.Attribute msg) -> String -> Html.Html msg
@@ -166,13 +177,25 @@ designer view editor thing =
     [ view, editor thing ]
 
 
+modal : Html msg -> msg -> Html msg
+modal content close =
+  div [ class "modal is-active" ]
+    [ div [ class "modal-background", onClick close ] []
+    , div [ class "modal-close is-large", onClick close ] []
+    , div [ class "modal-content" ] [ content ]
+    ] 
+
+
 editToggle : String -> (a, String) -> (a, String) -> a -> (a -> msg) -> Html msg
 editToggle label (x, labelX) (y, labelY) curr toMsg =
-  div []
-    [ Html.label [] [ text label]
-    , button (toMsg x) [class <| if curr == x then "is-success" else ""] labelX
-    , button (toMsg y) [class <| if curr == y then "is-success" else ""] labelY
-    ]
+  div [ class "m-3 box" ]
+    [ div [ class "columns is-multiline " ] 
+      [ div [ class "columns is-multiline column is-full" ] 
+        [ Html.h5 [ class "column is-one-quarter subtitle"] [ text label ]  
+        , div [ class "column is-half is-flex is-justify-content-space-between" ] 
+          [ button (toMsg x) [class <| if curr == x then "is-success" else ""] labelX
+          , button (toMsg y) [class <| if curr == y then "is-success" else ""] labelY
+          ] ] ] ]
 
 type alias Model 
   = ()

@@ -163,13 +163,25 @@ synthDescription preset =
 
 
 complexityMessage : T.Voice -> Html msg
-complexityMessage voice =
-  text ""
+complexityMessage {complexity} =
+  if complexity < 2 then 
+    text "Very basic harmonics."
+  else if complexity < 5 then 
+    text "Compelling harmonic motion without getting too far out."
+  else
+    text "Higher depths of harmony with ambiguous results."
 
 
 densityMessage : T.Voice -> Html msg
-densityMessage voice =
-  text ""
+densityMessage {density} =
+  if density < 2 then 
+    text "Very basic structure."
+  else if density < 5 then 
+    text "A good amount of structural variation for interest and stability."
+  else
+    text "A lot of motion, sometimes causing blurriness or obscurity."
+
+
 
 
 rolePicker2 :(T.SynthRole -> msg) -> Html msg
@@ -188,15 +200,15 @@ editVoice voice sig =
     updateLabel = (\s -> justSig { voice | label = s })
     updateRole = (\r -> justSig { voice | role = r } )
     updateDuty = (\d -> justSig { voice | duty = d } )
+    options = List.map (\r -> (r, roleIcon r)) D.roles
   in
-  div [] 
+  div [ class "container box" ] 
     [ h1 [ class "title" ] [ text "Voice Editor" ]
-    , h1 [ class "title" ] [ text <| D.roleDescription voice.role ]
     , Components.editToggle "Duty" (T.Structure, "Structural") (T.Expression, "Expressive") voice.duty updateDuty
     , Components.editText "Label" (text "") voice.label updateLabel
     , Components.editInt "Density" (densityMessage voice) D.rangeDensity voice.density updateDensity
     , Components.editInt "Complexity" (complexityMessage voice) D.rangeComplexity voice.complexity updateComplexity
-    , rolePicker2 updateRole
+    , Components.editSelection "Role" (text <| D.roleDescription voice.role) options voice.role updateRole 
     ]
 
 
@@ -345,55 +357,6 @@ labelInfo =
   div [class "content"] [ text "A name to help you remember what this section is for." ]
 
 
-layoutItem : T.Scope -> U.EditLayout -> Html U.EditLayout
-layoutItem ({cps, cpc, size, root} as model) msg =
-  div [class "m-3 column box is-flex is-flex-direction-column", onClick msg]
-    [ label [class "subtitle has-text-centered"] [ text model.label ]
-    , div [] 
-      [ label [] [text "Size "] 
-      , b [] [text <| String.fromInt size] ]
-    , div [] 
-      [ label [] [text  "Tempo "]
-      , b [] [text <| String.fromFloat (cpsToBPM cps)] ]
-    , div [] 
-      [ label [] [text  "Meter"]
-      , b [] [text <| String.fromInt cpc] ]
-    , div [] 
-      [ label [] [text  "Key"]
-      , b [] [text <| keyToLabel root] ]
-    , div [] 
-      [ label [] [text  "Duration"]
-      , b [] [text <| timeString <| duration cpc cps size] ]
-    ]
-
-
-editScoreItem : T.Scope -> Html U.EditScore
-editScoreItem ({cps, cpc, size, root} as model) =
-  div [class "m-3 column box is-flex is-flex-direction-column" ]
-    [ label [class "subtitle has-text-centered"] [ text model.label ]
-    , div [] 
-      [ label [] [text "Size "] 
-      , b [] [text <| String.fromInt size] ]
-    , div [] 
-      [ label [] [text  "Tempo"]
-      , b [] [text <| String.fromFloat (cpsToBPM cps)] ]
-    , div [] 
-      [ label [] [text  "Meter"]
-      , b [] [text <| String.fromInt cpc] ]
-    , div [] 
-      [ label [] [text  "Key"]
-      , b [] [text <| keyToLabel root] ]
-    , div [] 
-      [ label [] [text  "Duration"]
-      , b [] [text <| timeString <| duration cpc cps size] ]
-    ]
-
-
-killScopeButton : T.Scope -> Html U.EditLayout
-killScopeButton model =
-  button [ onClick (U.KillScope model), class "button" ] [ text "Delete Section" ]
-
-
 editLayoutMessage : Html msg
 editLayoutMessage = 
   p [class "content"] [text "Use this editor to create sections for your songs."]
@@ -414,77 +377,6 @@ countStems : List T.Section -> Int
 countStems score =
   List.foldl (\(compo, ensemble) sum ->  
     sum + (List.length ensemble)) 0 score
-
-
-scorePreviewItem : T.Section -> (T.Section -> U.EditScore) -> Html U.EditScore
-scorePreviewItem ((compo, ensemble) as section) toMsg =
-  div [ class "box" 
-      , onClick (toMsg section) ] 
-    [ div [ class "columns is-multiline" ]
-      [ label [ class "column is-full title has-text-centered" ] [ text compo.label ]
-      , div [ class "column is-full"] [ ensemblePreview ensemble ]
-      ] ]
-
-
-scoreData : T.Section -> Html U.EditScore
-scoreData ((compo, ensemble) as section) =
-  div [ class "box" ]
-    [ div [ class "columns is-multiline" ]
-      [ label [ class "column is-full title has-text-centered" ] [ text compo.label ]
-      , div [ class "column is-full"] [ ensemblePreview ensemble ]
-      ] ]
-
-
-scorePreview : List T.Section -> Html U.EditScore
-scorePreview sections = 
-  div [ class "box" ] 
-    [ h3 [ class "subtitle" ] [ text "Score" ]
-    , div [ class "columns" ] <| List.map (\s -> scorePreviewItem s U.ApplySection)  sections ]
-
-
-scoreView : List T.Section -> Html U.EditScore
-scoreView sections = 
-  div [ class "box" ] 
-    [ h3 [ class "subtitle" ] [ text "Score" ]
-    , div [ class "columns" ] <| List.map scoreData  sections ]
-
-
-makeSection : T.Section -> Html msg
-makeSection (mScope, mEnsemble) =
-  div [] [ text "it has some maybethings" ]
-
-
-compoThumb : T.Scope -> U.EditScore -> Html U.EditScore
-compoThumb compo toMsg =
-  div [ class "box column m-3"
-      , onClick toMsg ] 
-    [ p [] [ text compo.label ]
-    , p [] [ text (timeString (duration compo.cpc compo.cps compo.size)) ] ]
-
-
-ensembleBanner : T.Ensemble -> Html msg
-ensembleBanner ensemble =
-  div [ class "ensemble-banner columns is-multiline pt-3" ] <| List.map (\synth ->
-    div [ class "column is-full"] [ roleIcon synth.role ] ) ensemble
-
-
-sectionThumb : (T.Scope, T.Ensemble) -> Html U.EditScore
-sectionThumb (compo, ensemble) =
-  div [ style "max-width" "90px"
-      , class "m-3 box column has-text-centered" ]
-    [ p [] [ text compo.label ]
-    , p [] [ text (timeString (duration compo.cpc compo.cps compo.size)) ]
-    , ensembleBanner ensemble ]
-
-
-overviewScore : List T.Section -> Html U.EditScore
-overviewScore score =
-  div [] 
-    [ div [class "columns"] (List.map sectionThumb score)
-    , p [ class "subtitle" ] [ text <| "This song is " ++ (timeString <| totalLength (List.map Tuple.first score)) ++ " in duration."]
-    , p [ class "subtitle" ] [ text <| "It takes stems " ++ (String.fromInt <| countStems score ) ++ " to write this song."]
-    , button [ class "button" ] [ text "Print Song" ]
-    ]
 
 
 editScope : T.Scope -> ((Maybe T.Scope) -> msg) -> Html msg
@@ -588,12 +480,15 @@ scopeIcon scope =
     , text (scopeTimeString scope)
     ] 
 
-
+  
 viewLayoutWithRemover : T.Layout -> (T.Scope -> msg) -> Html msg
-viewLayoutWithRemover layout remove =
+viewLayoutWithRemover ((label, scopes) as layout) remove =
   div [] <|
-    [ h3 [ class "subtitle" ] [ text <| "Viewing Ensemble " ++ Tuple.first layout]
-    ] ++ List.map (\scope -> div [class "box", onClick (remove scope)] [ scopeIcon scope, span [class "delete"] []]) (Tuple.second layout)
+    [ h3 [ class "subtitle" ] [ text <| "Ensemble " ++ label] ] 
+    ++ List.map (\scope -> 
+           div [class "box"] 
+             [ Components.deleteIcon (remove scope)
+             , scopeIcon scope ]) scopes
 
 
 layoutAdder : List T.Scope -> (T.Scope -> msg) -> Html msg
@@ -605,7 +500,10 @@ layoutAdder opts add =
 
 layoutNamer : String -> (String -> msg) -> Html msg
 layoutNamer title rename =
-  Components.editText "Label" (text "") title rename 
+  let 
+    content = "A nickname on this scope of music."
+  in 
+  Components.editText "Label" (text content) title rename 
 
 
 layoutPicker :  (List T.Layout) -> (Int -> msg) -> Html msg
@@ -631,10 +529,10 @@ layoutEditor options layouts current select updateCurrent updateAll =
     Just ((label, scopes) as l) ->
       div [] <|
         [ viewLayoutWithRemover l (\layout -> updateCurrent (Just (label, (Tools.remove (Just layout) scopes))))
-        , div [] [ text "Add or remove scopes from this layout.." ] 
+        , div [] [ text "Add or remove scopes from this layout." ] 
         , done
         , layoutPicker layouts select
-        , layoutNamer label (\str -> updateCurrent (Just (label, scopes)))
+        , layoutNamer label (\str -> updateCurrent (Just (str, scopes)))
         , layoutAdder options (\scope -> updateCurrent (Just (label, Tools.conj scope scopes)))
         , done
         ]
@@ -642,3 +540,36 @@ layoutEditor options layouts current select updateCurrent updateAll =
 
 main =
   text ""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+lalala = (text "abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc ") 
