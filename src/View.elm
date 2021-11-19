@@ -431,7 +431,7 @@ editScope model sig =
     updateSize = (\int -> justSig { model | size = int })
     updateCPS = (\flt -> justSig { model | cps = flt })
     updateRoot = (\flt -> justSig { model | root = flt })
-    done = (sig Nothing)
+    -- done = (sig Nothing)
   in 
   div [ class "scope-editor v3" ]
    [ Components.editText "Label" labelInfo model.label updateLabel
@@ -439,7 +439,6 @@ editScope model sig =
    , Components.editInt "Size" (sizeMessage model) D.rangeScopeSize model.size updateSize 
    , Components.editRange "Tempo" (tempoMessage model) D.rangeCPS model.cps updateCPS 
    , Components.keyPicker False model.root updateRoot 
-   , button [onClick done] [ text "done" ] 
    ] 
 
 
@@ -505,15 +504,10 @@ ensemblePicker ensembles select =
 
 ensembleEditor : List T.Voice -> List T.NamedEnsemble -> (Maybe T.NamedEnsemble) -> (Int -> msg) -> ((Maybe T.NamedEnsemble) -> msg) -> (List T.NamedEnsemble -> msg) -> Html msg
 ensembleEditor options ensembles current select updateCurrent updateAll =
-  let
-    done = 
-      Components.button (updateCurrent Nothing) [] "Done"
-  in 
   case current of 
     Nothing ->
       div [] <|
         [ div [] [ text "Choose one of your ensembles here to make changes to it." ]
-        , done
         , ensemblePicker ensembles select ]
 
     Just e ->
@@ -523,11 +517,9 @@ ensembleEditor options ensembles current select updateCurrent updateAll =
       div [] <|
         [ viewEnsembleWithRemover e (\voice -> updateCurrent (swapEns (Tools.remove (Just voice) (Tuple.second e))))
         , div [] [ text "Add or remove voices from this ensemble." ] 
-        , done
         , ensemblePicker ensembles select 
         , ensembleNamer e (\str -> updateCurrent (Just (str, (Tuple.second e)))) 
         , ensembleAdder options (\voice -> updateCurrent (swapEns (Tools.conj voice (Tuple.second e)))) 
-        , done
         ]
 
 
@@ -582,15 +574,10 @@ layoutNamer title rename =
 
 layoutEditor : List T.Scope -> List T.Layout -> (Maybe T.Layout) -> (Int -> msg) -> ((Maybe T.Layout) -> msg) -> (List T.Layout -> msg) -> Html msg
 layoutEditor options layouts current select updateCurrent updateAll =
-  let
-    done = 
-      Components.button (updateCurrent Nothing) [] "Done"
-  in 
   case current of 
     Nothing ->
       div [] <|
         [ div [] [ text "Choose one of your layouts here to make changes to it." ]
-        , done
         , layoutPicker layouts select
         ] 
 
@@ -598,11 +585,9 @@ layoutEditor options layouts current select updateCurrent updateAll =
       div [] <|
         [ viewLayoutWithRemover l (\layout -> updateCurrent (Just (label, (Tools.remove (Just layout) scopes))))
         , div [] [ text "Add or remove scopes from this layout." ] 
-        , done
         , layoutPicker layouts select
         , layoutNamer label (\str -> updateCurrent (Just (str, scopes)))
         , layoutAdder options (\scope -> updateCurrent (Just (label, Tools.conj scope scopes)))
-        , done
         ]
 
 
