@@ -336,31 +336,31 @@ designEnsemble options current update =
       div [] [ text "Add and remove voices from this ensemble to update it. When you are done, save your changes." ]
 
 
-viewEnsemble : T.Ensemble -> Html msg
-viewEnsemble ensemble =
-  Components.card "Ensemble" <| Components.wraps <|
-    [ h3 [ class "subtitle" ] [ text "Viewing Ensemble" ]
-    ] ++ List.map (\voice -> div [] [ roleIcon voice.role ] ) ensemble
-
-
 viewEnsembleWithRemover : T.NamedEnsemble -> (T.Voice -> msg) -> Html msg
-viewEnsembleWithRemover ensemble remove =
-  Components.card "Ensemble" <| Components.wraps <|
-    [ h3 [ class "subtitle" ] [ text <| "Viewing Ensemble " ++ Tuple.first ensemble] ]
-    ++ List.map (\voice -> div [class "box", onClick (remove voice)] [ roleIcon voice.role, span [class "delete"] []]) (Tuple.second ensemble)
+viewEnsembleWithRemover (label, ensemble) remove =
+  Components.box 
+    [ p [ class "mb-3" ] [ text "Remove voices from this ensemble." ] 
+    , div [ class "columns is-mobile" ] <| List.map (\voice -> 
+        div [ class "column has-text-centered" ] 
+          [ roleIcon voice.role
+          , p [] [ text voice.label ]
+          , span [class "delete", onClick (remove voice) ] [] ] ) ensemble ]
 
 
 ensembleAdder : List T.Voice -> (T.Voice -> msg) -> Html msg
 ensembleAdder opts add =
-  Components.wraps <|
-    [ p [] [ text "Add a voice to this ensemble" ] ]
-    ++ List.map (\voice -> div [class "box", onClick (add voice)] [ text voice.label, roleIcon voice.role ] ) opts
+  Components.box
+    [ p [ class "mb-3" ] [ text "Add a voice to this ensemble" ]
+    , div [ class "columns is-mobile" ] <| 
+      List.map (\voice -> 
+        div [ class "column has-text-centered", onClick (add voice) ] 
+          [ roleIcon voice.role
+          , p [] [ text voice.label ] ] ) opts ]
 
 
 ensembleNamer : T.NamedEnsemble -> (String -> msg) -> Html msg
 ensembleNamer curr rename =
   Components.editText "Label" (text "") (Tuple.first curr) rename 
-
 
 
 ensembleEditor : List T.Voice -> List T.NamedEnsemble -> (Maybe T.NamedEnsemble) -> (Int -> msg) -> ((Maybe T.NamedEnsemble) -> msg) -> (List T.NamedEnsemble -> msg) -> Html msg
@@ -369,15 +369,13 @@ ensembleEditor options ensembles current select updateCurrent updateAll =
     Nothing ->
       ensemblePicker ensembles select
 
-    Just e ->
+    Just ((label, ens) as e) ->
       let 
         swapEns = (\ee -> Just ((Tuple.first e), ee))
       in 
-      div [] <|
-        [ viewEnsembleWithRemover e (\voice -> updateCurrent (swapEns (Tools.remove (Just voice) (Tuple.second e))))
-        , div [] [ text "Add or remove voices from this ensemble." ] 
-        , ensemblePicker ensembles select 
-        , ensembleNamer e (\str -> updateCurrent (Just (str, (Tuple.second e)))) 
+      Components.card ("Ensemble: " ++ label) <| Components.wraps
+        [ ensembleNamer e (\str -> updateCurrent (Just (str, (Tuple.second e)))) 
+        , viewEnsembleWithRemover e (\voice -> updateCurrent (swapEns (Tools.remove (Just voice) (Tuple.second e))))
         , ensembleAdder options (\voice -> updateCurrent (swapEns (Tools.conj voice (Tuple.second e)))) 
         ]
 
@@ -412,7 +410,8 @@ layoutIcon (name, scopes) =
 viewLayoutWithRemover : T.Layout -> (T.Scope -> msg) -> Html msg
 viewLayoutWithRemover ((label, scopes) as layout) remove =
   div [] <|
-    [ h3 [ class "subtitle" ] [ text <| "Ensemble " ++ label] ] 
+    [ h3 [ class "subtitle" ] [ text <| "Ensemble " ++ label] 
+    , div [] [ text "Remove scopes from this layout." ] ]
     ++ List.map (\scope -> 
            div [class "box"] 
              [ Components.deleteIcon (remove scope)
@@ -443,7 +442,6 @@ layoutEditor options layouts current select updateCurrent updateAll =
     Just ((label, scopes) as l) ->
       div [] <|
         [ viewLayoutWithRemover l (\layout -> updateCurrent (Just (label, (Tools.remove (Just layout) scopes))))
-        , div [] [ text "Add or remove scopes from this layout." ] 
         , layoutPicker layouts select
         , layoutNamer label (\str -> updateCurrent (Just (str, scopes)))
         , layoutAdder options (\scope -> updateCurrent (Just (label, Tools.conj scope scopes)))

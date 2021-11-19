@@ -68,7 +68,7 @@ keyPickerDesktop useSharps val toMsg =
 
 keyPicker : Bool -> Int -> (Int -> msg) -> Html msg
 keyPicker useSharps val toMsg =
-  div [class "m-3 box container"] 
+  div [class "box container"]
     [ div [class "is-hidden-tablet"] [keyPickerMobile useSharps val toMsg]
     , div [class "is-hidden-mobile"] [keyPickerDesktop useSharps val toMsg]
     ]
@@ -90,7 +90,7 @@ strvalToFloat min max str =
 
 editRange : String -> Html msg -> (Float, Float) -> Float -> (Float -> msg) -> Html msg
 editRange title html (mn, mx)  val fltMsg =
-  div [ class "m-3 box level"
+  div [ class "box level"
            , onInput (\str -> fltMsg (strvalToFloat mn mx str)) ]
   [ div [class "columns is-multiline"]
     [ div [class "column is-full level is-flex is-justify-content-space-around"] 
@@ -109,7 +109,7 @@ editInt title html (min, max) val toMsg =
     more = if max == val then noClickButton else 
              button (toMsg <| val + 1) [class "image button is-48x48" ] "+ "
   in 
-  div [ class "m-3 box"]
+  div [ class "box"]
     [ div [ class "columns is-multiline"]
       [ div [ class "columns is-multiline column is-full"] 
             [ Html.h5 [ class "column is-one-quarter subtitle"] [ text title ]
@@ -146,14 +146,14 @@ editTextDesktop title html val toMsg =
 
 editText : String -> Html msg -> String -> ( String -> msg ) -> Html msg
 editText title html val toMsg =
-  div [class "m-3 box"]
+  div [class "box"]
     [ div [ class "is-hidden-tablet" ] [ editTextMobile title html val toMsg ]
     , div [ class "is-hidden-mobile" ] [ editTextDesktop title html val toMsg ] ] 
 
 
 editSelection : a -> String -> Html msg -> List (a, (Html msg)) -> a -> (a -> msg) -> Html msg
 editSelection curr label info options current select =
-  div [ class "m-3 box" ]
+  div [ class " box" ]
     [ Html.h5 [ class "subtitle" ] [ Html.label [] [ text label ] ]
     , info
     , div [ class "columns is-multiline" ] <|
@@ -172,6 +172,10 @@ card title content =
       ]
    , div [ class "card-content" ] 
         [ content ] ] 
+
+
+box =
+  div [ class "box" ]
 
 
 
@@ -198,7 +202,7 @@ modal content close =
 
 editToggle : String -> (a, String) -> (a, String) -> a -> (a -> msg) -> Html msg
 editToggle label (x, labelX) (y, labelY) curr toMsg =
-  div [ class "m-3 box" ]
+  div [ class "box" ]
     [ div [ class "columns is-multiline " ] 
       [ div [ class "columns is-multiline column is-full" ] 
         [ Html.h5 [ class "column is-one-quarter subtitle"] [ text label ]  
