@@ -222,11 +222,20 @@ scopeEditor scope update =
       editScope s update
 
 
-voiceEditor : (Maybe T.Voice) -> ((Maybe T.Voice) -> msg) -> Html msg
-voiceEditor voice update =
+voicePicker : List T.Voice -> (Int -> msg) -> Html msg
+voicePicker voices select =
+  div [ class "columns is-multiline level is-vcentered" ] <|
+     List.indexedMap (\i voice ->
+       div [ class "column is-vcentered", onClick (select i) ]
+         [ voiceIcon voice ]) voices
+
+
+
+voiceEditor : List T.Voice -> (Maybe T.Voice) -> (Int -> msg) ->  ((Maybe T.Voice) -> msg) -> Html msg
+voiceEditor voices voice select update =
   case voice of  
     Nothing ->
-      text "No voice right now"
+      voicePicker voices select 
  
     Just v ->
       editVoice v update
@@ -236,8 +245,6 @@ instrumentEditor : T.Voice -> msg -> msg -> Html msg
 instrumentEditor synth keep kill =
   div [class "column card is-half px-6 py-4", style "background" (D.roleColor synth.role)]
     []
-
-
 
 
 view1 = 
@@ -478,6 +485,15 @@ scopeIcon scope =
     [ label [ class "label" ] [ text scope.label ]
     , Components.svg "scope"
     , text (scopeTimeString scope)
+    ] 
+
+
+voiceIcon : T.Voice -> Html msg
+voiceIcon voice = 
+  div [ class "box" ] 
+    [ label [ class "label" ] [ text voice.label ]
+    , Components.svg "voice"
+    , p [ class "content" ] [ text (Tuple.first <| D.roleLabel voice.role) ]
     ] 
 
   
