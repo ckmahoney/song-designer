@@ -637,13 +637,15 @@ comboIncompleteIcon ((scope, ensemble) as model) =
       label [ class "has-background-warning "] [ text "Needs a scope." ]
 
 
+
 viewComboP : T.ComboP -> Html msg
 viewComboP  ((mScope, mEnsemble) as model)  =
-  case model of
-    (Just a, Just (eLabel, b)) -> 
-      Components.box <|
+  Components.box <| List.singleton  <|  case model of
+    (Just ({cpc,cps,size} as a), Just (eLabel, b)) -> 
+      Components.wraps <|
           [ label [ class "label" ] [ text a.label ]
           , label [ class "label" ] [ text eLabel ]
+          , p [] [ text <| timeString <| duration cpc cps size ]
           ]
 
     (Nothing, Nothing) -> 
@@ -658,10 +660,7 @@ viewComboP  ((mScope, mEnsemble) as model)  =
 
 viewTemplate : T.Template -> Html msg
 viewTemplate ((mMeta, mCombos) as template) =
-  Components.wraps <| List.map viewComboP mCombos
-
-
-
+  Components.wraps <| [ label [ class "title" ] [] ] ++ List.map viewComboP (Debug.log "Looking at combos:" mCombos)
 
 
 comboPEditor : List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
@@ -678,9 +677,9 @@ comboPEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
         , comboEditor scopes ensembles cp updateCombo ]
 
 
-templateEditor : List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
+templateEditor :  List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
 templateEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
-  div [] <| 
+  div [ class "template-editor"] <| 
     List.map viewComboP combos
 
 

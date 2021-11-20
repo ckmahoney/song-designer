@@ -303,6 +303,14 @@ meta1 =
   }
 
 
+emptyMetaP =
+  { title = Just ""
+  , cpc = Just 1
+  , cps = Just 1
+  , root = Just 1
+  }
+
+
 metaP1 =
   { title = Just "metaTitle"
   , cps = Just 2.3
