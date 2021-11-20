@@ -543,11 +543,11 @@ comboEditor scopes ensembles val toMsg =
         , p [ ] [ text "Select a scope for this combo." ]
         , Components.cols <|
            List.map (\ens ->
-             Components.col [ onClick (updateScope ens)] [ scopeIcon ens ]) scopes
+             Components.col [ class "has-text-centered", onClick (updateScope ens)] [ scopeIcon ens ]) scopes
         , p [ ] [ text "Select an ensemble for this combo." ]
         , Components.cols <|
            List.map (\ens ->
-             Components.col [ onClick (updateEnsemble ens)] [ ensembleIcon ens ]) ensembles  ]
+             Components.col [ class "has-text-centered",  onClick (updateEnsemble ens)] [ ensembleIcon ens ]) ensembles  ]
 
     (Just a, Nothing) -> 
       let
@@ -599,8 +599,11 @@ comboIncompleteIcon ((scope, ensemble) as model) =
 viewComboP : T.ComboP -> Html msg
 viewComboP  ((mScope, mEnsemble) as model)  =
   case model of
-    (Just a, Just b) -> 
-      text "this one is done"
+    (Just a, Just (eLabel, b)) -> 
+      Components.box <|
+          [ label [ class "label" ] [ text a.label ]
+          , label [ class "label" ] [ text eLabel ]
+          ]
 
     (Nothing, Nothing) -> 
       label [ class "subtitle"] [ text "Select a scope and an ensemble." ]
