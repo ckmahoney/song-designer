@@ -661,8 +661,11 @@ viewTemplate ((mMeta, mCombos) as template) =
   Components.wraps <| List.map viewComboP mCombos
 
 
-templateEditor : List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
-templateEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
+
+
+
+comboPEditor : List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
+comboPEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
   case curr of
     Nothing -> 
       Components.picker combos viewComboP (\i -> updateCombo (Tools.get i combos))
@@ -673,6 +676,12 @@ templateEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
         , templateDetails template
         , viewTemplate template
         , comboEditor scopes ensembles cp updateCombo ]
+
+
+templateEditor : List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
+templateEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
+  div [] <| 
+    List.map viewComboP combos
 
 
 main =

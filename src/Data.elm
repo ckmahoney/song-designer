@@ -320,7 +320,7 @@ metaP2 =
 
 
 template1 = 
-  (metaP1, [comboP1, comboP3])
+  (metaP1, [comboP1, comboP3, comboP2, comboP1, comboP1, comboP3])
 
 
 template2 =
