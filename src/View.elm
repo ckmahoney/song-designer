@@ -35,6 +35,47 @@ labelInfo =
   div [class "content"] [ text "Descriptive name for this scope of music." ]
 
 
+templateMessage : Html msg
+templateMessage =
+  Components.box 
+    [ label [ class "subtitle  mb-3" ] [ text "Use a template to create a new score from a layout you like." ]
+    , p [] [ text "You can borrow common song structures, so your music has a structure that is easy to understand."  ] 
+    , p [] [ text "Repeated structure also defines a prodcuer's style. When you make many songs with the same template, it becomes one of your signatures." ]
+    ] 
+
+
+getTimes : List T.Scope -> List (Float, Int)  -- (cps, dur)
+getTimes scopes  =
+  List.map (\{cps,cpc,size} -> (cps, sizeToCycles cpc size)) scopes
+
+
+-- returns duration in seconds
+layoutDuration : List T.Scope -> Float
+layoutDuration scopes =
+  List.foldl (\(cps, nCycles) total -> total + (cps * toFloat nCycles)) 0 (getTimes scopes)
+
+
+templateDetails : T.Template -> Html msg
+templateDetails ((mMeta, mScopes) as template) =
+  case mScopes of 
+    [] -> 
+      text "Empty template has no length."
+
+    combos  ->
+      let
+         scopes = List.map Tuple.first <| List.filter (\(m, xx) -> case m of 
+           Nothing -> False
+           _ -> True ) combos
+         
+         -- yy = Debug.log "Has scopes:" scopes
+         length = layoutDuration <| Tools.unMaybe scopes D.emptyScope
+      in 
+      Components.box 
+        [ text " total length of this template : "   
+        , text <| timeString length
+         ]
+
+
 editLayoutMessage : Html msg
 editLayoutMessage = 
   p [class "content"] [text "Use this editor to create sections for your songs."]
@@ -628,7 +669,9 @@ templateEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
  
     Just cp ->
       Components.card (Maybe.withDefault "This template has no title."  meta.title)  <| Components.wraps <|
-        [ viewTemplate template
+        [ templateMessage
+        , templateDetails template
+        , viewTemplate template
         , comboEditor scopes ensembles cp updateCombo ]
 
 

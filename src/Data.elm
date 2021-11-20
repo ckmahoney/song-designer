@@ -155,7 +155,7 @@ palette3 =
 
 emptyScope : Scope
 emptyScope = 
-  Scope -99 "Scope" 1 1 1 1
+  Scope -969 "Scope" 1 1 1 1
 
 
 s1 : Scope
