@@ -8,10 +8,6 @@ type alias UUID
   = Int
 
 
-type Msg
-  = ButtonClick
-
-
 type Texture
   = Density
   | Complexity
@@ -49,11 +45,6 @@ type alias SynthPreset =
   }
 
 
-type Count 
-  = Num Int
-  | Zero
-
-
 type alias Voice =
   { id : Int
   , duty : SynthDuty
@@ -65,19 +56,19 @@ type alias Voice =
   }
 
 
--- type alias PresetKit = List SynthPreset
-type alias Ensemble = List Voice
-
-
-type alias NPresetKit = (String, Ensemble)
-
-
 type alias ScoreMeta = 
   { title : String
   , cps : Float 
   , root : Float
   , cpc : Int
-  , nCycles : Int
+  }
+
+
+type alias ScoreMetaP = 
+  { title : Maybe String
+  , cps : Maybe Float 
+  , root : Maybe Float
+  , cpc : Maybe Int
   }
 
 
@@ -88,7 +79,6 @@ emptyScoreMeta =
   , cps = 0.0
   , root = 0.00
   , cpc = 0
-  , nCycles = 0
   }
 
 
@@ -114,82 +104,25 @@ type alias Scope  =
   }
 
 
-type alias EditState a =
-  { time : Int
-  , current : Maybe a
-  , presets : List a
-  }
-
-
-type alias ScopeEditor = 
-  { time : Int
-  , current : Maybe Scope
-  , presets: List Scope
-  }
-
-type alias VoiceEditor = 
-  { time : Int
-  , current : Maybe Voice
-  , presets: List Voice
-  }
-
-
-
--- type alias SynthState 
-  -- = EditState Voice
-
-
-
-type alias EnsembleEditor
-  = EditState Ensemble
-
-
-type alias EditLayout  = 
-  { time : Int
-  , index : Int
-  , current : Maybe Scope
-  , list : List Scope
-  , presets : List Scope
-  }
-
+type alias Ensemble = List Voice
+type alias NPresetKit = (String, Ensemble)
 
 type alias Section = (Scope, Ensemble)
-type alias SectionP = Maybe (Scope, Ensemble)
+type alias SectionP = (Maybe Scope, Maybe Ensemble)
 
+type alias Combo = (Scope, NamedEnsemble)
+type alias ComboP = (Maybe Scope, Maybe NamedEnsemble)
 
-type SectionState
-  = Section Scope Ensemble
-  | NeedsCompo Ensemble
-  | NeedsEnsemble Scope
-  | EmptySection
+type alias Layout = (String, List Scope)
 
-
--- a Score represents the ordered set of (Compo, Ensemble) pairs.
 type alias Score 
-  = List Section
+  = (ScoreMeta, List Combo)
 
-
-type alias EditScore =
-  { time : Int
-  , current : Maybe Section
-  , ensemble : Maybe Ensemble
-  , scope : Maybe Scope
-  , cps : Float
-  , list : List Section
-  , layout : List Scope
-  , ensembles : List Ensemble
-  }
-
+type alias Template
+  = (ScoreMetaP, List ComboP)
 
 type alias NamedEnsemble 
   = (String, Ensemble)
 
-
-type alias Layout
-  = (String, List Scope)
-
-
 main =
   Html.text ""
-
-

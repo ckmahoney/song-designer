@@ -36,6 +36,7 @@ rangeComplexity = (minComplexity, maxComplexity)
 
 defaultCPC = 4
 
+
 rangeCPC : (Int, Int)
 rangeCPC = (1, 7)
 
@@ -47,11 +48,14 @@ rangeCPS : (Float, Float)
 rangeCPS = (0.5, 4)
 rangeStep = 0.05
 
+
 rangeScopeSize : (Int, Int)
 rangeScopeSize = (0, 8)
 
+
 rangeRoot : (Float, Float)
 rangeRoot  = (16.0, 16.0 * 2)
+
 
 chromaticRoots =
   let 
@@ -138,6 +142,7 @@ palette =
 palette2 = 
   paletteTrioDark ++ paletteTrioLight
 
+
 palette3 = 
   [ "#B81A0C"
   , "#F24738"
@@ -185,13 +190,6 @@ s3 =
   , size = 3
   }
 
-
-layout1 : List Scope
-layout1 = [s1, s2, s3]
-
-
-layout2 : List Scope
-layout2 = [ s2, s2, s3 , s1]
 
 p1 : Voice
 p1 =
@@ -241,11 +239,8 @@ p4 =
   }
 
 
-
-
 presets : Ensemble
 presets = [p1,p2,p3,p4]
-
 
 
 kitAll : Ensemble
@@ -291,11 +286,51 @@ allKits =
   ]
 
 
-score1 : Score
-score1 =
+sections1 : List Section
+sections1 =
   [ (s1, kitBeat)
   , (s2, kitSynth)
   , (s3, kitAll)
+  ] 
+
+
+meta1 : ScoreMeta
+meta1 =
+  { title = "My Delight"
+  , cpc = 4
+  , cps = 2.1
+  , root = 1.65
+  }
+
+
+metaP1 =
+  { title = Just "metaTitle"
+  , cps = Just 2.3
+  , root = Just 33
+  , cpc = Just 4
+  }
+
+
+metaP2 =
+  { title = Just "Smoothly"
+  , cps = Just 3.1
+  , root = Just 29
+  , cpc = Just 3
+  }
+
+
+template1 = 
+  (metaP1, [comboP1, comboP3])
+
+
+template2 =
+  (metaP2, [comboP2, comboP4])
+
+
+coreTemplates : List Template
+coreTemplates =
+  [ template1
+  , template2
   ] 
 
 
@@ -420,6 +455,16 @@ v1 =
   , size = 1
   }
 
+v2 : Scope
+v2 =
+  { id = -13
+  , label = "verse 2"
+  , cps = 4
+  , cpc = 8
+  , root = 45
+  , size = 2
+  }
+
 
 c1 =
   { id = -12
@@ -429,6 +474,46 @@ c1 =
   , root = 42
   , size = 1
   }
+
+
+
+c2 =
+  { id = -14
+  , label = "chorus 2"
+  , cps = 4
+  , cpc = 4 
+  , root = 35
+  , size = 2
+  }
+
+
+layout1 : List Scope
+layout1 = [s1, s2, s3]
+
+
+layout2 : List Scope
+layout2 = [ s2, s2, s3, s1]
+
+
+layout3 : List Scope
+layout3 =
+  [ v1, v2, c1, c2 ]
+
+
+coreScopes =
+  [ layout1
+  , layout2
+  , layout3
+  ] 
+
+
+coreLayoutTitles =
+  [ "Verse 1", "Verse 2", "Chorus 1", "Chorus 2"]
+
+
+coreLayouts : List Layout
+coreLayouts =
+  List.map2 (\a b -> (a, b)) coreLayoutTitles coreScopes
 
 
 kitVC1 : Ensemble
@@ -453,6 +538,7 @@ kitVC2 =
   ]
 
 
+scoreVerseChorus : List (Scope, Ensemble)
 scoreVerseChorus =
   [ (v1, kitVC1)
   , (c1, kitVC1)
@@ -462,60 +548,92 @@ scoreVerseChorus =
   , (c1, kitVC2)
   ]
 
-    
-initVoiceEditor : VoiceEditor
-initVoiceEditor =
-   { time = 0
-   , current = Just p1
-   , presets = kitAll
-   }
+
+ens1 =
+  ("Beat", kitBeat)
 
 
-initEditEnsemble : VoiceEditor
-initEditEnsemble =
-   { time = 0
-   , current = Just p1
-   , presets = kitAll
-   }
+ens2 = 
+  ("Synth", kitSynth)
 
 
-initEnsembleEditor : EnsembleEditor
-initEnsembleEditor =
-   { time = 0
-   , current = Just kitAll
-   , presets = [ kitBeat, kitSynth ] 
-   }
-
-
-initEditScore : EditScore
-initEditScore = 
-  { time = 0
-  , cps = 1
-  , current = Nothing
-  , ensemble = Nothing
-  , scope = Nothing
-  , ensembles = allKits
-  , layout = layout1
-  , list = scoreVerseChorus
-  } 
+ens3 = 
+  ("Everything", kitAll)
 
 
 coreNamedEnsembles : List NamedEnsemble
 coreNamedEnsembles =
-  [ ("Beat", kitBeat)
-  , ("Everything", kitAll)
-  , ("Synth", kitSynth)
-  ]
+  [ ens1, ens2, ens3 ] 
 
 
-coreLayouts : List Layout
-coreLayouts =
-  [ ("VerseChorus", [v1, c1, v1, c1, v1, v1, c1])
-  ]
+
+combo1 =
+  (v1, ens2)
+
+
+combo2 =
+  (c1,ens2)
+
+combo3 : Combo
+combo3 =
+  (v1,ens3)  
+
+
+comboP1 = 
+  (Nothing, Nothing)
+
+comboP2 = 
+  (Just v1, Nothing)
+
+comboP3 = 
+  (Nothing, Just ens2)
+
+comboP4 =
+  (Just v1, Just ens2)
+
+
+combos : List Combo
+combos =
+  [ combo1, combo2, combo3 ]
+
+coreScores : List Score
+coreScores =
+  [ ( ScoreMeta "Simple binary" 4 2.1 35
+    , [ combo1
+      , combo2
+      ] )
+  , ( ScoreMeta "Simple Ternary" 4 1.9 29
+    , [ combo1
+      , combo2
+      , combo1
+      ] )
+  , ( ScoreMeta "Song Form" 4 1.6 28
+    , [ combo1
+      , combo2
+      , combo3
+      , (c1,ens3)
+      , combo1
+      , (c1,ens1)
+      , (v1,ens1)
+      , (c2,ens3)
+      ] )
+  , ( ScoreMeta "Another Song Form" 3 2.5 33
+    , [ (v1,ens1)
+      , combo1
+      , combo3
+      , combo2
+      , (v2,ens2)
+      , (v2,ens2)
+      , (v2,ens3)
+      , (c1,ens3)
+      ] )
+  ] 
+
+
+
+-- scores1 : List Score
 
 
 
 main = 
   Html.text ""
-
-

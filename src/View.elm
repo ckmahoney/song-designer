@@ -85,7 +85,8 @@ asset =
   Components.card "Assets" <|
     div [ class "columns" ]
       [ div [ class "column is-half" ] 
-        [ scoreIcon True ]
+        []
+        -- [ scoreIcon True ]
       , div [ class "is-half" ]
         [ div [class "level"] [ (Components.svg "sheet-music"), text "Download sheet music" ]
         , div [class "level"] [ (Components.svg "midi-logo"), text "Download MIDI files" ]
@@ -94,13 +95,34 @@ asset =
         ] ] 
 
 
-scoreIcon : a ->  Html msg
-scoreIcon _ =
+scoreIcon : T.Score ->  Html msg
+scoreIcon (meta, combos) =
   div [ class "container" ] 
-    [ label [ class "label" ] [ text "scorelabel" ]
+    [ label [ class "label" ] [ text meta.title ]
     , Components.svg "score"
     , p [ class "content" ] [ text "all the score details go here once you make a score editor" ]
     ] 
+
+
+templateIcon : T.Template ->  Html msg
+templateIcon (mMeta, mCombos) =
+  div [ class "container" ] 
+    [ label [ class "label" ] [ text <| Maybe.withDefault "No title" mMeta.title ]
+    , Components.svg "score"
+    , p [ class "content" ] [ text "This is a template for making scores. Use it as a basis for making variations of styles and genres." ]
+    ] 
+
+
+comboIcon : T.Combo -> Html msg
+comboIcon ((scope, (ensLabel, ensemble)) as model) =
+  div [ class "box" ] 
+    [ label [ class "label" ] [ text <| scope.label ++ " & " ++ ensLabel ]
+    , Components.svg "ensemble"
+    , p [ class "content" ] [ text <| (String.fromInt <| List.length ensemble) ++ " voices" ]
+    ] 
+
+  
+
   
 
 synthDescription : T.Voice -> Html msg
@@ -346,7 +368,12 @@ viewEnsembleWithRemover (label, ensemble) remove =
           , p [] [ text voice.label ]
           , span [class "delete", onClick (remove voice) ] [] ] ) ensemble ]
 
-  
+
+viewLayout : T.Layout -> Html msg
+viewLayout (label, scopes) =
+  Components.viewList scopes scopeIcon
+
+
 viewLayoutWithRemover : T.Layout -> (T.Scope -> msg) -> Html msg
 viewLayoutWithRemover ((label, scopes) as layout) remove =
   Components.box <|
@@ -376,6 +403,18 @@ layoutAdder opts add =
     , div [ class "columns is-mobile is-multiline" ] <| 
         List.map (\scope -> 
           div [ class "column has-text-centered", onClick (add scope) ] [ scopeIcon scope ] ) opts ]
+
+
+sectionAdder : List T.Scope -> List T.NamedEnsemble -> T.SectionP ->  Html msg
+sectionAdder scopes ensembles (mScope, mEns)  =
+  Components.box 
+    [ p [ class "mb-3" ] [ text "Add a scope to this layout." ] 
+    , div [ class "columns is-mobile is-multiline" ] <| 
+        List.map (\scope -> 
+          div [ class "column has-text-centered" ] [ scopeIcon scope ] ) scopes
+    , div [ class "columns is-mobile is-multiline" ] <| 
+        List.map (\ens -> 
+          div [ class "column has-text-centered" ] [ ensembleIcon ens ] ) ensembles ]
 
 
 ensembleNamer : T.NamedEnsemble -> (String -> msg) -> Html msg
@@ -423,7 +462,7 @@ layoutIcon (name, scopes) =
   div [ class "box" ] 
     [ label [ class "label" ] [ text name ]
     , Components.svg "layout"
-    , p [ class "content" ] [ text <| (String.fromInt <| List.length scopes) ++ " scopes" ]
+    , p [ class "content" ] [ text <| (String.fromInt <| List.length scopes) ++ " combos" ]
     ] 
 
 
@@ -444,9 +483,150 @@ layoutEditor options layouts current select updateCurrent updateAll =
     Just ((label, scopes) as l) ->
       Components.card ("Layout: " ++ label) <| Components.wraps <|
         [ layoutNamer label (\str -> updateCurrent (Just (str, scopes)))
-        , viewLayoutWithRemover l (\layout -> updateCurrent (Just (label, (Tools.remove (Just layout) scopes))))
+        , viewLayout l 
+        -- , viewLayoutWithRemover l (\layout -> updateCurrent (Just (label, (Tools.remove (Just layout) scopes))))
         , layoutAdder options (\scope -> updateCurrent (Just (label, Tools.conj scope scopes)))
+
         ]
+
+    -- partial = List.filter (\(a, b) -> 
+    --   case (a, b) of 
+    --     (Just x, Just y) -> False
+    --     _  -> True) combos
+
+
+    -- complete = List.filter (\(a, b) ->
+    --   case (a, b) of 
+    --     (Just x, Just y) -> True
+    --     _ -> False) combos
+
+
+comboEditor : List T.Scope -> List T.NamedEnsemble ->  T.ComboP ->  ((Maybe T.ComboP) -> msg) -> Html msg
+comboEditor scopes ensembles val toMsg =
+  let
+    updateFirst = (\second -> (\scope ->
+      let
+        next : T.ComboP
+        next = (Just scope, Just second)
+      in
+      toMsg (Just next)))
+    updateSecond = (\first -> (\ens ->
+      let
+        next : T.ComboP
+        next = (Just first, Just ens)
+      in
+      toMsg (Just next)))
+    justFirst = (\first -> toMsg (Just (Just first, Nothing)))
+    justSecond = (\second -> toMsg (Just (Nothing, Just second)))
+  in 
+  case val of
+    (Just a, Just b) -> 
+      Components.colsMulti <|
+      [ div [ class "column is-full" ] 
+         [ div [ class "delete", onClick (justSecond b) ] [] 
+         , scopeIcon a  ]
+      , div [ class "column is-full" ] 
+         [ div [ class "delete", onClick (justFirst a) ] [] 
+         , ensembleIcon b ] 
+      , Components.button (toMsg Nothing) [] "Done"
+      ]
+
+    (Nothing, Nothing) -> 
+      let
+        updateEnsemble : T.NamedEnsemble -> msg
+        updateEnsemble = (\ens -> toMsg (Just (Nothing, Just ens)))
+        updateScope : T.Scope -> msg
+        updateScope = (\scope -> toMsg (Just (Just scope, Nothing)))
+      in
+      Components.wraps <|
+        [ label [ class "has-background-danger subtitle"] [ ]
+        , p [ ] [ text "Select a scope for this combo." ]
+        , Components.cols <|
+           List.map (\ens ->
+             Components.col [ onClick (updateScope ens)] [ scopeIcon ens ]) scopes
+        , p [ ] [ text "Select an ensemble for this combo." ]
+        , Components.cols <|
+           List.map (\ens ->
+             Components.col [ onClick (updateEnsemble ens)] [ ensembleIcon ens ]) ensembles  ]
+
+    (Just a, Nothing) -> 
+      let
+        updateEnsemble = updateSecond a
+      in
+      Components.wraps <|
+        [ p [ ] [ text "Select an ensemble for this combo." ]
+        , Components.cols <|
+           List.map (\ens ->
+             Components.col [ onClick (updateEnsemble ens)] [ ensembleIcon ens ])  ensembles ]
+
+    (Nothing, Just b) ->
+      let
+        updateScope = updateFirst b
+      in
+      Components.wraps <|
+        [ label [ class "has-background-warning subtitle"] [ text "Needs a scope." ] 
+        , p [ ] [ text "Select a scope for this combo." ]
+        , Components.cols <|
+           List.map (\scope ->
+             Components.col [ onClick (updateScope scope)] [ scopeIcon scope ])  scopes ]
+
+
+
+
+comboCompleteIcon : T.Combo -> Html msg
+comboCompleteIcon ((scope, ensemble) as model) =
+  div [ class "columns is-multiline" ] 
+   [ div [ class "column is-full" ] [ scopeIcon scope ]
+   , div [ class "column is-full" ] [ ensembleIcon ensemble ] ]
+
+
+comboIncompleteIcon : T.ComboP -> Html msg
+comboIncompleteIcon ((scope, ensemble) as model) =
+  case model of
+    (Just a, Just b) -> 
+      comboCompleteIcon (a,b)
+
+    (Nothing, Nothing) -> 
+      label [ class "has-background-danger subtitle"] [ text "Needs a scope and an ensemble." ]
+
+    (Just a, Nothing) -> 
+      label [ class "has-background-warning subtitle"] [ text "Needs an ensemble." ]
+
+    (Nothing, Just a) ->
+      label [ class "has-background-warning "] [ text "Needs a scope." ]
+
+
+viewComboP : T.ComboP -> Html msg
+viewComboP  ((mScope, mEnsemble) as model)  =
+  case model of
+    (Just a, Just b) -> 
+      text "this one is done"
+
+    (Nothing, Nothing) -> 
+      label [ class "subtitle"] [ text "Select a scope and an ensemble." ]
+
+    (Just a, Nothing) -> 
+      label [ class "subtitle"] [ text "Select an ensemble." ]
+
+    (Nothing, Just a) ->
+      label [ class "subtitle"] [ text "Select a scope." ]
+       
+
+viewTemplate : T.Template -> Html msg
+viewTemplate ((mMeta, mCombos) as template) =
+  Components.wraps <| List.map viewComboP mCombos
+
+
+templateEditor : List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
+templateEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
+  case curr of
+    Nothing -> 
+      Components.picker combos viewComboP (\i -> updateCombo (Tools.get i combos))
+ 
+    Just cp ->
+      Components.card (Maybe.withDefault "This template has no title."  meta.title)  <| Components.wraps <|
+        [ viewTemplate template
+        , comboEditor scopes ensembles cp updateCombo ]
 
 
 main =

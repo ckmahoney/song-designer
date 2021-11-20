@@ -7,6 +7,11 @@ import Html.Events exposing (..)
 import Data as D
 
 
+type Modal
+  = Hidden
+  | Showing
+
+
 invertColor : Html msg -> Html msg
 invertColor el =
   div [ style "filter" "invert(1)" ] [ el ] 
@@ -20,6 +25,32 @@ wrap html =
 wraps : List (Html msg)  -> Html msg
 wraps htmls =
   div [] htmls
+
+
+modal : Modal -> Html msg -> msg -> Html msg
+modal state content close =
+  case state of
+    Hidden -> text ""
+    Showing ->
+      div [ class "modal is-active" ]
+        [ div [ class "modal-background", onClick close ] []
+        , div [ class "modal-close is-large", onClick close ] []
+        , div [ class "modal-content" ] [ content ]
+        ] 
+
+
+pickerCell : Maybe a -> (a -> Html msg) -> Html msg  -> Html msg
+pickerCell el icon html =
+  let 
+    content = case el of
+      Nothing -> text "no item"
+      Just x -> icon x 
+
+  in 
+  div [ class "box has-background-primary" ] [
+    content
+    , html
+  ] 
 
 
 
@@ -73,6 +104,14 @@ keyPicker useSharps val toMsg =
     , div [class "is-hidden-mobile"] [keyPickerDesktop useSharps val toMsg]
     ]
 
+
+viewList : List a -> (a -> Html msg) -> Html msg
+viewList xs icon =
+  box <|
+    [ div [ class "columns is-mobile is-multiline" ] <| 
+        List.map (\el -> 
+          div [ class "column has-text-centered" ]
+           [ icon el ]) xs]
 
 
 noClickButton : Html msg
@@ -191,15 +230,6 @@ skButtons saveMsg killMsg  =
     , button saveMsg [] "Save" ]
 
 
-modal : Html msg -> msg -> Html msg
-modal content close =
-  div [ class "modal is-active" ]
-    [ div [ class "modal-background", onClick close ] []
-    , div [ class "modal-close is-large", onClick close ] []
-    , div [ class "modal-content" ] [ content ]
-    ] 
-
-
 editToggle : String -> (a, String) -> (a, String) -> a -> (a -> msg) -> Html msg
 editToggle label (x, labelX) (y, labelY) curr toMsg =
   div [ class "box" ]
@@ -218,6 +248,26 @@ picker things icon select =
      List.indexedMap (\i thing ->
        div [ class "column is-vcentered has-text-centered", onClick (select i) ]
          [ icon thing ]) things
+
+
+colsWith : List (Html.Attribute msg) -> (List (Html msg) -> Html msg)
+colsWith attrs =
+  div ([ class "columns" ] ++ attrs) 
+
+
+cols :  (List (Html msg) -> Html msg)
+cols  =
+  div [ class "columns" ]
+
+
+colsMulti :  (List (Html msg) -> Html msg)
+colsMulti  =
+  div [ class "columns is-multiline" ]
+
+
+col : List (Html.Attribute msg) -> (List (Html msg) -> Html msg)
+col attrs =
+  div ([ class "column" ] ++ attrs) 
 
 
 type alias Model 
