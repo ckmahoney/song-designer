@@ -143,10 +143,11 @@ editRange title html (mn, mx)  val fltMsg =
 editInt : String -> Html msg -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
 editInt title html (min, max) val toMsg =
   let 
-    less = if min == val then noClickButton else
-             button (toMsg <| val - 1) [class "image button is-48x48"] "-"
-    more = if max == val then noClickButton else 
-             button (toMsg <| val + 1) [class "image button is-48x48" ] "+ "
+    num = if val < min then min else if val > max then max else val
+    less = if min == num then noClickButton else
+             button (toMsg <| num - 1) [class "image button is-48x48"] "-"
+    more = if max == num then noClickButton else 
+             button (toMsg <| num + 1) [class "image button is-48x48" ] "+ "
   in 
   div [ class "box"]
     [ div [ class "columns is-multiline"]
@@ -216,9 +217,9 @@ card title content =
 card2 : String -> List (Html msg) -> Html msg-> Html msg
 card2 title titleMore content = 
   div [ class "card my-3" ] 
-    [ Html.header [ class "card-header" ] 
-      ( [ Html.p [ class "card-header-title" ] [ text title ] ]
-      ++ titleMore )
+    [ Html.header [ class "card-header level" ] 
+      [ Html.p [ class "card-header-title" ] [ text title ] 
+      , div [ class "mr-4" ] titleMore ] 
       
    , div [ class "card-content" ] 
         [ content ] ]

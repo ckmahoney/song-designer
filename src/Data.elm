@@ -16,14 +16,14 @@ minDensity = 1
 
 
 maxDensity : Int
-maxDensity = 4
+maxDensity = 3
 
 
 minComplexity : Int
-minComplexity = 0
+minComplexity = 1
 
 maxComplexity : Int
-maxComplexity = 6
+maxComplexity = 3
 
 
 rangeDensity : (Int, Int)
@@ -210,7 +210,7 @@ p2 =
   , role = Kick
   , label = "Kick Drum"
   , voice = 0
-  , density = 0
+  , density = 1
   , complexity = 0
   }
 
@@ -234,7 +234,7 @@ p4 =
   , role = Hat
   , label = "Hat Drum"
   , voice = 6
-  , density = 1
+  , density = 2
   , complexity = 2
   }
 
@@ -310,7 +310,7 @@ emptyVoice =
   , role = Kick
   , label = ""
   , voice = 0
-  , density = 0
+  , density = 1
   , complexity = 1
   } 
 
@@ -505,6 +505,11 @@ c2 =
   , root = 35
   , size = 2
   }
+
+
+emptyLayout : Layout
+emptyLayout = 
+  ("", [])
 
 
 layout1 : List Scope

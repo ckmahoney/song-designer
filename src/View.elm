@@ -20,6 +20,11 @@ keyNames =
   if useSharps then D.sharps else D.flats
 
 
+keyLabel : Int -> String
+keyLabel key =
+  Maybe.withDefault "No key found for that." <| Tools.get key keyNames
+
+
 roleRow : Html msg
 roleRow = 
   div [] (List.map roleIcon D.roles)
@@ -173,22 +178,28 @@ synthDescription preset =
 
 complexityMessage : T.Voice -> Html msg
 complexityMessage {complexity} =
-  if complexity < 2 then 
-    text "Very basic harmonics."
-  else if complexity < 5 then 
-    text "Compelling harmonic motion without getting too far out."
-  else
-    text "Higher depths of harmony with ambiguous results."
+  case complexity of
+    1 ->
+      text "Very basic harmonics."
+    2 ->
+      text "Compelling harmonic motion without getting too far out."
+    3 ->
+      text "Higher depths of harmony with ambiguous results."
+    _ ->
+      text "Extra special complexity bug 1837"
 
 
 densityMessage : T.Voice -> Html msg
 densityMessage {density} =
-  if density == 1 then 
-    text "Very basic structure."
-  else if density < 3 then 
-    text "A good amount of structural variation for interest and stability."
-  else
-    text "A lot of motion, sometimes causing blurriness or obscurity."
+  case density of 
+    1 ->
+      text "Clear outlines with no embellishments. A basic structure."
+    2->
+      text "Embelleshments and variations for featured parts."
+    3 ->
+      text "A lot of motionk, induces more energy but requires more focus."
+    _ ->
+      text "Extra special density bug 21837"
 
 
 viewVoice : T.Voice -> Html msg
@@ -230,19 +241,11 @@ editVoice voice sig buttSave buttDelete =
     ]
 
 
-scopeEditor : List T.Scope -> (Maybe T.Scope) -> (Int -> msg) -> ((Maybe T.Scope) -> msg) -> Html msg
-scopeEditor scopes scope select update =
-  case scope of
-    Nothing ->
-      scopePicker scopes select
- 
-    Just s ->
-      editScope s update
 
 
 addAnother : msg -> Html msg
 addAnother msg =
-  div [ class "box", onClick msg ] [ text "+" ] 
+  div [ class "is-size-6 has-background-black has-text-white  box column is-vcentered has-text-centered", onClick msg ] [ text "Add Another" , span [] [text "+"] ] 
 
 
 rolePicker : List T.SynthRole -> (Int -> msg) -> Html msg
@@ -250,22 +253,24 @@ rolePicker roles select =
   Components.picker roles roleIcon select
 
 
-scopePicker : List T.Scope -> (Int -> msg) -> Html msg
-scopePicker scopes select =
-  Components.picker scopes scopeIcon select
+scopePicker : List T.Scope -> (Int -> msg) -> msg -> Html msg
+scopePicker scopes select createNew  =
+  Components.pickerAnd scopes (addAnother createNew) scopeIcon select
 
 
 voicePicker : List T.Voice -> (Int -> msg) -> msg -> Html msg
 voicePicker voices select createNew =
-  let
-    yy = Debug.log "voicePicker.args" select
-  in 
-  Components.pickerAnd voices (addAnother createNew)  voiceIcon select
+  Components.pickerAnd voices (addAnother createNew) voiceIcon select
 
 
-layoutPicker : List T.Layout -> (Int -> msg) -> Html msg
-layoutPicker layouts select = 
+layoutPickerOld : List T.Layout -> (Int -> msg) -> Html msg
+layoutPickerOld layouts select = 
   Components.picker layouts layoutIcon select
+
+
+layoutPicker : List T.Layout -> (Int -> msg) -> msg -> Html msg
+layoutPicker layouts select createNew = 
+  Components.pickerAnd layouts (addAnother createNew) layoutIcon select
 
 
 ensemblePicker : List T.NamedEnsemble -> (Int -> msg) -> Html msg
@@ -385,8 +390,30 @@ countStems score =
     sum + (List.length ensemble)) 0 score
 
 
-editScope : T.Scope -> ((Maybe T.Scope) -> msg) -> Html msg
-editScope model sig = 
+-- editVoice : T.Voice -> ((Maybe T.Voice) -> msg) -> Html msg -> Html msg ->  Html msg
+editScope : T.Scope -> ((Maybe T.Scope) -> msg) -> Html msg -> Html msg -> Html msg
+editScope model sig buttSave buttDelete = 
+  let
+    justSig = (\x -> sig (Just x))
+    updateLabel = (\str -> justSig { model | label = str })
+    updateCPC = (\int -> justSig { model | cpc = int })
+    updateSize = (\int -> justSig { model | size = int })
+    updateCPS = (\flt -> justSig { model | cps = flt })
+    updateRoot = (\flt -> justSig { model | root = flt })
+    -- done = (sig Nothing)
+  in 
+    Components.card2  ("Scope: " ++ model.label) [buttSave, buttDelete] <| div [ class "scope-editor v3" ]
+     [ Components.editText "Label" labelInfo model.label updateLabel
+     , Components.editInt "Meter" (meterMessage model) D.rangeCPC model.cpc updateCPC
+     , Components.editInt "Size" (sizeMessage model) D.rangeScopeSize model.size updateSize 
+     , Components.editRange "Tempo" (tempoMessage model) D.rangeCPS model.cps updateCPS 
+     , Components.keyPicker False model.root updateRoot 
+     ] 
+
+
+
+editScopeOld : T.Scope -> ((Maybe T.Scope) -> msg) -> Html msg 
+editScopeOld model sig =
   let
     justSig = (\x -> sig (Just x))
     updateLabel = (\str -> justSig { model | label = str })
@@ -504,15 +531,17 @@ scopeIcon scope =
   div [ class "box" ] 
     [ label [ class "label" ] [ text scope.label ]
     , Components.svg "scope"
-    , p [ class "content" ] [ text (scopeTimeString scope) ]
-    ] 
+    , div [ class "content" ]
+      [ p [] [ text (scopeTimeString scope) ] 
+      , p [] [ text "Key of ", b [] [   ]
+    ] ] ]
 
 
 voiceIcon : T.Voice -> Html msg
 voiceIcon voice = 
   div [ class "box" ] 
     [ label [ class "label" ] [ text voice.label ]
-    , Components.svg "voice"
+    , roleIcon voice.role
     , p [ class "content" ] [ text (Tuple.first <| D.roleLabel voice.role) ]
     ] 
 
@@ -534,11 +563,16 @@ layoutNamer title rename =
   Components.editText "Label" (text content) title rename 
 
 
+editLayout : T.Layout -> ((Maybe T.Layout) -> msg) -> Html msg -> Html msg -> Html msg
+editLayout layout sig buttSave buttDelete  =
+  div [] [text "editing the layout"] 
+
+
 layoutEditor : List T.Scope -> List T.Layout -> (Maybe T.Layout) -> (Int -> msg) -> ((Maybe T.Layout) -> msg) -> (List T.Layout -> msg) -> Html msg
 layoutEditor options layouts current select updateCurrent updateAll =
   case current of 
     Nothing ->
-      layoutPicker layouts select
+      layoutPickerOld layouts select 
 
     Just ((label, scopes) as l) ->
       Components.card ("Layout: " ++ label) <| Components.wraps <|
