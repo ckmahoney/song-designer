@@ -151,7 +151,7 @@ editInt title html (min, max) val toMsg =
   div [ class "box"]
     [ div [ class "columns is-multiline"]
       [ div [ class "columns is-multiline column is-full"] 
-            [ Html.h5 [ class "column is-one-quarter subtitle"] [ text title ]
+            [ Html.h5 [ class "column is-half subtitle"] [ text title ]
             , div [ class "column is-half is-flex is-flex-row level"] 
                      [ less
                      , Html.b [] [" " ++ String.fromInt val |> text ]
@@ -192,15 +192,15 @@ editText title html val toMsg =
 
 editSelection : a -> String -> Html msg -> List (a, (Html msg)) -> a -> (a -> msg) -> Html msg
 editSelection curr label info options current select =
-  div [ class " box" ]
+  div [ class "box" ]
     [ Html.h5 [ class "subtitle" ] [ Html.label [] [ text label ] ]
     , info
-    , div [ class "columns is-multiline" ] <|
+    , div [ class "columns" ] <|
       List.map (\(val, html) -> 
         let 
           fx = if (val == curr) then invertColor  else wrap
         in 
-        fx <| div [ class "has-background-white column", onClick (select val) ] [ html ]) options ]
+        div [ class "class column",  onClick (select val) ] [ fx <| div [ class "has-text-centered has-background-white" ] [ html ] ]  ) options ]
 
 
 card : String -> Html msg-> Html msg
@@ -209,8 +209,19 @@ card title content =
     [ Html.header [ class "card-header" ] 
       [ Html.p [ class "card-header-title" ] [ text title ]
       ]
+   , div [ class "card-content" ] [ content ]
+   ]
+
+
+card2 : String -> List (Html msg) -> Html msg-> Html msg
+card2 title titleMore content = 
+  div [ class "card my-3" ] 
+    [ Html.header [ class "card-header" ] 
+      ( [ Html.p [ class "card-header-title" ] [ text title ] ]
+      ++ titleMore )
+      
    , div [ class "card-content" ] 
-        [ content ] ] 
+        [ content ] ]
 
 
 box =
@@ -250,6 +261,14 @@ picker things icon select =
          [ icon thing ]) things
 
 
+pickerAnd : List a -> (Html  msg) -> (a -> Html msg) -> (Int -> msg) ->  Html msg
+pickerAnd things more icon select = 
+  div [ class "columns is-multiline level is-vcentered" ] <|
+     (List.indexedMap (\i thing ->
+       div [ class "column is-vcentered has-text-centered", onClick (select i) ]
+         [ icon thing ] ) things) ++ [more]
+
+
 colsWith : List (Html.Attribute msg) -> (List (Html msg) -> Html msg)
 colsWith attrs =
   div ([ class "columns" ] ++ attrs) 
@@ -268,6 +287,16 @@ colsMulti  =
 col : List (Html.Attribute msg) -> (List (Html msg) -> Html msg)
 col attrs =
   div ([ class "column" ] ++ attrs) 
+
+
+colSize : String -> Html msg -> Html msg
+colSize size child =
+  div [ class "column", class size ] [ child ]
+
+
+colHalf : Html msg -> Html msg
+colHalf child =
+  colSize "is-half" child
 
 
 type alias Model 

@@ -163,9 +163,6 @@ comboIcon ((scope, (ensLabel, ensemble)) as model) =
     ] 
 
   
-
-  
-
 synthDescription : T.Voice -> Html msg
 synthDescription preset =
   div [class "column media-left"]
@@ -194,8 +191,21 @@ densityMessage {density} =
     text "A lot of motion, sometimes causing blurriness or obscurity."
 
 
-editVoice : T.Voice -> ((Maybe T.Voice) -> msg) -> Html msg
-editVoice voice sig =
+viewVoice : T.Voice -> Html msg
+viewVoice voice =
+  Components.box 
+    [ label [ class "label" ] [ text voice.label ] 
+    , Components.colsWith [] 
+        [ div [ class "column is-one-third"] [ roleIcon voice.role ]
+        , div [ class "column is-two-thirds"] [ roleDescription voice.role ]
+        ]
+    , p [] [ densityMessage voice ] 
+    , p [] [ complexityMessage voice ] 
+    ] 
+
+
+editVoice : T.Voice -> ((Maybe T.Voice) -> msg) -> Html msg -> Html msg ->  Html msg
+editVoice voice sig buttSave buttDelete =
   let 
     justSig = (\x -> sig (Just x))
     updateComplexity = (\n -> justSig { voice | complexity = n })
@@ -205,23 +215,19 @@ editVoice voice sig =
     updateDuty = (\d -> justSig { voice | duty = d } )
     options = List.map (\r -> (r, roleIcon r)) D.roles
   in
-  Components.card ("Voice: " ++ voice.label) <| div [ class "container" ] 
-    [ Components.editText "Label" (text "") voice.label updateLabel
+  Components.card2 ("Editing Voice" ++ voice.label) [buttSave, buttDelete] <|
+   div [ class "container" ] 
+    [ Components.colsWith [ class "is-mobile is-flex is-justify-content-space-between" ] 
+        [ Components.colHalf <| viewVoice voice
+        , Components.colHalf <| Components.editText "Label" (text "") voice.label updateLabel
+        ]  
+    , Components.editSelection voice.role "Role" (text "") options voice.role updateRole 
     , Components.editToggle "Duty" (T.Structure, "Structural") (T.Expression, "Expressive") voice.duty updateDuty
-    , Components.editInt "Density" (densityMessage voice) D.rangeDensity voice.density updateDensity
-    , Components.editInt "Complexity" (complexityMessage voice) D.rangeComplexity voice.complexity updateComplexity
-    , Components.editSelection voice.role "Role" (roleDescription voice.role) options voice.role updateRole 
+    , Components.colsWith [ class "is-mobile is-flex is-justify-content-space-between" ] 
+       [ Components.colHalf <| Components.editInt "Density" (densityMessage voice) D.rangeDensity voice.density updateDensity
+       , Components.colHalf <| Components.editInt "Complexity" (complexityMessage voice) D.rangeComplexity voice.complexity updateComplexity
+       ]
     ]
-
-
-voiceEditor : List T.Voice -> (Maybe T.Voice) -> (Int -> msg) ->  ((Maybe T.Voice) -> msg) -> Html msg
-voiceEditor voices voice select update =
-  case voice of  
-    Nothing ->
-      voicePicker voices select 
- 
-    Just v ->
-      editVoice v update
 
 
 scopeEditor : List T.Scope -> (Maybe T.Scope) -> (Int -> msg) -> ((Maybe T.Scope) -> msg) -> Html msg
@@ -234,14 +240,27 @@ scopeEditor scopes scope select update =
       editScope s update
 
 
+addAnother : msg -> Html msg
+addAnother msg =
+  div [ class "box", onClick msg ] [ text "+" ] 
+
+
+rolePicker : List T.SynthRole -> (Int -> msg) -> Html msg
+rolePicker roles select =
+  Components.picker roles roleIcon select
+
+
 scopePicker : List T.Scope -> (Int -> msg) -> Html msg
 scopePicker scopes select =
   Components.picker scopes scopeIcon select
 
 
-voicePicker : List T.Voice -> (Int -> msg) -> Html msg
-voicePicker voices select =
-  Components.picker voices voiceIcon select
+voicePicker : List T.Voice -> (Int -> msg) -> msg -> Html msg
+voicePicker voices select createNew =
+  let
+    yy = Debug.log "voicePicker.args" select
+  in 
+  Components.pickerAnd voices (addAnother createNew)  voiceIcon select
 
 
 layoutPicker : List T.Layout -> (Int -> msg) -> Html msg
@@ -640,7 +659,7 @@ comboIncompleteIcon ((scope, ensemble) as model) =
 
 viewComboP : T.ComboP -> Html msg
 viewComboP  ((mScope, mEnsemble) as model)  =
-  Components.box <| List.singleton  <|  case model of
+  Components.box <| List.singleton  <| case model of
     (Just ({cpc,cps,size} as a), Just (eLabel, b)) -> 
       Components.wraps <|
           [ label [ class "label" ] [ text a.label ]

@@ -303,6 +303,18 @@ meta1 =
   }
 
 
+emptyVoice : Voice
+emptyVoice =
+  { id = -1
+  , duty = Structure
+  , role = Kick
+  , label = ""
+  , voice = 0
+  , density = 0
+  , complexity = 1
+  } 
+
+
 emptyMetaP =
   { title = Just ""
   , cpc = Just 1
