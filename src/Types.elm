@@ -118,8 +118,12 @@ type alias Layout = (String, List Scope)
 type alias Score 
   = (ScoreMeta, List Combo)
 
-type alias Template
+type alias TemplateP
   = (ScoreMetaP, List ComboP)
+
+
+type alias Template
+  = (ScoreMeta, Layout)
 
 type alias NamedEnsemble 
   = (String, Ensemble)

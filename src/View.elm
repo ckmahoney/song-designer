@@ -60,25 +60,25 @@ layoutDuration scopes =
   List.foldl (\(cps, nCycles) total -> total + (cps * toFloat nCycles)) 0 (getTimes scopes)
 
 
-templateDetails : T.Template -> Html msg
-templateDetails ((mMeta, mScopes) as template) =
-  case mScopes of 
-    [] -> 
-      text "Empty template has no length."
+-- templateDetails : T.Template -> Html msg
+-- templateDetails ((mMeta, mScopes) as template) =
+--   case mScopes of 
+--     [] -> 
+--       text "Empty template has no length."
 
-    combos  ->
-      let
-         scopes = List.map Tuple.first <| List.filter (\(m, xx) -> case m of 
-           Nothing -> False
-           _ -> True ) combos
+--     combos  ->
+--       let
+--          scopes = List.map Tuple.first <| List.filter (\(m, xx) -> case m of 
+--            Nothing -> False
+--            _ -> True ) combos
          
-         -- yy = Debug.log "Has scopes:" scopes
-         length = layoutDuration <| Tools.unMaybe scopes D.emptyScope
-      in 
-      Components.box 
-        [ text " total length of this template : "   
-        , text <| timeString length
-         ]
+--          -- yy = Debug.log "Has scopes:" scopes
+--          length = layoutDuration <| Tools.unMaybe scopes D.emptyScope
+--       in 
+--       Components.box 
+--         [ text " total length of this template : "   
+--         , text <| timeString length
+--          ]
 
 
 editLayoutMessage : Html msg
@@ -151,9 +151,9 @@ scoreIcon (meta, combos) =
 
 
 templateIcon : T.Template ->  Html msg
-templateIcon (mMeta, mCombos) =
+templateIcon (meta, mCombos) =
   div [ class "container" ] 
-    [ label [ class "label" ] [ text <| Maybe.withDefault "No title" mMeta.title ]
+    [ label [ class "label" ] [ text meta.title ]
     , Components.svg "score"
     , p [ class "content" ] [ text "This is a template for making scores. Use it as a basis for making variations of styles and genres." ]
     ] 
@@ -241,6 +241,11 @@ editVoice voice sig buttSave buttDelete =
     ]
 
 
+editTemplate : T.Template -> List T.Layout -> List T.Voice -> ((Maybe T.Template) -> msg) -> Html msg -> Html msg ->  Html msg
+editTemplate ((scoreMeta, combos) as template) layouts voices sig buttSave buttDelete =
+  Components.card2 ("Editing Template" ++ scoreMeta.title) [buttSave, buttDelete] <|
+   div [ class "container" ] 
+     [ text "editing the template" ]
 
 
 addAnother : msg -> Html msg
@@ -271,6 +276,11 @@ layoutPickerOld layouts select =
 layoutPicker : List T.Layout -> (Int -> msg) -> msg -> Html msg
 layoutPicker layouts select createNew = 
   Components.pickerAnd layouts (addAnother createNew) layoutIcon select
+
+
+templatePicker : List T.Template -> (Int -> msg) -> msg -> Html msg
+templatePicker templates select createNew = 
+  Components.pickerAnd templates (addAnother createNew) templateIcon select
 
 
 ensemblePicker : List T.NamedEnsemble -> (Int -> msg) -> Html msg
@@ -563,9 +573,15 @@ layoutNamer title rename =
   Components.editText "Label" (text content) title rename 
 
 
-editLayout : T.Layout -> ((Maybe T.Layout) -> msg) -> Html msg -> Html msg -> Html msg
-editLayout layout sig buttSave buttDelete  =
-  div [] [text "editing the layout"] 
+editLayout : T.Layout -> List T.Scope -> ((Maybe T.Layout) -> msg) -> Html msg -> Html msg -> Html msg
+editLayout ((label, parts) as layout) scopes sig buttSave buttDelete  =
+  Components.card2 ("Editing Layout " ++ label) [buttSave, buttDelete] <|
+   div [ class "container" ] 
+    [ layoutNamer label (\str -> sig (Just (str, parts)))
+    , viewLayout layout
+    , layoutAdder scopes (\scope -> sig (Just (label, Tools.conj scope parts)))
+    ]
+    
 
 
 layoutEditor : List T.Scope -> List T.Layout -> (Maybe T.Layout) -> (Int -> msg) -> ((Maybe T.Layout) -> msg) -> (List T.Layout -> msg) -> Html msg
@@ -709,31 +725,41 @@ viewComboP  ((mScope, mEnsemble) as model)  =
 
     (Nothing, Just a) ->
       label [ class "subtitle"] [ text "Select a scope." ]
+
+
+viewCombo : T.Combo -> Html msg
+viewCombo  (({cpc,cps,size} as scope), (eLabel, ensemble))  =
+  Components.box
+    [ label [ class "label" ] [ text scope.label ]
+    , label [ class "label" ] [ text eLabel ]
+    , p [] [ text <| timeString <| duration cpc cps size ]
+    ]
        
 
 viewTemplate : T.Template -> Html msg
-viewTemplate ((mMeta, mCombos) as template) =
-  Components.wraps <| [ label [ class "title" ] [] ] ++ List.map viewComboP (Debug.log "Looking at combos:" mCombos)
+viewTemplate ((scoreMeta, (name, scopes)) as template) =
+  Components.box <|
+    [ label [ class "title" ] [ text scoreMeta.title  ] ] ++ (List.map scopeIcon scopes)
 
 
-comboPEditor : List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
-comboPEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
-  case curr of
-    Nothing -> 
-      Components.picker combos viewComboP (\i -> updateCombo (Tools.get i combos))
+-- comboPEditor : List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
+-- comboPEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
+--   case curr of
+--     Nothing -> 
+--       Components.picker combos viewComboP (\i -> updateCombo (Tools.get i combos))
  
-    Just cp ->
-      Components.card (Maybe.withDefault "This template has no title."  meta.title)  <| Components.wraps <|
-        [ templateMessage
-        , templateDetails template
-        , viewTemplate template
-        , comboEditor scopes ensembles cp updateCombo ]
+--     Just cp ->
+--       Components.card (Maybe.withDefault "This template has no title." meta.title)  <| Components.wraps <|
+--         [ templateMessage
+--         , templateDetails template
+--         , viewTemplate template
+        -- , comboEditor scopes ensembles cp updateCombo ]
 
 
-templateEditor :  List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
-templateEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
-  div [ class "template-editor"] <| 
-    List.map viewComboP combos
+-- templateEditor :  List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
+-- templateEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
+  -- div [ class "template-editor"] <| 
+    -- List.map viewComboP combos
 
 
 main =

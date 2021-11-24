@@ -339,6 +339,10 @@ metaP2 =
   }
 
 
+emptyTemplate : Template
+emptyTemplate = 
+  (emptyScoreMeta, emptyLayout)
+
 template1 = 
   (metaP1, [comboP1, comboP3, comboP2, comboP1, comboP1, comboP3])
 
@@ -347,7 +351,7 @@ template2 =
   (metaP2, [comboP2, comboP4])
 
 
-coreTemplates : List Template
+coreTemplates : List TemplateP
 coreTemplates =
   [ template1
   , template2
@@ -512,6 +516,7 @@ emptyLayout =
   ("", [])
 
 
+
 layout1 : List Scope
 layout1 = [s1, s2, s3]
 
@@ -620,6 +625,11 @@ comboP4 =
 combos : List Combo
 combos =
   [ combo1, combo2, combo3 ]
+
+
+emptyScoreMeta =
+  ScoreMeta "" 1 1 1
+  
 
 coreScores : List Score
 coreScores =
