@@ -517,9 +517,6 @@ designEnsemble options current update =
 --           , span [class "delete", onClick (remove voice) ] [] ] ) ensemble ]
 
 
-viewLayout : T.Layout -> Html msg
-viewLayout (label, combos) =
-  Components.viewList combos comboIcon
 
 
 viewLayoutWithRemover : T.Layout -> (T.Combo -> msg) -> Html msg
@@ -619,19 +616,22 @@ layoutIcon (name, scopes) =
 layoutNamer : String -> (String -> msg) -> Html msg
 layoutNamer title rename =
   let 
-    content = "A nickname for this pattern of scopes.."
+    content = "A nickname for this pattern of combos. Use broad, generic terms such as \"Trap Ballad\" or \"Upbeat and Happy\""   
   in 
   Components.editText "Label" (text content) title rename 
 
 
-editLayout : T.Layout -> List T.Scope -> List T.Voice -> ( T.Layout -> msg) -> (T.ComboP -> msg) -> (List T.Combo -> msg) -> Html msg -> Html msg -> Html msg
-editLayout ((label, combos) as layout) scopeOpts voiceOpts sig editComboP updateCombos buttSave buttDelete  =
-  Components.card2 ("Editing Layout " ++ label) [buttSave, buttDelete] <|
-   div [ class "container" ] 
-    [ layoutNamer label (\str -> sig (str, combos))
-    , viewLayout layout
-    -- , comboEditor scopeOpts voiceOpts (Nothing, Nothing) comboP  editComboP updateCombos
-    ]
+viewLayout : T.Layout -> (T.ComboP -> msg) -> Html msg
+viewLayout (name, combos) createCombo =
+  if 0 == List.length combos then 
+    Components.box 
+      [ text "You don't have any combos yet. Click here to add the first one." 
+      , Components.button (createCombo (Nothing, Nothing)) [] "add a combo" ]
+  else 
+    Components.box
+      (List.indexedMap (\i ((scope, ensemble) as combo) -> 
+      div [ onClick <| (createCombo (Just scope, Just ensemble)) ] [ comboIcon combo ] 
+     ) combos)
 
 
 designLayout : T.Layout -> List T.Scope -> List T.Voice -> ( T.Layout -> msg) -> (T.ComboP -> msg) -> (List T.Combo -> msg) -> Html msg -> Html msg -> Html msg
@@ -639,90 +639,86 @@ designLayout ((label, combos) as layout) scopeOpts voiceOpts sig sigEditComboP u
   Components.card2 ("Editing Layout " ++ label) [buttSave, buttDelete] <|
    div [ class "container" ] <|
     [ layoutNamer label (\str -> sig (str, combos))
-    , viewLayout layout
-    , Components.button (sigEditComboP (Nothing, Nothing)) [] "add a combo"
-    ] ++
-    (List.indexedMap (\i (scope, ensemble) -> 
-      div [ onClick <| sigEditComboP (Just scope, Just ensemble) ] [ text <| String.fromInt i ]
-     ) combos)
+    , viewLayout layout sigEditComboP
+    ] 
+
    
-    
-
-
 editScore : T.Score -> (T.Score -> msg) -> Html msg -> Html msg -> Html msg
 editScore score sig buttSave butDelete = 
   text "editing score"
     
 
-layoutEditor : List T.Scope -> List T.Layout -> (Maybe T.Layout) -> (Int -> msg) -> ((Maybe T.Layout) -> msg) -> (List T.Layout -> msg) -> Html msg
-layoutEditor options layouts current select updateCurrent updateAll =
-  case current of 
-    Nothing ->
-      layoutPickerOld layouts select 
-
-    Just ((label, combos) as l) ->
-      Components.card ("Layout: " ++ label) <| Components.wraps <|
-        [ layoutNamer label (\str -> updateCurrent (Just (str, combos)))
-        , viewLayout l 
-        , viewLayoutWithRemover l (\layout -> updateCurrent (Just (label, (Tools.remove (Just layout) combos))))
-        -- , layoutAdder options (\combo -> updateCurrent (Just (label, Tools.conj combo combos)))
-        ]
 
 
 comboEditor : List T.Scope -> List T.Voice ->  T.ComboP ->  (T.ComboP -> msg) -> (T.Combo -> msg) -> Html msg
 comboEditor scopes voices comboP contMsg doneMsg =
   let
-    updateFirst = (\second -> (\scope ->
+    updateFirst = (\scope ->
       let
         next : T.ComboP
-        next = (Just scope, Just second)
+        next = (Just scope, Tuple.second comboP)
       in
-      contMsg next))
-    updateSecond = (\first -> (\ens ->
+      contMsg next)
+
+    updateSecond = (\ens ->
       let
         next : T.ComboP
-        next = (Just first, Just ens)
+        next = (Tuple.first comboP, Just ens)
       in
-      contMsg next))
+      contMsg next)
+
     justFirst = (\first -> contMsg (Just first, Nothing))
     justSecond = (\second -> contMsg  (Nothing, Just second))
-  in 
+
+    updateEnsemble : T.Voice -> msg
+    updateEnsemble = (\voice -> 
+      (updateSecond  [voice]))
+
+    updateScope : T.Scope -> msg
+    updateScope = (\scope -> 
+      (updateFirst  scope))
+
+    pickingScope = Components.cols <|
+      List.map (\scope ->
+         Components.col [ class "has-text-centered", onClick (updateFirst scope)] [ scopeIcon scope ]) scopes
+
+    pickingVoices = (\ens -> Components.cols <|
+       List.indexedMap (\i voice ->
+         Components.col [ class "has-text-centered",  onClick (updateSecond (Tools.conj voice ens))] [ voiceIcon voice ]) voices )
+
+    showingScope = (\s -> 
+      div [ class "column is-full" ] 
+         [ div [ class "delete", onClick (justFirst s) ] [] 
+         , scopeIcon s  ])
+    showingEnsemble = (\e ->
+      div [ class "column is-full" ] 
+         [ div [ class "delete", onClick (justSecond e) ] [] 
+         , ensembleIcon e ])
+  in
   case comboP of
     (Nothing, Nothing) -> 
-      let
-        updateEnsemble : T.Voice -> msg
-        updateEnsemble = (\voice -> 
-          contMsg  (Nothing, Just [voice]))
-
-        updateScope : T.Scope -> msg
-        updateScope = (\scope -> contMsg (Just scope, Nothing))
-      in
       Components.wraps <|
         [ label [ class "has-background-danger subtitle"] [ ]
         , p [ ] [ text "Select a scope for this combo." ]
-        , Components.cols <|
-           List.map (\ensItem ->
-             Components.col [ class "has-text-centered", onClick (updateScope ensItem)] [ scopeIcon ensItem ]) scopes
+        , pickingScope
         , p [ ] [ text "Add a voice to this combo." ]
-        , Components.cols <|
-           List.map (\voice ->
-             Components.col [ class "has-text-centered",  onClick (updateEnsemble voice)] [ voiceIcon voice ]) voices  ]
-    (Nothing, Just mEns) -> text "ens"
-
-    (Just mScope, Nothing) -> text "ens"
-
+        , pickingVoices [] ]
+    (Nothing, Just mEns) -> 
+      Components.colsMulti
+        [ pickingScope
+        , pickingVoices mEns
+        ]
+    (Just mScope, Nothing) -> 
+      Components.colsMulti
+        [ showingScope mScope
+        , pickingVoices []
+        ]
     (Just a, Just b) -> 
-      Components.colsMulti <|
-      [ div [ class "column is-full" ] 
-         [ div [ class "delete", onClick (justFirst a) ] [] 
-         , scopeIcon a  ]
-      , div [ class "column is-full" ] 
-         [ div [ class "delete", onClick (justSecond b) ] [] 
-         , ensembleIcon b ] 
-      , Components.button (doneMsg (a,b)) [] "Done"
-      ]
-   
-
+      Components.colsMulti
+        [ showingScope a
+        , showingEnsemble b 
+        , Components.button (doneMsg (a,b)) [] "Done"
+        ]
 
 
 comboCompleteIcon : T.Combo -> Html msg
