@@ -110,10 +110,10 @@ type alias NPresetKit = (String, Ensemble)
 type alias Section = (Scope, Ensemble)
 type alias SectionP = (Maybe Scope, Maybe Ensemble)
 
-type alias Combo = (Scope, NamedEnsemble)
-type alias ComboP = (Maybe Scope, Maybe NamedEnsemble)
+type alias Combo = (Scope, Ensemble)
+type alias ComboP = (Maybe Scope, Maybe Ensemble)
 
-type alias Layout = (String, List Scope)
+type alias Layout = (String, List Combo)
 
 type alias Score 
   = (ScoreMeta, List Combo)

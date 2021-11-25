@@ -158,6 +158,11 @@ emptyScope =
   Scope -969 "Scope" 1 1 1 1
 
 
+emptyEnsemble : Ensemble
+emptyEnsemble = 
+  []
+
+
 s1 : Scope
 s1 =
   { id = -1
@@ -343,19 +348,12 @@ emptyTemplate : Template
 emptyTemplate = 
   (emptyScoreMeta, emptyLayout)
 
-template1 = 
-  (metaP1, [comboP1, comboP3, comboP2, comboP1, comboP1, comboP3])
 
-
-template2 =
-  (metaP2, [comboP2, comboP4])
-
-
-coreTemplates : List TemplateP
-coreTemplates =
-  [ template1
-  , template2
-  ] 
+-- coreTemplates : List TemplateP
+-- coreTemplates =
+  -- [ template1
+  -- , template2
+  -- ] 
 
 
 
@@ -516,24 +514,29 @@ emptyLayout =
   ("", [])
 
 
-
-layout1 : List Scope
-layout1 = [s1, s2, s3]
-
-
-layout2 : List Scope
-layout2 = [ s2, s2, s3, s1]
+emptyCombo : Combo
+emptyCombo = 
+  (emptyScope, [])
 
 
-layout3 : List Scope
-layout3 =
+
+scopes1 : List Scope
+scopes1 = [s1, s2, s3]
+
+
+scopes2 : List Scope
+scopes2 = [ s2, s2, s3, s1]
+
+
+scopes3 : List Scope
+scopes3 =
   [ v1, v2, c1, c2 ]
 
 
 coreScopes =
-  [ layout1
-  , layout2
-  , layout3
+  [ scopes1
+  , scopes2
+  , scopes3
   ] 
 
 
@@ -541,9 +544,9 @@ coreLayoutTitles =
   [ "Verse 1", "Verse 2", "Chorus 1", "Chorus 2"]
 
 
-coreLayouts : List Layout
-coreLayouts =
-  List.map2 (\a b -> (a, b)) coreLayoutTitles coreScopes
+-- coreLayouts : List Layout
+-- coreLayouts =
+  -- List.map2 Tuple.pair coreLayoutTitles coreScopes
 
 
 kitVC1 : Ensemble
@@ -591,40 +594,32 @@ ens3 =
   ("Everything", kitAll)
 
 
-coreNamedEnsembles : List NamedEnsemble
-coreNamedEnsembles =
-  [ ens1, ens2, ens3 ] 
+coreEnsembles : List Ensemble
+coreEnsembles =
+  [ kitBeat, kitSynth, kitAll ] 
 
 
 
 combo1 =
-  (v1, ens2)
+  (v1, kitSynth)
 
 
 combo2 =
-  (c1,ens2)
+  (c1,kitSynth)
 
 combo3 : Combo
 combo3 =
-  (v1,ens3)  
-
-
-comboP1 = 
-  (Nothing, Nothing)
-
-comboP2 = 
-  (Just v1, Nothing)
-
-comboP3 = 
-  (Nothing, Just ens2)
-
-comboP4 =
-  (Just v1, Just ens2)
+  (v1,kitAll)  
 
 
 combos : List Combo
 combos =
   [ combo1, combo2, combo3 ]
+
+
+emptyScore : Score
+emptyScore =
+  (emptyScoreMeta, [emptyCombo])
 
 
 emptyScoreMeta =
@@ -646,21 +641,21 @@ coreScores =
     , [ combo1
       , combo2
       , combo3
-      , (c1,ens3)
+      , (c1,kitAll)
       , combo1
-      , (c1,ens1)
-      , (v1,ens1)
-      , (c2,ens3)
+      , (c1,kitBeat)
+      , (v1,kitBeat)
+      , (c2,kitAll)
       ] )
   , ( ScoreMeta "Another Song Form" 3 2.5 33
-    , [ (v1,ens1)
+    , [ (v1,kitBeat)
       , combo1
       , combo3
       , combo2
-      , (v2,ens2)
-      , (v2,ens2)
-      , (v2,ens3)
-      , (c1,ens3)
+      , (v2,kitSynth)
+      , (v2,kitSynth)
+      , (v2,kitAll)
+      , (c1,kitAll)
       ] )
   ] 
 

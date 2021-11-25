@@ -118,10 +118,10 @@ presetIcon role =
           , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ] ]
 
 
-ensembleIcon : T.NamedEnsemble -> Html msg
-ensembleIcon (name, ensemble) = 
+ensembleIcon : T.Ensemble -> Html msg
+ensembleIcon  ensemble = 
   div [ class "box" ] 
-    [ label [ class "label" ] [ text name ]
+    [ label [ class "label" ] [ text "" ]
     , Components.svg "ensemble"
     , p [ class "content" ] [ text <| (String.fromInt <| List.length ensemble) ++ " voices" ]
     ] 
@@ -160,9 +160,9 @@ templateIcon (meta, mCombos) =
 
 
 comboIcon : T.Combo -> Html msg
-comboIcon ((scope, (ensLabel, ensemble)) as model) =
+comboIcon ((scope, ensemble) as model) =
   div [ class "box" ] 
-    [ label [ class "label" ] [ text <| scope.label ++ " & " ++ ensLabel ]
+    [ label [ class "label" ] [ text <| scope.label ]
     , Components.svg "ensemble"
     , p [ class "content" ] [ text <| (String.fromInt <| List.length ensemble) ++ " voices" ]
     ] 
@@ -241,15 +241,55 @@ editVoice voice sig buttSave buttDelete =
     ]
 
 
-editTemplate : T.Template -> List T.Layout -> List T.Voice -> ((Maybe T.Template) -> msg) -> Html msg -> Html msg ->  Html msg
-editTemplate ((scoreMeta, combos) as template) layouts voices sig buttSave buttDelete =
+editMeta : T.ScoreMeta -> (T.ScoreMeta -> msg) -> Html msg
+editMeta meta toMsg =
+  let 
+    updateCPC = (\int -> toMsg { meta | cpc = int })
+    updateCPS = (\int -> toMsg { meta | cps =  ((toFloat int) / 60) })
+    updateRoot = (\int -> toMsg { meta | root = Maybe.withDefault 15.0 (Tools.get int D.chromaticRoots) })
+  in 
+  Components.box
+    [ Components.editText "Tag" (text "") meta.title (\t -> toMsg { meta | title = t })
+    , Components.editInt "Meter" (meterMessage meta.cpc) D.rangeCPC meta.cpc updateCPC
+    , Components.editInt "Tempo" (metaTempoMessage meta.cps) (50, 260) (round (meta.cps * 60)) updateCPS 
+    , Components.keyPicker useSharps (Tools.findIndex meta.root D.chromaticRoots) updateRoot
+    ]
+
+
+editTemplateCombos : List T.Voice -> List T.Scope -> T.Layout ->  (( T.Layout) -> msg) -> Html msg -> Html  msg -> Html msg
+editTemplateCombos voices scopes ((label, combos) as layout) toMsg buttSave buttDelete =
+  Components.box <|
+    List.map comboIcon combos
+    -- [
+  -- ;; i already hav ea list of (Scope, Ensemble) to visualize the score. Let me do that first.
+    -- ]
+
+
+editTemplate : T.Template -> List T.Scope -> List T.Voice -> (T.Template -> msg) -> Html msg -> Html msg ->  Html msg
+editTemplate ((scoreMeta, layout) as template) scopes voices sig buttSave buttDelete =
+  let
+    uMeta = (\meta -> 
+      let
+       next = (meta, layout)
+      in 
+        sig (next))
+    uLayout = (\newCombos -> 
+      let
+       next = (scoreMeta, newCombos)
+      in 
+        sig (next))
+  in 
   Components.card2 ("Editing Template" ++ scoreMeta.title) [buttSave, buttDelete] <|
-   div [ class "container" ] 
-     [ text "editing the template" ]
+   div [ class "container" ]
+     [ editMeta scoreMeta uMeta 
+     , editTemplateCombos voices scopes layout uLayout (text "save") (text "delete") 
+     ]
+
+
 
 
 addAnother : msg -> Html msg
-addAnother msg =
+addAnother msg = 
   div [ class "is-size-6 has-background-black has-text-white  box column is-vcentered has-text-centered", onClick msg ] [ text "Add Another" , span [] [text "+"] ] 
 
 
@@ -268,6 +308,11 @@ voicePicker voices select createNew =
   Components.pickerAnd voices (addAnother createNew) voiceIcon select
 
 
+scorePicker : List T.Score -> (Int -> msg) -> msg -> Html msg
+scorePicker scores select createNew =
+  Components.pickerAnd scores (addAnother createNew) scoreIcon select
+
+
 layoutPickerOld : List T.Layout -> (Int -> msg) -> Html msg
 layoutPickerOld layouts select = 
   Components.picker layouts layoutIcon select
@@ -282,10 +327,6 @@ templatePicker : List T.Template -> (Int -> msg) -> msg -> Html msg
 templatePicker templates select createNew = 
   Components.pickerAnd templates (addAnother createNew) templateIcon select
 
-
-ensemblePicker : List T.NamedEnsemble -> (Int -> msg) -> Html msg
-ensemblePicker ensembles select =
-  Components.picker ensembles ensembleIcon select
 
 
 instrumentEditor : T.Voice -> msg -> msg -> Html msg
@@ -334,15 +375,25 @@ sectionToLength nCycles cps =
   nCycles * (toFloat cps)
 
 
-tempoMessage : T.Scope -> Html msg
-tempoMessage ({cps, size} as model) =
+tempoMessage : Int -> Float -> Int -> Html msg
+tempoMessage cpc  cps size =
   div [class "content"] 
-    [ p [] [text "The speed for you track. Higher BPM are faster, and lower BPM are slower."]
-    , p [] [ text <| "With size " ++ (String.fromInt size) ++ " at " ++ (bpmString cps) ++ "BPM, that means this section is " ++ (String.fromFloat (duration model.cpc model.cps model.size)) ++  " seconds long." ] ]
+    [ p [] [text "The speed for this element. Higher BPM are faster, and lower BPM are slower."]
+    , p [] [ text <| "With size " ++ (String.fromInt size) ++ " at " ++ (bpmString cps) ++ "BPM, that means this section is " ++ (String.fromFloat (duration cpc cps size)) ++  " seconds long." ] ]
 
 
-meterMessage : T.Scope -> Html msg
-meterMessage ({cpc} as model) =
+metaTempoMessage :  Float -> Html msg
+metaTempoMessage  cps  =
+  div [class "content"] 
+    [ p [] [text "The global playback rate for this song."
+      , label [ class "label" ] [ text <| (String.fromFloat (60 * cps) ++ " BPM") ] ]
+    , p [] [text "The tempo of each scope is relative to this global playback rate."]
+    ]
+
+
+
+meterMessage : Int -> Html msg
+meterMessage cpc =
   p [] [ text <| "This section has " ++ (timeSigString cpc) ++ " time." ]
 
 
@@ -381,8 +432,8 @@ sizeText cpc size =
   String.fromInt <| sizeToCycles cpc size
 
 
-sizeMessage : T.Scope -> Html msg
-sizeMessage ({size, cpc} as model) =
+sizeMessage : Int -> Int -> Html msg
+sizeMessage cpc size =
   div [] 
     [ p [] [ text <| "Using size " ++ (String.fromInt size) ++ " and " ++ String.fromInt cpc ++ " cycles per measure," ]
     , p [] [ text <| "That means this section is " ++ (sizeText cpc size) ++ " cycles long." ] ]
@@ -414,9 +465,9 @@ editScope model sig buttSave buttDelete =
   in 
     Components.card2  ("Scope: " ++ model.label) [buttSave, buttDelete] <| div [ class "scope-editor v3" ]
      [ Components.editText "Label" labelInfo model.label updateLabel
-     , Components.editInt "Meter" (meterMessage model) D.rangeCPC model.cpc updateCPC
-     , Components.editInt "Size" (sizeMessage model) D.rangeScopeSize model.size updateSize 
-     , Components.editRange "Tempo" (tempoMessage model) D.rangeCPS model.cps updateCPS 
+     , Components.editInt "Meter" (meterMessage model.cpc) D.rangeCPC model.cpc updateCPC
+     , Components.editInt "Size" (sizeMessage model.cpc  model.size) D.rangeScopeSize model.size updateSize 
+     , Components.editRange "Tempo" (tempoMessage model.cpc model.cps model.size) D.rangeCPS model.cps updateCPS 
      , Components.keyPicker False model.root updateRoot 
      ] 
 
@@ -435,9 +486,9 @@ editScopeOld model sig =
   in 
   Components.card ("Scope: " ++ model.label) <| div [ class "scope-editor v3" ]
    [ Components.editText "Label" labelInfo model.label updateLabel
-   , Components.editInt "Meter" (meterMessage model) D.rangeCPC model.cpc updateCPC
-   , Components.editInt "Size" (sizeMessage model) D.rangeScopeSize model.size updateSize 
-   , Components.editRange "Tempo" (tempoMessage model) D.rangeCPS model.cps updateCPS 
+   , Components.editInt "Meter" (meterMessage model.cpc) D.rangeCPC model.cpc updateCPC
+   , Components.editInt "Size" (sizeMessage model.cpc model.size) D.rangeScopeSize model.size updateSize 
+   , Components.editRange "Tempo" (tempoMessage  model.cpc model.cps model.size) D.rangeCPS model.cps updateCPS 
    , Components.keyPicker False model.root updateRoot 
    ] 
 
@@ -454,32 +505,32 @@ designEnsemble options current update =
       div [] [ text "Add and remove voices from this ensemble to update it. When you are done, save your changes." ]
 
 
-viewEnsembleWithRemover : T.NamedEnsemble -> (T.Voice -> msg) -> Html msg
-viewEnsembleWithRemover (label, ensemble) remove =
-  Components.box 
-    [ p [ class "mb-3" ] [ text "Remove voices from this ensemble." ] 
-    , div [ class "columns is-mobile is-multiline" ] <| 
-       List.map (\voice -> 
-        div [ class "column has-text-centered" ] 
-          [ roleIcon voice.role
-          , p [] [ text voice.label ]
-          , span [class "delete", onClick (remove voice) ] [] ] ) ensemble ]
+-- viewEnsembleWithRemover : T.NamedEnsemble -> (T.Voice -> msg) -> Html msg
+-- viewEnsembleWithRemover (label, ensemble) remove =
+--   Components.box 
+--     [ p [ class "mb-3" ] [ text "Remove voices from this ensemble." ] 
+--     , div [ class "columns is-mobile is-multiline" ] <| 
+--        List.map (\voice -> 
+--         div [ class "column has-text-centered" ] 
+--           [ roleIcon voice.role
+--           , p [] [ text voice.label ]
+--           , span [class "delete", onClick (remove voice) ] [] ] ) ensemble ]
 
 
 viewLayout : T.Layout -> Html msg
-viewLayout (label, scopes) =
-  Components.viewList scopes scopeIcon
+viewLayout (label, combos) =
+  Components.viewList combos comboIcon
 
 
-viewLayoutWithRemover : T.Layout -> (T.Scope -> msg) -> Html msg
-viewLayoutWithRemover ((label, scopes) as layout) remove =
+viewLayoutWithRemover : T.Layout -> (T.Combo -> msg) -> Html msg
+viewLayoutWithRemover ((scope, combos) as layout) remove =
   Components.box <|
-    [ p [ class "mb-3"] [ text "Remove scopes from this layout." ]
+    [ p [ class "mb-3"] [ text "Remove combos from this layout." ]
     , div [ class "columns is-mobile is-multiline" ] <| 
-        List.map (\scope -> 
+        List.map (\combo -> 
           div [ class "column has-text-centered" ]
-           [ scopeIcon scope
-           , Components.deleteIcon (remove scope) ]) scopes]
+           [ comboIcon combo
+           , Components.deleteIcon (remove combo) ]) combos]
 
 
 ensembleAdder : List T.Voice -> (T.Voice -> msg) -> Html msg
@@ -493,16 +544,16 @@ ensembleAdder opts add =
           , p [] [ text voice.label ] ] ) opts ]
 
 
-layoutAdder : List T.Scope -> (T.Scope -> msg) -> Html msg
-layoutAdder opts add =
-  Components.box 
-    [ p [ class "mb-3" ] [ text "Add a scope to this layout." ] 
-    , div [ class "columns is-mobile is-multiline" ] <| 
-        List.map (\scope -> 
-          div [ class "column has-text-centered", onClick (add scope) ] [ scopeIcon scope ] ) opts ]
+-- layoutAdder : List T.Combo -> (T.Combo -> msg) -> Html msg
+-- layoutAdder opts add =
+--   Components.box 
+--     [ p [ class "mb-3" ] [ text "Add a scope to this layout." ] 
+--     , div [ class "columns is-mobile is-multiline" ] <| 
+--         List.map (\scope -> 
+--           div [ class "column has-text-centered", onClick (add scope) ] [ scopeIcon scope ] ) opts ]
 
 
-sectionAdder : List T.Scope -> List T.NamedEnsemble -> T.SectionP ->  Html msg
+sectionAdder : List T.Scope -> List T.Ensemble -> T.SectionP ->  Html msg
 sectionAdder scopes ensembles (mScope, mEns)  =
   Components.box 
     [ p [ class "mb-3" ] [ text "Add a scope to this layout." ] 
@@ -514,26 +565,26 @@ sectionAdder scopes ensembles (mScope, mEns)  =
           div [ class "column has-text-centered" ] [ ensembleIcon ens ] ) ensembles ]
 
 
-ensembleNamer : T.NamedEnsemble -> (String -> msg) -> Html msg
-ensembleNamer curr rename =
-  Components.editText "Label" (text "") (Tuple.first curr) rename 
+-- ensembleNamer : T.NamedEnsemble -> (String -> msg) -> Html msg
+-- ensembleNamer curr rename =
+--   Components.editText "Label" (text "") (Tuple.first curr) rename 
 
 
-ensembleEditor : List T.Voice -> List T.NamedEnsemble -> (Maybe T.NamedEnsemble) -> (Int -> msg) -> ((Maybe T.NamedEnsemble) -> msg) -> (List T.NamedEnsemble -> msg) -> Html msg
-ensembleEditor options ensembles current select updateCurrent updateAll =
-  case current of 
-    Nothing ->
-      ensemblePicker ensembles select
+-- ensembleEditor : List T.Voice -> List T.NamedEnsemble -> (Maybe T.NamedEnsemble) -> (Int -> msg) -> ((Maybe T.NamedEnsemble) -> msg) -> (List T.NamedEnsemble -> msg) -> Html msg
+-- ensembleEditor options ensembles current select updateCurrent updateAll =
+--   case current of 
+--     Nothing ->
+--       ensemblePicker ensembles select
 
-    Just ((label, ens) as e) ->
-      let 
-        swapEns = (\ee -> Just ((Tuple.first e), ee))
-      in 
-      Components.card ("Ensemble: " ++ label) <| Components.wraps
-        [ ensembleNamer e (\str -> updateCurrent (Just (str, (Tuple.second e)))) 
-        , viewEnsembleWithRemover e (\voice -> updateCurrent (swapEns (Tools.remove (Just voice) (Tuple.second e))))
-        , ensembleAdder options (\voice -> updateCurrent (swapEns (Tools.conj voice (Tuple.second e)))) 
-        ]
+--     Just ((label, ens) as e) ->
+--       let 
+--         swapEns = (\ee -> Just ((Tuple.first e), ee))
+--       in 
+--       Components.card ("Ensemble: " ++ label) <| Components.wraps
+--         [ ensembleNamer e (\str -> updateCurrent (Just (str, (Tuple.second e)))) 
+--         , viewEnsembleWithRemover e (\voice -> updateCurrent (swapEns (Tools.remove (Just voice) (Tuple.second e))))
+--         , ensembleAdder options (\voice -> updateCurrent (swapEns (Tools.conj voice (Tuple.second e)))) 
+--         ]
 
 
 scopeIcon : T.Scope -> Html msg
@@ -573,16 +624,35 @@ layoutNamer title rename =
   Components.editText "Label" (text content) title rename 
 
 
-editLayout : T.Layout -> List T.Scope -> ((Maybe T.Layout) -> msg) -> Html msg -> Html msg -> Html msg
-editLayout ((label, parts) as layout) scopes sig buttSave buttDelete  =
+editLayout : T.Layout -> List T.Scope -> List T.Voice -> ( T.Layout -> msg) -> (T.ComboP -> msg) -> (List T.Combo -> msg) -> Html msg -> Html msg -> Html msg
+editLayout ((label, combos) as layout) scopeOpts voiceOpts sig editComboP updateCombos buttSave buttDelete  =
   Components.card2 ("Editing Layout " ++ label) [buttSave, buttDelete] <|
    div [ class "container" ] 
-    [ layoutNamer label (\str -> sig (Just (str, parts)))
+    [ layoutNamer label (\str -> sig (str, combos))
     , viewLayout layout
-    , layoutAdder scopes (\scope -> sig (Just (label, Tools.conj scope parts)))
+    -- , comboEditor scopeOpts voiceOpts (Nothing, Nothing) comboP  editComboP updateCombos
     ]
+
+
+designLayout : T.Layout -> List T.Scope -> List T.Voice -> ( T.Layout -> msg) -> (T.ComboP -> msg) -> (List T.Combo -> msg) -> Html msg -> Html msg -> Html msg
+designLayout ((label, combos) as layout) scopeOpts voiceOpts sig sigEditComboP updateCombos buttSave buttDelete  =
+  Components.card2 ("Editing Layout " ++ label) [buttSave, buttDelete] <|
+   div [ class "container" ] <|
+    [ layoutNamer label (\str -> sig (str, combos))
+    , viewLayout layout
+    , Components.button (sigEditComboP (Nothing, Nothing)) [] "add a combo"
+    ] ++
+    (List.indexedMap (\i (scope, ensemble) -> 
+      div [ onClick <| sigEditComboP (Just scope, Just ensemble) ] [ text <| String.fromInt i ]
+     ) combos)
+   
     
 
+
+editScore : T.Score -> (T.Score -> msg) -> Html msg -> Html msg -> Html msg
+editScore score sig buttSave butDelete = 
+  text "editing score"
+    
 
 layoutEditor : List T.Scope -> List T.Layout -> (Maybe T.Layout) -> (Int -> msg) -> ((Maybe T.Layout) -> msg) -> (List T.Layout -> msg) -> Html msg
 layoutEditor options layouts current select updateCurrent updateAll =
@@ -590,96 +660,68 @@ layoutEditor options layouts current select updateCurrent updateAll =
     Nothing ->
       layoutPickerOld layouts select 
 
-    Just ((label, scopes) as l) ->
+    Just ((label, combos) as l) ->
       Components.card ("Layout: " ++ label) <| Components.wraps <|
-        [ layoutNamer label (\str -> updateCurrent (Just (str, scopes)))
+        [ layoutNamer label (\str -> updateCurrent (Just (str, combos)))
         , viewLayout l 
-        -- , viewLayoutWithRemover l (\layout -> updateCurrent (Just (label, (Tools.remove (Just layout) scopes))))
-        , layoutAdder options (\scope -> updateCurrent (Just (label, Tools.conj scope scopes)))
-
+        , viewLayoutWithRemover l (\layout -> updateCurrent (Just (label, (Tools.remove (Just layout) combos))))
+        -- , layoutAdder options (\combo -> updateCurrent (Just (label, Tools.conj combo combos)))
         ]
 
-    -- partial = List.filter (\(a, b) -> 
-    --   case (a, b) of 
-    --     (Just x, Just y) -> False
-    --     _  -> True) combos
 
-
-    -- complete = List.filter (\(a, b) ->
-    --   case (a, b) of 
-    --     (Just x, Just y) -> True
-    --     _ -> False) combos
-
-
-comboEditor : List T.Scope -> List T.NamedEnsemble ->  T.ComboP ->  ((Maybe T.ComboP) -> msg) -> Html msg
-comboEditor scopes ensembles val toMsg =
+comboEditor : List T.Scope -> List T.Voice ->  T.ComboP ->  (T.ComboP -> msg) -> (T.Combo -> msg) -> Html msg
+comboEditor scopes voices comboP contMsg doneMsg =
   let
     updateFirst = (\second -> (\scope ->
       let
         next : T.ComboP
         next = (Just scope, Just second)
       in
-      toMsg (Just next)))
+      contMsg next))
     updateSecond = (\first -> (\ens ->
       let
         next : T.ComboP
         next = (Just first, Just ens)
       in
-      toMsg (Just next)))
-    justFirst = (\first -> toMsg (Just (Just first, Nothing)))
-    justSecond = (\second -> toMsg (Just (Nothing, Just second)))
+      contMsg next))
+    justFirst = (\first -> contMsg (Just first, Nothing))
+    justSecond = (\second -> contMsg  (Nothing, Just second))
   in 
-  case val of
-    (Just a, Just b) -> 
-      Components.colsMulti <|
-      [ div [ class "column is-full" ] 
-         [ div [ class "delete", onClick (justSecond b) ] [] 
-         , scopeIcon a  ]
-      , div [ class "column is-full" ] 
-         [ div [ class "delete", onClick (justFirst a) ] [] 
-         , ensembleIcon b ] 
-      , Components.button (toMsg Nothing) [] "Done"
-      ]
-
+  case comboP of
     (Nothing, Nothing) -> 
       let
-        updateEnsemble : T.NamedEnsemble -> msg
-        updateEnsemble = (\ens -> toMsg (Just (Nothing, Just ens)))
+        updateEnsemble : T.Voice -> msg
+        updateEnsemble = (\voice -> 
+          contMsg  (Nothing, Just [voice]))
+
         updateScope : T.Scope -> msg
-        updateScope = (\scope -> toMsg (Just (Just scope, Nothing)))
+        updateScope = (\scope -> contMsg (Just scope, Nothing))
       in
       Components.wraps <|
         [ label [ class "has-background-danger subtitle"] [ ]
         , p [ ] [ text "Select a scope for this combo." ]
         , Components.cols <|
-           List.map (\ens ->
-             Components.col [ class "has-text-centered", onClick (updateScope ens)] [ scopeIcon ens ]) scopes
-        , p [ ] [ text "Select an ensemble for this combo." ]
+           List.map (\ensItem ->
+             Components.col [ class "has-text-centered", onClick (updateScope ensItem)] [ scopeIcon ensItem ]) scopes
+        , p [ ] [ text "Add a voice to this combo." ]
         , Components.cols <|
-           List.map (\ens ->
-             Components.col [ class "has-text-centered",  onClick (updateEnsemble ens)] [ ensembleIcon ens ]) ensembles  ]
+           List.map (\voice ->
+             Components.col [ class "has-text-centered",  onClick (updateEnsemble voice)] [ voiceIcon voice ]) voices  ]
+    (Nothing, Just mEns) -> text "ens"
 
-    (Just a, Nothing) -> 
-      let
-        updateEnsemble = updateSecond a
-      in
-      Components.wraps <|
-        [ p [ ] [ text "Select an ensemble for this combo." ]
-        , Components.cols <|
-           List.map (\ens ->
-             Components.col [ onClick (updateEnsemble ens)] [ ensembleIcon ens ])  ensembles ]
+    (Just mScope, Nothing) -> text "ens"
 
-    (Nothing, Just b) ->
-      let
-        updateScope = updateFirst b
-      in
-      Components.wraps <|
-        [ label [ class "has-background-warning subtitle"] [ text "Needs a scope." ] 
-        , p [ ] [ text "Select a scope for this combo." ]
-        , Components.cols <|
-           List.map (\scope ->
-             Components.col [ onClick (updateScope scope)] [ scopeIcon scope ])  scopes ]
-
+    (Just a, Just b) -> 
+      Components.colsMulti <|
+      [ div [ class "column is-full" ] 
+         [ div [ class "delete", onClick (justFirst a) ] [] 
+         , scopeIcon a  ]
+      , div [ class "column is-full" ] 
+         [ div [ class "delete", onClick (justSecond b) ] [] 
+         , ensembleIcon b ] 
+      , Components.button (doneMsg (a,b)) [] "Done"
+      ]
+   
 
 
 
@@ -690,30 +732,29 @@ comboCompleteIcon ((scope, ensemble) as model) =
    , div [ class "column is-full" ] [ ensembleIcon ensemble ] ]
 
 
-comboIncompleteIcon : T.ComboP -> Html msg
-comboIncompleteIcon ((scope, ensemble) as model) =
-  case model of
-    (Just a, Just b) -> 
-      comboCompleteIcon (a,b)
+-- comboIncompleteIcon : T.ComboP -> Html msg
+-- comboIncompleteIcon ((scope, ensemble) as model) =
+--   case model of
+--     (Just a, Just b) -> 
+--       comboCompleteIcon (a,b)
 
-    (Nothing, Nothing) -> 
-      label [ class "has-background-danger subtitle"] [ text "Needs a scope and an ensemble." ]
+--     (Nothing, Nothing) -> 
+--       label [ class "has-background-danger subtitle"] [ text "Needs a scope and an ensemble." ]
 
-    (Just a, Nothing) -> 
-      label [ class "has-background-warning subtitle"] [ text "Needs an ensemble." ]
+--     (Just a, Nothing) -> 
+--       label [ class "has-background-warning subtitle"] [ text "Needs an ensemble." ]
 
-    (Nothing, Just a) ->
-      label [ class "has-background-warning "] [ text "Needs a scope." ]
+--     (Nothing, Just a) ->
+--       label [ class "has-background-warning "] [ text "Needs a scope." ]
 
 
 
 viewComboP : T.ComboP -> Html msg
 viewComboP  ((mScope, mEnsemble) as model)  =
   Components.box <| List.singleton  <| case model of
-    (Just ({cpc,cps,size} as a), Just (eLabel, b)) -> 
+    (Just ({cpc,cps,size} as a), Just  b) -> 
       Components.wraps <|
           [ label [ class "label" ] [ text a.label ]
-          , label [ class "label" ] [ text eLabel ]
           , p [] [ text <| timeString <| duration cpc cps size ]
           ]
 
@@ -727,19 +768,19 @@ viewComboP  ((mScope, mEnsemble) as model)  =
       label [ class "subtitle"] [ text "Select a scope." ]
 
 
-viewCombo : T.Combo -> Html msg
-viewCombo  (({cpc,cps,size} as scope), (eLabel, ensemble))  =
-  Components.box
-    [ label [ class "label" ] [ text scope.label ]
-    , label [ class "label" ] [ text eLabel ]
-    , p [] [ text <| timeString <| duration cpc cps size ]
-    ]
+-- viewCombo : T.Combo -> Html msg
+-- viewCombo  (({cpc,cps,size} as scope), (eLabel, ensemble))  =
+--   Components.box
+--     [ label [ class "label" ] [ text scope.label ]
+--     , label [ class "label" ] [ text eLabel ]
+--     , p [] [ text <| timeString <| duration cpc cps size ]
+--     ]
        
 
 viewTemplate : T.Template -> Html msg
 viewTemplate ((scoreMeta, (name, scopes)) as template) =
   Components.box <|
-    [ label [ class "title" ] [ text scoreMeta.title  ] ] ++ (List.map scopeIcon scopes)
+    [ label [ class "title" ] [ text scoreMeta.title  ] ] ++ (List.map comboIcon scopes)
 
 
 -- comboPEditor : List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
