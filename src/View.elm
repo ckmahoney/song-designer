@@ -286,8 +286,6 @@ editTemplate ((scoreMeta, layout) as template) scopes voices sig buttSave buttDe
      ]
 
 
-
-
 addAnother : msg -> Html msg
 addAnother msg = 
   div [ class "is-size-6 has-background-black has-text-white  box column is-vcentered has-text-centered", onClick msg ] [ text "Add Another" , span [] [text "+"] ] 
@@ -311,6 +309,11 @@ voicePicker voices select createNew =
 scorePicker : List T.Score -> (Int -> msg) -> msg -> Html msg
 scorePicker scores select createNew =
   Components.pickerAnd scores (addAnother createNew) scoreIcon select
+
+
+comboPicker : List T.Combo -> (Int -> msg) -> msg -> Html msg
+comboPicker combos select createNew = 
+  Components.pickerAnd combos (addAnother createNew) comboIcon select
 
 
 layoutPickerOld : List T.Layout -> (Int -> msg) -> Html msg
@@ -616,7 +619,7 @@ layoutIcon (name, scopes) =
 layoutNamer : String -> (String -> msg) -> Html msg
 layoutNamer title rename =
   let 
-    content = "A nickname for this pattern of combos. Use broad, generic terms such as \"Trap Ballad\" or \"Upbeat and Happy\""   
+    content = "A nickname for this structure. Use generic terms such as \"Trap Ballad\" or \"Upbeat and Happy\""   
   in 
   Components.editText "Label" (text content) title rename 
 
@@ -634,12 +637,31 @@ viewLayout (name, combos) createCombo =
      ) combos)
 
 
+editLayout : T.Layout -> (T.ComboP -> msg) -> (T.Combo -> msg ) -> Html msg
+editLayout ((name, combos) as layout) edit create  =
+  if 0 == List.length combos then 
+    Components.wrap <| Components.button (edit (Nothing, Nothing)) [] "Make the first Combo"
+  else 
+    let
+      select = (\int -> 
+        case Tools.get int combos of
+           Nothing -> edit D.emptyComboP -- not gonna happen
+           Just combo -> create combo)
+    in
+
+    Components.wrap <| comboPicker combos select (edit (Nothing, Nothing))
+     -- (List.map (\ ((scope, ensemble) as combo) -> 
+      -- div [ onClick <| (create (Just scope, Just ensemble)) ] [ comboIcon combo ] 
+     -- ) combos)
+
+
+
 designLayout : T.Layout -> List T.Scope -> List T.Voice -> ( T.Layout -> msg) -> (T.ComboP -> msg) -> (List T.Combo -> msg) -> Html msg -> Html msg -> Html msg
 designLayout ((label, combos) as layout) scopeOpts voiceOpts sig sigEditComboP updateCombos buttSave buttDelete  =
   Components.card2 ("Editing Layout " ++ label) [buttSave, buttDelete] <|
    div [ class "container" ] <|
     [ layoutNamer label (\str -> sig (str, combos))
-    , viewLayout layout sigEditComboP
+    , editLayout layout sigEditComboP (\combo -> updateCombos (Tools.conj combo combos))
     ] 
 
    

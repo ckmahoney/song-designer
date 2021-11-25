@@ -519,6 +519,10 @@ emptyCombo =
   (emptyScope, [])
 
 
+emptyComboP : ComboP
+emptyComboP = 
+  (Nothing, Nothing)
+
 
 scopes1 : List Scope
 scopes1 = [s1, s2, s3]
