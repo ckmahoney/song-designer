@@ -59,7 +59,7 @@ svg : String -> Html msg
 svg name = 
   Html.img [ width 50
       , height 50
-      , src <| "/svg/" ++ name ++ ".svg"] []
+      , src <| "/assets/svg/" ++ name ++ ".svg"] []
 
 
 deleteIcon : msg -> Html msg
@@ -262,12 +262,39 @@ picker things icon select =
          [ icon thing ]) things
 
 
+killer : List a -> (a -> Html msg) -> (Int -> msg) -> Html msg
+killer things icon kill = 
+  div [ class "columns is-multiline level is-vcentered" ] <|
+     (List.indexedMap (\i thing ->
+       div [ class "column is-flex is-flex-direction-column is-align-items-center is-justify-content-center" ]
+         [ col [ class "is-full has-text-centered" ] [(icon thing)]
+         , col [ class "is-full has-text-centered" ] [(deleteIcon (kill i))] ] ) things)
+
+
 pickerAnd : List a -> (Html  msg) -> (a -> Html msg) -> (Int -> msg) ->  Html msg
 pickerAnd things more icon select = 
   div [ class "columns is-multiline level is-vcentered" ] <|
      (List.indexedMap (\i thing ->
        div [ class "column is-vcentered has-text-centered", onClick (select i) ]
          [ icon thing ] ) things) ++ [more]
+
+
+pickerKiller : List a -> (a -> Html msg) -> (Int -> msg) ->  (Int -> msg) -> Html msg
+pickerKiller things icon select kill = 
+  div [ class "columns is-multiline level is-vcentered" ] <|
+     (List.indexedMap (\i thing ->
+       div [ class "column is-flex is-flex-direction-column is-align-items-center is-justify-content-center" ]
+         [ col [ class "is-full has-text-centered", onClick (select i) ] [(icon thing)]
+         , col [ class "is-full has-text-centered" ] [(deleteIcon (kill i))] ] ) things)
+
+
+pickerKillerAnother : List a -> (Html  msg) -> (a -> Html msg) -> (Int -> msg) ->  (Int -> msg) -> Html msg
+pickerKillerAnother things more icon select kill = 
+  div [ class "columns is-multiline level is-vcentered" ] <|
+     (List.indexedMap (\i thing ->
+       div [ class "column is-flex is-flex-direction-column is-align-items-center is-justify-content-center" ]
+         [ col [ class "is-full has-text-centered", onClick (select i) ] [(icon thing)]
+         , col [ class "is-full has-text-centered" ] [(deleteIcon (kill i))] ] ) things) ++ [more]
 
 
 colsWith : List (Html.Attribute msg) -> (List (Html msg) -> Html msg)

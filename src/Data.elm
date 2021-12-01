@@ -346,7 +346,12 @@ metaP2 =
 
 emptyTemplate : Template
 emptyTemplate = 
-  (emptyScoreMeta, emptyLayout)
+  (emptyScoreMeta, someLayout)
+
+
+someTemplate : Template
+someTemplate = 
+  (meta1, emptyLayout)
 
 
 -- coreTemplates : List TemplateP
@@ -382,6 +387,11 @@ roleLabel role =
     
     Melody ->
       ("melody", "Melody")
+
+
+roleId : SynthRole -> String
+roleId role =
+  Tuple.first <| roleLabel role
 
 
 get : Int -> List a -> Maybe a
@@ -467,6 +477,13 @@ roleDuty role =
       Expression
 
 
+dutyString : SynthDuty -> String
+dutyString duty =
+  case duty of 
+    Structure -> "structure"
+    Expression -> "expression"
+
+
 v1 : Scope
 v1 =
   { id = -11
@@ -512,6 +529,11 @@ c2 =
 emptyLayout : Layout
 emptyLayout = 
   ("", [])
+
+
+someLayout : Layout
+someLayout =
+  ("A sequence of music", [combo1, combo2, combo3])
 
 
 emptyCombo : Combo

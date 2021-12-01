@@ -1,6 +1,6 @@
 module Main exposing (main)
 
-
+import AudioComponents
 import Html exposing (Html, button, div, text, label, p)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)
@@ -39,7 +39,9 @@ subsScore model =
   Sub.none
 
 
-mainSongDesigner =
+
+
+mainApp =
   Browser.element { init = App.init
                   , update = App.update
                   , view = App.view
@@ -56,5 +58,5 @@ mainRouter =
 
 
 main = 
-  -- mainSongDesigner
+  -- AudioComponents.main
   mainRouter

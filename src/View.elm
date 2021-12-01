@@ -105,7 +105,7 @@ roleIcon : T.SynthRole -> Html msg
 roleIcon role =
   img [ width 50
       , height 50
-      , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] []
+      , src <| "/assets/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] []
 
 
 presetIcon : T.SynthRole -> Html msg
@@ -115,7 +115,7 @@ presetIcon role =
   [ div [class "p-6"] [
       img [ width 50
           , height 50
-          , src <| "/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ] ]
+          , src <| "/assets/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ] ]
 
 
 ensembleIcon : T.Ensemble -> Html msg
@@ -314,6 +314,11 @@ scorePicker scores select createNew =
 comboPicker : List T.Combo -> (Int -> msg) -> msg -> Html msg
 comboPicker combos select createNew = 
   Components.pickerAnd combos (addAnother createNew) comboIcon select
+
+
+comboPickerKiller : List T.Combo -> (Int -> msg) -> msg -> (Int -> msg) -> Html msg
+comboPickerKiller combos select createNew kill = 
+  Components.pickerKillerAnother combos (addAnother createNew) comboIcon select kill
 
 
 layoutPickerOld : List T.Layout -> (Int -> msg) -> Html msg
@@ -637,8 +642,8 @@ viewLayout (name, combos) createCombo =
      ) combos)
 
 
-editLayout : T.Layout -> (T.ComboP -> msg) -> (T.Combo -> msg ) -> Html msg
-editLayout ((name, combos) as layout) edit create  =
+editLayout : T.Layout -> (T.ComboP -> msg) -> (T.Combo -> msg ) -> (Int -> msg ) -> Html msg
+editLayout ((name, combos) as layout) edit create delete =
   if 0 == List.length combos then 
     Components.wrap <| Components.button (edit (Nothing, Nothing)) [] "Make the first Combo"
   else 
@@ -648,28 +653,25 @@ editLayout ((name, combos) as layout) edit create  =
            Nothing -> edit D.emptyComboP -- not gonna happen
            Just combo -> create combo)
     in
-
-    Components.wrap <| comboPicker combos select (edit (Nothing, Nothing))
-     -- (List.map (\ ((scope, ensemble) as combo) -> 
-      -- div [ onClick <| (create (Just scope, Just ensemble)) ] [ comboIcon combo ] 
-     -- ) combos)
-
+    Components.wrap <| comboPickerKiller combos select (edit (Nothing, Nothing)) delete
 
 
 designLayout : T.Layout -> List T.Scope -> List T.Voice -> ( T.Layout -> msg) -> (T.ComboP -> msg) -> (List T.Combo -> msg) -> Html msg -> Html msg -> Html msg
 designLayout ((label, combos) as layout) scopeOpts voiceOpts sig sigEditComboP updateCombos buttSave buttDelete  =
+  let
+    create = (\combo -> updateCombos (Tools.conj combo combos))
+    delete = (\i -> updateCombos (Tools.removeAt i combos))
+  in 
   Components.card2 ("Editing Layout " ++ label) [buttSave, buttDelete] <|
    div [ class "container" ] <|
     [ layoutNamer label (\str -> sig (str, combos))
-    , editLayout layout sigEditComboP (\combo -> updateCombos (Tools.conj combo combos))
+    , editLayout layout sigEditComboP create delete
     ] 
 
    
 editScore : T.Score -> (T.Score -> msg) -> Html msg -> Html msg -> Html msg
-editScore score sig buttSave butDelete = 
+editScore score sig buttSave buttDelete = 
   text "editing score"
-    
-
 
 
 comboEditor : List T.Scope -> List T.Voice ->  T.ComboP ->  (T.ComboP -> msg) -> (T.Combo -> msg) -> Html msg
@@ -766,7 +768,6 @@ comboCompleteIcon ((scope, ensemble) as model) =
 --       label [ class "has-background-warning "] [ text "Needs a scope." ]
 
 
-
 viewComboP : T.ComboP -> Html msg
 viewComboP  ((mScope, mEnsemble) as model)  =
   Components.box <| List.singleton  <| case model of
@@ -819,6 +820,13 @@ viewTemplate ((scoreMeta, (name, scopes)) as template) =
 -- templateEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
   -- div [ class "template-editor"] <| 
     -- List.map viewComboP combos
+
+
+
+
+-- playButton : Html msg
+-- playButton =
+  -- Components.button (play "") [] "Play"
 
 
 main =
