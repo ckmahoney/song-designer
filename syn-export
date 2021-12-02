@@ -32,3 +32,6 @@ echo "Minified Stylesheet size:$(cat $cssmin | wc -c) bytes  ($cssmin)";
 
 mv $css assets/$css;
 mv $cssmin assets/$cssmin;
+
+
+
