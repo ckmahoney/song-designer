@@ -16,17 +16,11 @@ import Data exposing (p1, p2, p3, p4)
 import Update as U
 import View 
 import Router 
-
+import Post
 
 type alias User = 
   { username : String
   , token : Bool
-  }
-
-
-joe = 
-  { username = "Joe"
-  , token = True
   }
 
 
@@ -37,8 +31,6 @@ initApp =
 
 subsScore model =
   Sub.none
-
-
 
 
 mainApp =
@@ -60,3 +52,4 @@ mainRouter =
 main = 
   -- AudioComponents.main
   mainRouter
+  -- Post.main

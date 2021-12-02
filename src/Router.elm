@@ -16,6 +16,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Mote exposing (..)
 
+
 type alias Pack = String
 
 
@@ -29,9 +30,6 @@ type Editor
   | ELayoutEdit1 T.Layout T.Scope T.Ensemble
   | ETemplate Int (Maybe T.Template)
   
-  -- | ETemplateEditor T.Template T.Template 
-  -- | ETemplateEditorCombo T.Template T.Template (Maybe T.ComboP)
-  -- | ETemplateNaming String
   | EAsset
   
 
@@ -55,6 +53,8 @@ type Msg
   | DeleteLayout T.Layout
   | DeleteTemplate T.Template
 
+  | Ask
+  | GotTrack (Result Http.Error T.Track)
   | SendReq1
   | SendReq2
   | GotResp (Result Http.Error String)
@@ -69,13 +69,31 @@ type alias Model =
   , layouts : List T.Layout
   , templates : List T.Template
   , response : String
-  -- , scores : List T.Score
+  , mailer : T.Posting
   }
+
+
+decodeTrack : Decode.Decoder T.Track
+decodeTrack =
+  Decode.map4 T.Track
+    (Decode.field "id" Decode.int)
+    (Decode.field "src" Decode.string)
+    (Decode.field "size" Decode.int)
+    (Decode.field "duration" Decode.float)
+
+
+askTrack : Encode.Value -> Cmd Msg
+askTrack data = 
+  Http.post 
+    { url = apiUrl "track"
+    , body = Http.jsonBody data
+    , expect = Http.expectJson GotTrack decodeTrack
+    }
 
 
 initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Model
 initFrom a b c d =
-  Model newLayout -1 Data.kitAll Data.scopes3 c d ""
+  Model newLayout -1 Data.kitAll Data.scopes3 c d "" T.Welcome
 
 
 initEmpty : Model
@@ -169,15 +187,15 @@ apiUrl endpoint =
   Url.crossOrigin "http://localhost:3000" [ endpoint ] []
 
 
-sendUdef : Model -> Cmd Msg
-sendUdef model =
+sendTemplate : Model -> Cmd Msg
+sendTemplate model =
   let
     bod =  Http.jsonBody <| encodeTemplate model 
   in 
   Http.post
-  { url = apiUrl "walnut"
+  { url = apiUrl "track"
   , body = Http.jsonBody <|  encodeTemplate model
-  , expect = Http.expectJson GotMote moteDecoder
+  , expect = Http.expectJson GotTrack decodeTrack
   } 
 
 
@@ -208,6 +226,7 @@ encodeVoice {duty, role, label, voice, density, complexity} =
     , ("density", Encode.int density)
     , ("complexity", Encode.int complexity)
     ]
+
 
 encodeEnsemble : T.Ensemble -> Encode.Value
 encodeEnsemble  =
@@ -251,17 +270,43 @@ encodeTemplate model =
     [ ("meta", encodeScoreMeta <| Tuple.first template)
     , ("combos", encodeLayout <| Tuple.second template)
     ]
-  
+
+
+dummyConfigVal : Encode.Value
+dummyConfigVal = 
+  Encode.string "abcd"  
+
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
+    Ask ->
+      ( { model | mailer = T.Loading } , sendTemplate model)
+
+    GotTrack response ->
+      case response of 
+        Ok track ->
+         ({ model | mailer = T.Received track }, Cmd.none)
+
+        Err errr ->
+          case errr of 
+            Http.BadBody str -> 
+              ({ model | mailer = T.Failed str }, Cmd.none)
  
+            Http.BadUrl str -> 
+              ({ model | mailer = T.Failed str }, Cmd.none)
+
+            Http.BadStatus int -> 
+              ({ model | mailer = T.Failed <| String.fromInt int }, Cmd.none)
+
+            _ -> 
+              ({ model | mailer = T.Failed "big bug" }, Cmd.none)
+
     SendReq1 -> 
       (model, sendRequest)
 
     SendReq2 -> 
-      (model, sendUdef model)
+      (model, sendTemplate model)
 
     GotResp result -> 
       case result of 
@@ -525,8 +570,6 @@ introduceTemplate helpLink create =
      ] ] ]
 
 
-
-
 display : Model -> (Int -> Msg) -> Html Msg
 display model select =
   case model.view of 
@@ -581,7 +624,6 @@ display model select =
            buttDelete = Components.button (ChangeView dashboard) [] "Discard"
          in 
          View.editScope scope (\v -> ChangeView <| EScope index v) buttSave buttDelete
-
 
           
     EVoice index mVoice ->
@@ -825,6 +867,27 @@ updateIn el els index =
   Tools.replaceAt index el els
 
 
+viewMailer : (T.Posting) -> Html.Html Msg
+viewMailer model = 
+  Html.div [] 
+    [ Html.p [] [ Html.text "this is the view"]
+    ,  Html.button [onClick Ask] [Html.text "Ask for a song."]
+    , case model of 
+      T.Welcome -> 
+        Html.text "" 
+
+      T.Loading ->
+        Html.text "the page is loading"
+
+      T.Received track->
+        Html.text <| "that is good, we got it back. Use this source: " ++ track.src
+
+      T.Failed message -> 
+        Html.text ("There was some kind of problem sir:"  ++ message)
+    ] 
+
+
+
 view : Model -> Html Msg
 view model = 
     div [ class "section" ]
@@ -833,6 +896,7 @@ view model =
       , Components.button SendReq2 [] "get some walnuts"
       , display model Select 
       , text model.response
+      , viewMailer model.mailer
       ]
 
 

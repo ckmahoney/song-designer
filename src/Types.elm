@@ -85,6 +85,27 @@ emptyScoreMeta =
 type alias Token = Bool
 
 
+
+
+type Posting
+  = Loading
+  | Received Track
+  | Failed String
+  | Welcome
+
+
+
+
+type alias Track = 
+  { id : Int
+  , src : String
+  , size : Int
+  , duration : Float
+  }
+
+
+
+
 -- a request to build one song from configuration
 type alias HTTPData = 
   { user : String
