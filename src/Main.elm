@@ -41,15 +41,8 @@ mainApp =
                   }
 
 
-mainRouter =
-  Browser.element { init = Router.init
-                  , update = Router.update
-                  , view = Router.view
-                  , subscriptions = Router.subscriptions
-                  }
-
 
 main = 
   -- AudioComponents.main
-  mainRouter
+  Router.main
   -- Post.main
