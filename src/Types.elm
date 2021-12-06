@@ -87,7 +87,7 @@ type alias Token = Bool
 
 type Posting
   = Loading
-  | Received (List TrackMeta)
+  | Received 
   | Failed String
   | Welcome
 

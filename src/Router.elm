@@ -68,6 +68,7 @@ type Msg
   | DeleteLayout T.Layout
   | DeleteTemplate T.Template
   | Music Playback
+  | PlayTrack T.TrackMeta
 
   | Ask
   | GotTracks (Result Http.Error (List T.TrackMeta))
@@ -87,7 +88,7 @@ type alias Model =
   , templates : List T.Template
   , response : String
   , mailer : T.Posting
-
+  , tracks : List T.TrackMeta
   }
 
 
@@ -122,7 +123,7 @@ askTrack data =
 
 initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Model
 initFrom a b c d =
-  Model newLayout -1 Data.kitAll Data.scopes3 c d "" T.Welcome 
+  Model newLayout -1 Data.kitAll Data.scopes3 c d "" T.Welcome  []
 
 
 initEmpty : Model
@@ -294,13 +295,16 @@ update msg model =
         Stop -> ( model, stopMusic "stop" )
         Set src -> ( model, setSource src )
 
+    PlayTrack track ->
+      (model, setSource track.filepath)
+
     Ask ->
       ( { model | mailer = T.Loading } , getSongs )
 
     GotTracks response ->
       case response of 
         Ok tracks ->
-         ({ model | mailer = T.Received tracks }, Cmd.none)
+         ({ model | mailer = T.Received, tracks = tracks }, Cmd.none)
 
         Err errr ->
           case errr of 
@@ -874,12 +878,19 @@ viewMailer model =
       T.Loading ->
         Html.text "the page is loading"
 
-      T.Received tracks->
-        Html.text <| "that is good, we got it back. Number tracks: " ++ (String.fromInt (List.length tracks))
+      T.Received ->
+        Html.text <| "that is good, we got it back."
 
       T.Failed message -> 
         Html.text ("There was some kind of problem sir:"  ++ message)
     ] 
+
+
+playlist : List T.TrackMeta -> Html Msg
+playlist tracks =
+  Components.box <| 
+   List.map (\t ->
+    div [onClick <| PlayTrack t] [text t.title ]) tracks
 
 
 view :  Model -> Html Msg
@@ -892,7 +903,7 @@ view model  =
       , text model.response
       , viewMailer model.mailer
       , Html.audio [ src songSrc, id "audio-player", controls True ]  []
-      -- , viewAudio model.audio
+      , playlist model.tracks
       ]
 
 
