@@ -1,5 +1,6 @@
 port module Router exposing (..)
 
+import Browser
 import Html exposing (Html, button, div, text, label, p)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
@@ -14,136 +15,18 @@ import Http
 import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
-import List.Nonempty exposing (Nonempty(..))
-import Task
-import Time
-import Duration
-import Audio exposing (Audio, AudioCmd, AudioData)
 
 
+port playMusic : String -> Cmd msg
 
 
-type alias LoadedModel_ =
-    { sound : Audio.Source
-    , soundState : SoundState
-    }
+port stopMusic : String -> Cmd msg
 
 
-type SoundState
-    = NotPlaying
-    | Playing Time.Posix
-    | FadingOut Time.Posix Time.Posix
-
-
-type AudioModel
-    = LoadingModel
-    | LoadedModel LoadedModel_
-    | LoadFailedModel
-
-
-type AudioMsg
-    = SoundLoaded (Result Audio.LoadError Audio.Source)
-    | PressedPlay
-    | PressedPlayAndGotTime Time.Posix
-    | PressedStop
-    | PressedStopAndGotTime Time.Posix
-
-
+port setSource : String -> Cmd msg
 
 songSrc : String
 songSrc = "http://localhost:3000/content/testuser/mixes/00111206.mp3"
-
-
-
-updateAudio : AudioData -> AudioMsg -> AudioModel -> ( AudioModel, Cmd AudioMsg, AudioCmd AudioMsg )
-updateAudio _ msg model =
-    case ( msg, model ) of
-        ( SoundLoaded result, LoadingModel ) ->
-            case result of
-                Ok sound ->
-                    ( LoadedModel { sound = sound, soundState = NotPlaying }
-                    , Cmd.none
-                    , Audio.cmdNone
-                    )
-
-                Err _ ->
-                    ( LoadFailedModel
-                    , Cmd.none
-                    , Audio.cmdNone
-                    )
-
-        ( PressedPlay, LoadedModel loadedModel ) ->
-            ( LoadedModel loadedModel
-            , Task.perform PressedPlayAndGotTime Time.now
-            , Audio.cmdNone
-            )
-
-        ( PressedPlayAndGotTime time, LoadedModel loadedModel ) ->
-            ( LoadedModel { loadedModel | soundState = Playing time }
-            , Cmd.none
-            , Audio.cmdNone
-            )
-
-        ( PressedStop, LoadedModel loadedModel ) ->
-            ( LoadedModel loadedModel
-            , Task.perform PressedStopAndGotTime Time.now
-            , Audio.cmdNone
-            )
-
-        ( PressedStopAndGotTime stopTime, LoadedModel loadedModel ) ->
-            case loadedModel.soundState of
-                Playing startTime ->
-                    ( LoadedModel { loadedModel | soundState = FadingOut startTime stopTime }
-                    , Cmd.none
-                    , Audio.cmdNone
-                    )
-
-                _ ->
-                    ( model, Cmd.none, Audio.cmdNone )
-
-        _ ->
-            ( model, Cmd.none, Audio.cmdNone )
-
-
-viewAudio : AudioData -> AudioModel -> Html AudioMsg
-viewAudio _ model =
-    case model of
-        LoadingModel ->
-            Html.text "Loading..."
-
-        LoadedModel loadingModel ->
-            case loadingModel.soundState of
-                Playing _ ->
-                    Html.div
-                        []
-                        [ Html.button [ Html.Events.onClick PressedStop ] [ Html.text "Stop music" ] ]
-
-                _ ->
-                    Html.div
-                        []
-                        [ Html.button [ Html.Events.onClick PressedPlay ] [ Html.text "Play music!" ] ]
-
-        LoadFailedModel ->
-            Html.text "Failed to load sound."
-
-
-audio : AudioData -> AudioModel -> Audio
-audio _ model =
-    case model of
-        LoadedModel loadedModel ->
-            case loadedModel.soundState of
-                NotPlaying ->
-                    Audio.silence
-
-                Playing time ->
-                    Audio.audio loadedModel.sound time
-
-                FadingOut startTime stopTime ->
-                    Audio.audio loadedModel.sound startTime
-                        |> Audio.scaleVolumeAt [ ( stopTime, 1 ), ( Duration.addTo stopTime (Duration.seconds 2), 0 ) ]
-
-        _ ->
-            Audio.silence
 
 
 -- holds transient data passed as type parameters
@@ -157,6 +40,12 @@ type Editor
   | ETemplate Int (Maybe T.Template)
   
   | EAsset
+
+
+type Playback
+ = Play
+ | Stop
+ | Set String
   
 
 -- holds permanent state intended for database io
@@ -178,12 +67,14 @@ type Msg
   | DeleteScope T.Scope
   | DeleteLayout T.Layout
   | DeleteTemplate T.Template
+  | Music Playback
 
   | Ask
-  | GotTrack (Result Http.Error T.Track)
+  | GotTracks (Result Http.Error (List T.TrackMeta))
   | SendReq1
   | SendReq2
   | GotResp (Result Http.Error String)
+
 
 
 
@@ -196,11 +87,12 @@ type alias Model =
   , templates : List T.Template
   , response : String
   , mailer : T.Posting
+
   }
 
 
-decodeTrack : Decode.Decoder T.Track
-decodeTrack =
+decodeTrackPrev : Decode.Decoder T.Track
+decodeTrackPrev =
   Decode.map4 T.Track
     (Decode.field "id" Decode.int)
     (Decode.field "src" Decode.string)
@@ -208,18 +100,29 @@ decodeTrack =
     (Decode.field "duration" Decode.float)
 
 
+decodeTrack : Decode.Decoder T.TrackMeta
+decodeTrack =
+  Decode.map6 T.TrackMeta
+    (Decode.field "id" Decode.int)
+    (Decode.field "account_id" Decode.int)
+    (Decode.field "filepath" Decode.string)
+    (Decode.field "title" Decode.string)
+    (Decode.field "size_bytes" Decode.int)
+    (Decode.field "duration_seconds" Decode.float)
+
+
 askTrack : Encode.Value -> Cmd Msg
 askTrack data = 
   Http.post 
     { url = apiUrl "track"
     , body = Http.jsonBody data
-    , expect = Http.expectJson GotTrack decodeTrack
+    , expect = Http.expectJson GotTracks (Decode.list decodeTrack)
     }
 
 
 initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Model
 initFrom a b c d =
-  Model newLayout -1 Data.kitAll Data.scopes3 c d "" T.Welcome
+  Model newLayout -1 Data.kitAll Data.scopes3 c d "" T.Welcome 
 
 
 initEmpty : Model
@@ -230,16 +133,6 @@ initEmpty =
 init : Maybe Int -> (Model, Cmd msg)
 init flags =
   (initEmpty, Cmd.none)
-
-
-initAudio : Maybe Int -> ( AudioModel, Cmd AudioMsg, AudioCmd AudioMsg )
-initAudio _ =
-    ( LoadingModel
-    , Cmd.none
-    , Audio.loadAudio
-        SoundLoaded
-        songSrc
-    )
 
 
 showLayouts : List T.Scope -> Bool
@@ -299,14 +192,17 @@ sendTemplate model =
   Http.post
   { url = apiUrl "track"
   , body = Http.jsonBody <|  encodeTemplate model
-  , expect = Http.expectJson GotTrack decodeTrack
+  , expect = Http.expectJson GotTracks (Decode.list decodeTrack)
   } 
 
 
-type alias TemplateJSON = 
-  { meta : T.ScoreMeta
-  , combos : T.Layout
-  }
+getSongs :  Cmd Msg
+getSongs  =
+  Http.post
+  { url = apiUrl "user"
+  , body = Http.jsonBody <| encodeUserReq  
+  , expect = Http.expectJson GotTracks (Decode.list decodeTrack)
+  } 
 
 
 encodeScope : T.Scope -> Encode.Value
@@ -376,6 +272,14 @@ encodeTemplate model =
     ]
 
 
+encodeUserReq :  Encode.Value
+encodeUserReq  =
+  Encode.object
+    [ ("action", Encode.string "songs")
+    , ("username", Encode.string "papa")
+    ]
+
+
 dummyConfigVal : Encode.Value
 dummyConfigVal = 
   Encode.string "abcd"  
@@ -384,13 +288,19 @@ dummyConfigVal =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    Ask ->
-      ( { model | mailer = T.Loading } , sendTemplate model)
+    Music playback -> 
+      case playback of 
+        Play -> ( model, playMusic "play" )
+        Stop -> ( model, stopMusic "stop" )
+        Set src -> ( model, setSource src )
 
-    GotTrack response ->
+    Ask ->
+      ( { model | mailer = T.Loading } , getSongs )
+
+    GotTracks response ->
       case response of 
-        Ok track ->
-         ({ model | mailer = T.Received track }, Cmd.none)
+        Ok tracks ->
+         ({ model | mailer = T.Received tracks }, Cmd.none)
 
         Err errr ->
           case errr of 
@@ -956,8 +866,7 @@ updateIn el els index =
 viewMailer : (T.Posting) -> Html.Html Msg
 viewMailer model = 
   Html.div [] 
-    [ Html.p [] [ Html.text "this is the view"]
-    ,  Html.button [onClick Ask] [Html.text "Ask for a song."]
+    [ Html.button [onClick Ask] [Html.text "Ask for a song."]
     , case model of 
       T.Welcome -> 
         Html.text "" 
@@ -965,16 +874,16 @@ viewMailer model =
       T.Loading ->
         Html.text "the page is loading"
 
-      T.Received track->
-        Html.text <| "that is good, we got it back. Use this source: " ++ track.src
+      T.Received tracks->
+        Html.text <| "that is good, we got it back. Number tracks: " ++ (String.fromInt (List.length tracks))
 
       T.Failed message -> 
         Html.text ("There was some kind of problem sir:"  ++ message)
     ] 
 
 
-view : Model -> Html Msg
-view model = 
+view :  Model -> Html Msg
+view model  = 
     div [ class "section" ]
       [ menu model.view
       , Components.button SendReq1 [] "get some acorns"
@@ -982,27 +891,14 @@ view model =
       , display model Select 
       , text model.response
       , viewMailer model.mailer
+      , Html.audio [ src songSrc, id "audio-player", controls True ]  []
+      -- , viewAudio model.audio
       ]
 
 
-port audioPortToJS : Encode.Value -> Cmd msg
-port audioPortFromJS : (Decode.Value -> msg) -> Sub msg
-
-
-main =
-  Audio.elementWithAudio
-    { init = initAudio
-    , update = updateAudio
-    , view = viewAudio
-    , subscriptions = \_ _ -> Sub.none
-    , audio = audio
-    , audioPort = { toJS = audioPortToJS, fromJS = audioPortFromJS }
-    }
-
-
--- main = 
---   Browser.element { init = init
---                   , update = update
---                   , view = view
---                   , subscriptions = subscriptions
---                   }
+main =  Browser.element 
+  { init = init
+   , update = update
+   , view = view
+   , subscriptions = subscriptions
+   }

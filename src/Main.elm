@@ -1,6 +1,5 @@
 module Main exposing (main)
 
-import AudioComponents
 import Html exposing (Html, button, div, text, label, p)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)

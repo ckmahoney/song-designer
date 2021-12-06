@@ -85,15 +85,11 @@ emptyScoreMeta =
 type alias Token = Bool
 
 
-
-
 type Posting
   = Loading
-  | Received Track
+  | Received (List TrackMeta)
   | Failed String
   | Welcome
-
-
 
 
 type alias Track = 
@@ -104,6 +100,14 @@ type alias Track =
   }
 
 
+type alias TrackMeta = 
+  { id : Int
+  , account_id : Int
+  , filepath : String
+  , title : String
+  , size_bytes : Int
+  , duration_seconds : Float
+  }
 
 
 -- a request to build one song from configuration
