@@ -19,10 +19,11 @@ import Json.Encode as Encode
 
 port playMusic : String -> Cmd msg
 
+port pauseMusic : String -> Cmd msg
 
 port stopMusic : String -> Cmd msg
 
-
+port startSource : String -> Cmd msg
 port setSource : String -> Cmd msg
 
 songSrc : String
@@ -44,9 +45,8 @@ type Editor
 
 type Playback
  = Play
- | Stop
- | Set String
-  
+ | Pause
+ | Stop  
 
 -- holds permanent state intended for database io
 type Msg 
@@ -67,9 +67,13 @@ type Msg
   | DeleteScope T.Scope
   | DeleteLayout T.Layout
   | DeleteTemplate T.Template
-  | Music Playback
-  | PlayTrack T.TrackMeta
 
+  | LoadTrack T.TrackMeta
+  | PlayTrack 
+  | PauseTrack
+  | StopTrack
+  | SelectTrack (Maybe T.TrackMeta)
+ 
   | Ask
   | GotTracks (Result Http.Error (List T.TrackMeta))
   | SendReq1
@@ -89,6 +93,8 @@ type alias Model =
   , response : String
   , mailer : T.Posting
   , tracks : List T.TrackMeta
+  , selection : Maybe T.TrackMeta
+  , playstate : Playback
   }
 
 
@@ -123,7 +129,7 @@ askTrack data =
 
 initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Model
 initFrom a b c d =
-  Model newLayout -1 Data.kitAll Data.scopes3 c d "" T.Welcome  []
+  Model newLayout -1 Data.kitAll Data.scopes3 c d "" T.Welcome  [] Nothing Stop
 
 
 initEmpty : Model
@@ -289,14 +295,24 @@ dummyConfigVal =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    Music playback -> 
-      case playback of 
-        Play -> ( model, playMusic "play" )
-        Stop -> ( model, stopMusic "stop" )
-        Set src -> ( model, setSource src )
+    LoadTrack track ->
+      ( model, setSource track.filepath )
 
-    PlayTrack track ->
-      (model, setSource track.filepath)
+    SelectTrack track ->
+      case track of 
+        Nothing -> 
+          ( { model | playstate = Stop, selection = Nothing }, setSource "" )
+        Just t -> 
+          ( { model | playstate = Play, selection = Just t }, setSource t.filepath )
+
+    PlayTrack ->
+      ( { model | playstate = Play } , playMusic "" )
+
+    PauseTrack ->
+      ( { model | playstate = Pause } , pauseMusic "" )
+
+    StopTrack ->
+      ( { model | playstate = Stop, selection = Nothing }, stopMusic "" )
 
     Ask ->
       ( { model | mailer = T.Loading } , getSongs )
@@ -333,7 +349,6 @@ update msg model =
 
         Err _ -> 
           ({ model | response = "We had a problem getting your string." }, Cmd.none)
-
 
     CreateScope scope ->
       ({ model 
@@ -886,11 +901,36 @@ viewMailer model =
     ] 
 
 
-playlist : List T.TrackMeta -> Html Msg
-playlist tracks =
+playlist : Playback -> (Maybe T.TrackMeta) -> List T.TrackMeta -> Html Msg
+playlist playstate selection tracks =
+  let
+    yy = Debug.log "has playstate:" playstate
+  in 
   Components.box <| 
-   List.map (\t ->
-    div [onClick <| PlayTrack t] [text t.title ]) tracks
+   List.map (\track ->
+     let 
+       icons = case selection of 
+         Nothing -> 
+            [ div [onClick <| SelectTrack (Just track)] [Components.svg "play"] ]
+
+         Just selected ->  
+           if selected == track then 
+             [ case playstate of 
+                 Play -> 
+                   div [onClick PauseTrack] [Components.svg "pause"] 
+
+                 Pause -> 
+                   div [onClick PlayTrack] [Components.svg "play"] 
+
+                 _ -> text ""
+
+             , div [onClick StopTrack] [Components.svg "stop"]
+             ]
+           else 
+             [ div [onClick <| SelectTrack (Just track)] [Components.svg "play"] ]
+
+     in
+     Components.songCard track.title icons) tracks
 
 
 view :  Model -> Html Msg
@@ -902,8 +942,8 @@ view model  =
       , display model Select 
       , text model.response
       , viewMailer model.mailer
-      , Html.audio [ src songSrc, id "audio-player", controls True ]  []
-      , playlist model.tracks
+      , Html.audio [ src songSrc, id "audio-player", controls False ]  []
+      , playlist model.playstate model.selection model.tracks
       ]
 
 

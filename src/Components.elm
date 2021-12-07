@@ -327,6 +327,13 @@ colHalf child =
   colSize "is-half" child
 
 
+songCard : String -> List (Html msg) -> Html msg
+songCard title icons =
+  div []
+    ([ text title ] ++ icons)
+
+
+
 type alias Model 
   = ()
 
