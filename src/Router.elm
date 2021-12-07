@@ -23,12 +23,7 @@ port pauseMusic : String -> Cmd msg
 
 port stopMusic : String -> Cmd msg
 
-port startSource : String -> Cmd msg
 port setSource : String -> Cmd msg
-
-songSrc : String
-songSrc = "http://localhost:3000/content/testuser/mixes/00111206.mp3"
-
 
 -- holds transient data passed as type parameters
 type Editor 
@@ -48,24 +43,26 @@ type Playback
  | Pause
  | Stop  
 
+
 -- holds permanent state intended for database io
 type Msg 
   = ChangeView Editor 
   | Select Int
 
-  | CreateScope T.Scope
   | CreateVoice T.Voice
-  | CreateLayout T.Layout
-  | CreateTemplate T.Template
-
-  | UpdateScope Int (Maybe T.Scope)
   | UpdateVoice Int (Maybe T.Voice)
-  | UpdateLayout Int (Maybe T.Layout)
-  | UpdateTemplate Int (Maybe T.Template)
-
   | DeleteVoice T.Voice
+
+  | CreateScope T.Scope
+  | UpdateScope Int (Maybe T.Scope)
   | DeleteScope T.Scope
+
+  | CreateLayout T.Layout
+  | UpdateLayout Int (Maybe T.Layout)
   | DeleteLayout T.Layout
+
+  | CreateTemplate T.Template
+  | UpdateTemplate Int (Maybe T.Template)
   | DeleteTemplate T.Template
 
   | LoadTrack T.TrackMeta
@@ -76,11 +73,8 @@ type Msg
  
   | Ask
   | GotTracks (Result Http.Error (List T.TrackMeta))
-  | SendReq1
   | SendReq2
   | GotResp (Result Http.Error String)
-
-
 
 
 type alias Model =
@@ -178,14 +172,6 @@ templateDash =
   clear ETemplate
 
 
-sendRequest : Cmd Msg
-sendRequest = 
-  Http.get
-  { url = "http://127.0.0.1:3000/acorn"
-  , expect = Http.expectString GotResp
-  } 
-
-
 apiUrl : String -> String 
 apiUrl endpoint =
   Url.crossOrigin "http://localhost:3000" [ endpoint ] []
@@ -275,13 +261,12 @@ encodeTemplate model =
   in
   Encode.object
     [ ("meta", encodeScoreMeta <| Tuple.first template)
-    , ("combos", encodeLayout <| Tuple.second template)
+    , ("layout", encodeLayout <| Tuple.second template)
     ]
 
 
 encodeUserReq :  Encode.Value
-encodeUserReq  =
-  Encode.object
+encodeUserReq  =  Encode.object
     [ ("action", Encode.string "songs")
     , ("username", Encode.string "papa")
     ]
@@ -335,9 +320,6 @@ update msg model =
 
             _ -> 
               ({ model | mailer = T.Failed "big bug" }, Cmd.none)
-
-    SendReq1 -> 
-      (model, sendRequest)
 
     SendReq2 -> 
       (model, sendTemplate model)
@@ -937,12 +919,11 @@ view :  Model -> Html Msg
 view model  = 
     div [ class "section" ]
       [ menu model.view
-      , Components.button SendReq1 [] "get some acorns"
-      , Components.button SendReq2 [] "get some walnuts"
+      , Components.button SendReq2 [] "Request a Song"
       , display model Select 
       , text model.response
       , viewMailer model.mailer
-      , Html.audio [ src songSrc, id "audio-player", controls False ]  []
+      , Html.audio [ id "audio-player", controls False ]  []
       , playlist model.playstate model.selection model.tracks
       ]
 

@@ -1,6 +1,5 @@
 module Data exposing (..)
 
-
 import Types exposing (..)
 import Tools
 import Array
@@ -346,12 +345,12 @@ metaP2 =
 
 emptyTemplate : Template
 emptyTemplate = 
-  (emptyScoreMeta, someLayout)
+  (emptyScoreMeta, emptyLayout)
 
 
 someTemplate : Template
 someTemplate = 
-  (meta1, emptyLayout)
+  (meta1, someLayout)
 
 
 -- coreTemplates : List TemplateP
