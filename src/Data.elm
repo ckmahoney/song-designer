@@ -545,6 +545,10 @@ emptyComboP =
   (Nothing, Nothing)
 
 
+emptyMember : GhostMember
+emptyMember =
+  GhostMember "" "" "" "" "" False False []
+
 scopes1 : List Scope
 scopes1 = [s1, s2, s3]
 

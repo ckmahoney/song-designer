@@ -44,6 +44,9 @@ type Playback
  | Stop  
 
 
+  
+
+
 -- holds permanent state intended for database io
 type Msg 
   = ChangeView Editor 
@@ -89,6 +92,7 @@ type alias Model =
   , tracks : List T.TrackMeta
   , selection : Maybe T.TrackMeta
   , playstate : Playback
+  , member : Maybe T.GhostMember
   }
 
 
@@ -121,19 +125,34 @@ askTrack data =
     }
 
 
-initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Model
-initFrom a b c d =
-  Model newLayout -1 Data.kitAll Data.scopes3 c d "" T.Welcome  [] Nothing Stop
+initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Maybe T.GhostMember -> Model
+initFrom v s l t m =
+  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m
+
+
+initTest : Model
+initTest = 
+  initFrom [Data.p1, Data.p2] [] [] [Data.someTemplate]  Nothing
 
 
 initEmpty : Model
 initEmpty = 
-  initFrom [Data.p1, Data.p2] [] [] [Data.someTemplate] 
+  initFrom [] [] [] [] Nothing
 
 
-init : Maybe Int -> (Model, Cmd msg)
+initFromMember : T.GhostMember -> Model
+initFromMember member = 
+  { initEmpty | member = Just member }
+
+
+init : Maybe T.GhostMember -> (Model, Cmd msg)
 init flags =
-  (initEmpty, Cmd.none)
+  case flags of 
+    Nothing -> 
+      (initEmpty, Cmd.none)
+    
+    Just member ->
+      (initFromMember member, Cmd.none)
 
 
 showLayouts : List T.Scope -> Bool
@@ -268,7 +287,7 @@ encodeTemplate model =
 encodeUserReq :  Encode.Value
 encodeUserReq  =  Encode.object
     [ ("action", Encode.string "songs")
-    , ("username", Encode.string "papa")
+    , ("username", Encode.string "maxwell")
     ]
 
 
@@ -918,7 +937,10 @@ playlist playstate selection tracks =
 view :  Model -> Html Msg
 view model  = 
     div [ class "section" ]
-      [ menu model.view
+      [ case model.member of 
+          Nothing -> text "hey bud"
+          Just m -> text ("Welcome back " ++ m.firstname)
+      , menu model.view
       , Components.button SendReq2 [] "Request a Song"
       , display model Select 
       , text model.response

@@ -129,6 +129,18 @@ type alias Scope  =
   }
 
 
+type alias GhostMember =
+  { uuid : String
+  , firstname : String
+  , name : String
+  , avatar_image : String
+  , email : String
+  , subscribed : Bool
+  , paid : Bool
+  , subscriptions: List String
+  } 
+
+
 type alias Ensemble = List Voice
 type alias NPresetKit = (String, Ensemble)
 
