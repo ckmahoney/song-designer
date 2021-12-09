@@ -86,7 +86,7 @@ type alias Token = Bool
 
 
 type Posting
-  = Loading
+  = Sending
   | Received 
   | Failed String
   | Welcome

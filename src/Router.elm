@@ -43,10 +43,6 @@ type Playback
  | Pause
  | Stop  
 
-
-  
-
-
 -- holds permanent state intended for database io
 type Msg 
   = ChangeView Editor 
@@ -74,11 +70,9 @@ type Msg
   | StopTrack
   | SelectTrack (Maybe T.TrackMeta)
  
-  | Ask
   | GotTracks (Result Http.Error (List T.TrackMeta))
-  | SendReq2
+  | ReqTrack T.Template
   | GotResp (Result Http.Error String)
-
 
 type alias Model =
   { view : Editor
@@ -116,13 +110,6 @@ decodeTrack =
     (Decode.field "duration_seconds" Decode.float)
 
 
-askTrack : Encode.Value -> Cmd Msg
-askTrack data = 
-  Http.post 
-    { url = apiUrl "track"
-    , body = Http.jsonBody data
-    , expect = Http.expectJson GotTracks (Decode.list decodeTrack)
-    }
 
 
 initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Maybe T.GhostMember -> Model
@@ -142,17 +129,20 @@ initEmpty =
 
 initFromMember : T.GhostMember -> Model
 initFromMember member = 
-  { initEmpty | member = Just member }
+  let
+    rec = { initEmpty | member = Just member }
+  in 
+  { initTest | member = Just member }
 
 
-init : Maybe T.GhostMember -> (Model, Cmd msg)
+init : Maybe T.GhostMember -> (Model, Cmd Msg)
 init flags =
   case flags of 
     Nothing -> 
-      (initEmpty, Cmd.none)
+      (initTest, Cmd.none)
     
     Just member ->
-      (initFromMember member, Cmd.none)
+      (initFromMember member, getSongs member.email member.uuid)
 
 
 showLayouts : List T.Scope -> Bool
@@ -196,25 +186,22 @@ apiUrl endpoint =
   Url.crossOrigin "http://localhost:3000" [ endpoint ] []
 
 
-sendTemplate : Model -> Cmd Msg
-sendTemplate model =
-  let
-    bod =  Http.jsonBody <| encodeTemplate model 
-  in 
+reqTrack : String -> String -> T.Template -> Cmd Msg
+reqTrack email uuid template =
   Http.post
   { url = apiUrl "track"
-  , body = Http.jsonBody <|  encodeTemplate model
+  , body = Http.jsonBody <| encodeReqTrack email uuid template
   , expect = Http.expectJson GotTracks (Decode.list decodeTrack)
-  } 
+  }
 
 
-getSongs :  Cmd Msg
-getSongs  =
+getSongs : String -> String -> Cmd Msg
+getSongs email uuid =
   Http.post
   { url = apiUrl "user"
-  , body = Http.jsonBody <| encodeUserReq  
+  , body = Http.jsonBody <| encodeReqLoadSongs email uuid
   , expect = Http.expectJson GotTracks (Decode.list decodeTrack)
-  } 
+  }
 
 
 encodeScope : T.Scope -> Encode.Value
@@ -271,16 +258,22 @@ encodeLayout (label, combos) =
     ]
 
 
-encodeTemplate : Model -> Encode.Value
-encodeTemplate model =
-  let
-    template = case List.head model.templates of 
-      Nothing -> Data.emptyTemplate
-      Just t -> t
-  in
+encodeReqTrack : String -> String -> T.Template -> Encode.Value
+encodeReqTrack email uuid template =
   Encode.object
     [ ("meta", encodeScoreMeta <| Tuple.first template)
     , ("layout", encodeLayout <| Tuple.second template)
+    , ("email", Encode.string email)
+    , ("uuid", Encode.string uuid)
+    ]
+
+
+encodeMember : T.GhostMember -> Encode.Value
+encodeMember member =
+  Encode.object
+    [ ("name", Encode.string member.name)
+    , ("email", Encode.string member.email)
+    , ("uuid", Encode.string member.uuid)
     ]
 
 
@@ -288,6 +281,14 @@ encodeUserReq :  Encode.Value
 encodeUserReq  =  Encode.object
     [ ("action", Encode.string "songs")
     , ("username", Encode.string "maxwell")
+    ]
+
+
+encodeReqLoadSongs : String -> String -> Encode.Value
+encodeReqLoadSongs email uuid = Encode.object
+    [ ("action", Encode.string "songs")
+    , ("email", Encode.string email)
+    , ("uuid", Encode.string uuid)
     ]
 
 
@@ -307,7 +308,7 @@ update msg model =
         Nothing -> 
           ( { model | playstate = Stop, selection = Nothing }, setSource "" )
         Just t -> 
-          ( { model | playstate = Play, selection = Just t }, setSource t.filepath )
+          ( { model | playstate = Play, selection = Just t }, setSource ("http://localhost:3000/" ++ t.filepath ))
 
     PlayTrack ->
       ( { model | playstate = Play } , playMusic "" )
@@ -317,9 +318,6 @@ update msg model =
 
     StopTrack ->
       ( { model | playstate = Stop, selection = Nothing }, stopMusic "" )
-
-    Ask ->
-      ( { model | mailer = T.Loading } , getSongs )
 
     GotTracks response ->
       case response of 
@@ -340,8 +338,13 @@ update msg model =
             _ -> 
               ({ model | mailer = T.Failed "big bug" }, Cmd.none)
 
-    SendReq2 -> 
-      (model, sendTemplate model)
+    ReqTrack template -> 
+      case model.member of 
+        Nothing -> 
+          ( model, Cmd.none )
+
+        Just member ->
+          ( model, reqTrack member.email member.uuid template )
 
     GotResp result -> 
       case result of 
@@ -883,30 +886,9 @@ updateIn el els index =
   Tools.replaceAt index el els
 
 
-viewMailer : (T.Posting) -> Html.Html Msg
-viewMailer model = 
-  Html.div [] 
-    [ Html.button [onClick Ask] [Html.text "Ask for a song."]
-    , case model of 
-      T.Welcome -> 
-        Html.text "" 
-
-      T.Loading ->
-        Html.text "the page is loading"
-
-      T.Received ->
-        Html.text <| "that is good, we got it back."
-
-      T.Failed message -> 
-        Html.text ("There was some kind of problem sir:"  ++ message)
-    ] 
-
 
 playlist : Playback -> (Maybe T.TrackMeta) -> List T.TrackMeta -> Html Msg
 playlist playstate selection tracks =
-  let
-    yy = Debug.log "has playstate:" playstate
-  in 
   Components.box <| 
    List.map (\track ->
      let 
@@ -941,11 +923,11 @@ view model  =
           Nothing -> text "hey bud"
           Just m -> text ("Welcome back " ++ m.firstname)
       , menu model.view
-      , Components.button SendReq2 [] "Request a Song"
+      , case List.head model.templates of 
+          Nothing -> text ""
+          Just t -> Components.button (ReqTrack t) [] "Request a Song"
       , display model Select 
       , text model.response
-      , viewMailer model.mailer
-      , Html.audio [ id "audio-player", controls False ]  []
       , playlist model.playstate model.selection model.tracks
       ]
 
