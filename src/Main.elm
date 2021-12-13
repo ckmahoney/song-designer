@@ -17,6 +17,8 @@ import View
 import Router 
 import Post
 
+
+
 type alias User = 
   { username : String
   , token : Bool
@@ -40,8 +42,5 @@ mainApp =
                   }
 
 
-
 main = 
-  -- AudioComponents.main
   Router.main
-  -- Post.main

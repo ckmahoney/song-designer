@@ -13,6 +13,7 @@ import Update as U
 import String exposing (String(..))
 import Tools
 
+
 useSharps = False
 
 
@@ -594,23 +595,22 @@ sectionAdder scopes ensembles (mScope, mEns)  =
 
 scopeIcon : T.Scope -> Html msg
 scopeIcon scope =
-  div [ class "box" ] 
+  div [ class "box has-text-centered" ] 
     [ label [ class "label" ] [ text scope.label ]
     , Components.svg "scope"
     , div [ class "content" ]
       [ p [] [ text "Size ", b [] [text <| String.fromInt scope.size ] ]
     , p [] [ text (scopeTimeString scope) ] 
-    , p [] [ text "Key of ", b [] [] 
-    ] ] ]
+    ] ]
 
 
 voiceIcon : T.Voice -> Html msg
 voiceIcon voice = 
-  div [ class "box mx-3 my-0" ] 
+  div [ class "box mx-3 my-0 has-text-centered" ] 
     [ label [ class "label" ] [ text voice.label ]
     , roleIcon voice.role
     , p [ class "content" ] [ text (Tuple.first <| D.roleLabel voice.role) ]
-    ] 
+    ]
 
 
 layoutIcon : T.Layout -> Html msg
@@ -634,8 +634,9 @@ layoutNamer title rename =
 comboPreview : T.Combo -> Html msg
 comboPreview ((scope, ensemble) as combo) =
     Components.boxWith "my-3 p-3 has-background-dark columns" 
-      <| [ div [ class "column is-one-quarter is-center" ] [ scopeIcon scope ]
-         , div [ class "column is-three-quarters" ] [ Components.colsMulti  (List.map (\voice -> div [class "column is-one-quarter"][ (voiceIcon voice)]) ensemble) ] ]
+      <| [ div [ class "column is-one-quarter" ] [ scopeIcon scope ]
+         , div [ class "column is-three-quarters" ] [ Components.colsMulti  
+            (List.map (\voice -> div [class "column is-one-quarter" ][ (voiceIcon voice)]) ensemble) ] ]
       
 
 

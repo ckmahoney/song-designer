@@ -542,18 +542,22 @@ dCPS = 1.5
 dCPC = 4
 dRoot = 32
 
-sIO : Scope
-sIO = 
-  Scope -9690 "Intro/Outro" dCPS dCPC dRoot 1
+sIntro : Scope
+sIntro = 
+  Scope -9690 "Intro" dCPS dCPC dRoot 1
+
+sOutro : Scope
+sOutro = 
+  Scope -9690 "Outro" dCPS dCPC dRoot 1
 
 
 demoIntro : Combo
 demoIntro =
-  (sIO, kitBeat)
+  (sIntro, kitBeat)
 
 demoOutro : Combo
 demoOutro =
-  (sIO, kitBeat)
+  (sOutro, kitBeat)
 
 sVerse : Scope
 sVerse =
@@ -573,7 +577,7 @@ demoChorus =
 
 demoLayout : Layout
 demoLayout =
-  ("A verse-chorus song with io", [demoIntro, demoVerse, demoChorus, demoVerse, demoChorus, demoChorus, demoOutro])
+  ("Verse-Chorus song with intro and outro", [demoIntro, demoVerse, demoChorus, demoVerse, demoChorus, demoChorus, demoOutro])
 
 emptyCombo : Combo
 emptyCombo = 

@@ -25,6 +25,8 @@ port stopMusic : String -> Cmd msg
 
 port setSource : String -> Cmd msg
 
+
+
 -- holds transient data passed as type parameters
 type Editor 
   = Dash
@@ -948,14 +950,9 @@ view model  =
       ]
 
 
-viewDemoLayout :  Model -> Html Msg
-viewDemoLayout model = 
-  View.viewLayout Data.demoLayout  
-
-
 main =  Browser.element 
   { init = init
    , update = update
-   , view = viewDemoLayout
+   , view = view
    , subscriptions = subscriptions
    }
