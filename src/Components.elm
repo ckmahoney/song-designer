@@ -225,8 +225,13 @@ card2 title titleMore content =
         [ content ] ]
 
 
+box : (List (Html msg)) -> Html msg
 box =
   div [ class "box" ]
+
+boxWith : String -> (List (Html msg)) -> Html msg
+boxWith c =
+  div [ class "box", class c ]
 
 
 

@@ -71,6 +71,7 @@ type Msg
   | SelectTrack (Maybe T.TrackMeta)
  
   | GotTracks (Result Http.Error (List T.TrackMeta))
+  | GotNewTrack (Result Http.Error  T.TrackMeta)
   | ReqTrack T.Template
   | GotResp (Result Http.Error String)
 
@@ -145,22 +146,6 @@ init flags =
       (initFromMember member, getSongs member.email member.uuid)
 
 
-showLayouts : List T.Scope -> Bool
-showLayouts scopes = 
-  1 < List.length scopes
-
-
-showEnsembles : List T.Voice -> Bool
-showEnsembles voices = 
-  1 < List.length voices  
-
-
-showTemplates : List T.Layout -> List T.Ensemble -> Bool
-showTemplates layouts ensembles = 
-  (0 < List.length layouts)
-  && (0 < List.length ensembles)
-
-
 scopeDash : Editor
 scopeDash = 
   EScope -1 Nothing
@@ -191,7 +176,7 @@ reqTrack email uuid template =
   Http.post
   { url = apiUrl "track"
   , body = Http.jsonBody <| encodeReqTrack email uuid template
-  , expect = Http.expectJson GotTracks (Decode.list decodeTrack)
+  , expect = Http.expectJson GotNewTrack decodeTrack
   }
 
 
@@ -338,13 +323,42 @@ update msg model =
             _ -> 
               ({ model | mailer = T.Failed "big bug" }, Cmd.none)
 
+    GotNewTrack response ->
+      case response of 
+        Ok track ->
+         let
+          yy = Debug.log "this is the track we got back: " track
+         in
+          ( { model 
+            | tracks = track :: model.tracks
+            , selection = (Just track)
+            , playstate = Play
+            , mailer = T.Received }, setSource ("http://localhost:3000/" ++ track.filepath ) )
+
+        Err errr ->
+         let
+           yy = Debug.log "Bad response. This is the raw err:" errr
+         in
+          case errr of 
+            Http.BadBody str -> 
+              ({ model | mailer = T.Failed str }, Cmd.none)
+ 
+            Http.BadUrl str -> 
+              ({ model | mailer = T.Failed str }, Cmd.none)
+
+            Http.BadStatus int -> 
+              ({ model | mailer = T.Failed <| String.fromInt int }, Cmd.none)
+
+            _ -> 
+              ({ model | mailer = T.Failed "big bug" }, Cmd.none)
+
     ReqTrack template -> 
       case model.member of 
         Nothing -> 
           ( model, Cmd.none )
 
         Just member ->
-          ( model, reqTrack member.email member.uuid template )
+          ( { model | mailer = T.Sending }, reqTrack member.email member.uuid template )
 
     GotResp result -> 
       case result of 
@@ -694,9 +708,8 @@ display model select =
 
 
     ELayout index mLayout ->
-     -- Checking against making a new layout or edit
+     -- Checking against making a new layout or edit existing one
      case mLayout of 
-       
        Nothing -> 
          case List.length model.layouts of 
            -- create the first layout
@@ -704,7 +717,6 @@ display model select =
             let
                helpLink = Components.button (ChangeView Dash) [] "Read the Guide" 
             in 
-             
              introduceLayout helpLink (ChangeView newLayout)
 
            -- Editing an existing layout           
@@ -886,7 +898,6 @@ updateIn el els index =
   Tools.replaceAt index el els
 
 
-
 playlist : Playback -> (Maybe T.TrackMeta) -> List T.TrackMeta -> Html Msg
 playlist playstate selection tracks =
   Components.box <| 
@@ -905,7 +916,8 @@ playlist playstate selection tracks =
                  Pause -> 
                    div [onClick PlayTrack] [Components.svg "play"] 
 
-                 _ -> text ""
+                 Stop ->
+                   div [onClick PlayTrack] [Components.svg "play"] 
 
              , div [onClick StopTrack] [Components.svg "stop"]
              ]
@@ -926,15 +938,24 @@ view model  =
       , case List.head model.templates of 
           Nothing -> text ""
           Just t -> Components.button (ReqTrack t) [] "Request a Song"
-      , display model Select 
+      , case model.mailer of 
+          T.Sending -> 
+            text "Working on that track for you!"
+          _ ->
+            display model Select 
       , text model.response
       , playlist model.playstate model.selection model.tracks
       ]
 
 
+viewDemoLayout :  Model -> Html Msg
+viewDemoLayout model = 
+  View.viewLayout Data.demoLayout  
+
+
 main =  Browser.element 
   { init = init
    , update = update
-   , view = view
+   , view = viewDemoLayout
    , subscriptions = subscriptions
    }

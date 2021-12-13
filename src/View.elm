@@ -598,14 +598,15 @@ scopeIcon scope =
     [ label [ class "label" ] [ text scope.label ]
     , Components.svg "scope"
     , div [ class "content" ]
-      [ p [] [ text (scopeTimeString scope) ] 
-      , p [] [ text "Key of ", b [] [   ]
+      [ p [] [ text "Size ", b [] [text <| String.fromInt scope.size ] ]
+    , p [] [ text (scopeTimeString scope) ] 
+    , p [] [ text "Key of ", b [] [] 
     ] ] ]
 
 
 voiceIcon : T.Voice -> Html msg
 voiceIcon voice = 
-  div [ class "box" ] 
+  div [ class "box mx-3 my-0" ] 
     [ label [ class "label" ] [ text voice.label ]
     , roleIcon voice.role
     , p [ class "content" ] [ text (Tuple.first <| D.roleLabel voice.role) ]
@@ -629,17 +630,21 @@ layoutNamer title rename =
   Components.editText "Label" (text content) title rename 
 
 
-viewLayout : T.Layout -> (T.ComboP -> msg) -> Html msg
-viewLayout (name, combos) createCombo =
-  if 0 == List.length combos then 
-    Components.box 
-      [ text "You don't have any combos yet. Click here to add the first one." 
-      , Components.button (createCombo (Nothing, Nothing)) [] "add a combo" ]
-  else 
-    Components.box
-      (List.indexedMap (\i ((scope, ensemble) as combo) -> 
-      div [ onClick <| (createCombo (Just scope, Just ensemble)) ] [ comboIcon combo ] 
-     ) combos)
+
+comboPreview : T.Combo -> Html msg
+comboPreview ((scope, ensemble) as combo) =
+    Components.boxWith "my-3 p-3 has-background-dark columns" 
+      <| [ div [ class "column is-one-quarter is-center" ] [ scopeIcon scope ]
+         , div [ class "column is-three-quarters" ] [ Components.colsMulti  (List.map (\voice -> div [class "column is-one-quarter"][ (voiceIcon voice)]) ensemble) ] ]
+      
+
+
+
+viewLayout : T.Layout -> Html msg
+viewLayout (name, combos)  =
+    Components.box  <| 
+      [ label [ class "label mb-3" ] [text name]  ]
+      ++ (List.map comboPreview combos)
 
 
 editLayout : T.Layout -> (T.ComboP -> msg) -> (T.Combo -> msg ) -> (Int -> msg ) -> Html msg

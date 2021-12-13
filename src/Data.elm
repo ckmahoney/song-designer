@@ -121,12 +121,14 @@ paletteTrioDark =
   , "#1A0CB8"
   ]
 
+
 paletteTrioLight : Palette
 paletteTrioLight =
   [ "#F24738"
   , "#38F247"
   , "#4738F2"
   ]
+
 
 palette =
   [ "#ffa822"
@@ -303,7 +305,8 @@ meta1 =
   { title = "My Delight"
   , cpc = 4
   , cps = 2.1
-  , root = 1.65
+  , root = (1.65 * 16 * 2)
+  -- , root = 1.65
   }
 
 
@@ -493,6 +496,7 @@ v1 =
   , size = 1
   }
 
+
 v2 : Scope
 v2 =
   { id = -13
@@ -512,7 +516,6 @@ c1 =
   , root = 42
   , size = 1
   }
-
 
 
 c2 =
@@ -535,6 +538,43 @@ someLayout =
   ("A sequence of music", [combo1, combo2, combo3])
 
 
+dCPS = 1.5
+dCPC = 4
+dRoot = 32
+
+sIO : Scope
+sIO = 
+  Scope -9690 "Intro/Outro" dCPS dCPC dRoot 1
+
+
+demoIntro : Combo
+demoIntro =
+  (sIO, kitBeat)
+
+demoOutro : Combo
+demoOutro =
+  (sIO, kitBeat)
+
+sVerse : Scope
+sVerse =
+  Scope -9691 "Verse" dCPS dCPC dRoot 3
+
+sChorus : Scope
+sChorus =
+  Scope -9692 "Chorus" dCPS dCPC dRoot 2
+
+demoVerse : Combo
+demoVerse = 
+  (sVerse, kitSynth)
+
+demoChorus : Combo
+demoChorus = 
+  (sChorus, kitAll)
+
+demoLayout : Layout
+demoLayout =
+  ("A verse-chorus song with io", [demoIntro, demoVerse, demoChorus, demoVerse, demoChorus, demoChorus, demoOutro])
+
 emptyCombo : Combo
 emptyCombo = 
   (emptyScope, [])
@@ -548,6 +588,7 @@ emptyComboP =
 emptyMember : GhostMember
 emptyMember =
   GhostMember "" "" "" "" "" False False []
+
 
 scopes1 : List Scope
 scopes1 = [s1, s2, s3]
@@ -571,11 +612,6 @@ coreScopes =
 
 coreLayoutTitles =
   [ "Verse 1", "Verse 2", "Chorus 1", "Chorus 2"]
-
-
--- coreLayouts : List Layout
--- coreLayouts =
-  -- List.map2 Tuple.pair coreLayoutTitles coreScopes
 
 
 kitVC1 : Ensemble
@@ -628,13 +664,14 @@ coreEnsembles =
   [ kitBeat, kitSynth, kitAll ] 
 
 
-
 combo1 =
-  (v1, kitSynth)
+  (v1, kitAll)
+  -- (v1, kitSynth)
 
 
 combo2 =
   (c1,kitSynth)
+
 
 combo3 : Combo
 combo3 =
@@ -687,11 +724,6 @@ coreScores =
       , (c1,kitAll)
       ] )
   ] 
-
-
-
--- scores1 : List Score
-
 
 
 main = 
