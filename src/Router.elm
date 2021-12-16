@@ -15,7 +15,7 @@ import Http
 import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
-
+import SongDesigner
 
 port playMusic : String -> Cmd msg
 
@@ -77,6 +77,8 @@ type Msg
   | ReqTrack T.Template
   | GotResp (Result Http.Error String)
 
+  | UpdateSongDesigner SongDesigner.Msg
+
 type alias Model =
   { view : Editor
   , index : Int
@@ -90,6 +92,7 @@ type alias Model =
   , selection : Maybe T.TrackMeta
   , playstate : Playback
   , member : Maybe T.GhostMember
+  , designer : SongDesigner.Model
   }
 
 
@@ -117,7 +120,7 @@ decodeTrack =
 
 initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Maybe T.GhostMember -> Model
 initFrom v s l t m =
-  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m
+  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m SongDesigner.initModel
 
 
 initTest : Model
@@ -127,7 +130,8 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  initFrom [] [] [] [] Nothing
+  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing SongDesigner.initModel
+
 
 
 initFromMember : T.GhostMember -> Model
@@ -142,7 +146,7 @@ init : Maybe T.GhostMember -> (Model, Cmd Msg)
 init flags =
   case flags of 
     Nothing -> 
-      (initTest, Cmd.none)
+      (initEmpty, Cmd.none)
     
     Just member ->
       (initFromMember member, getSongs member.email member.uuid)
@@ -287,6 +291,22 @@ dummyConfigVal =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
+    UpdateSongDesigner sMsg ->
+      case sMsg of
+        SongDesigner.Over state ->
+          ({ model | designer = SongDesigner.Overview state }, Cmd.none)
+
+        SongDesigner.EditTitle state title ->
+          ({ model | designer = SongDesigner.EditingTitle ({ state | title  = title }) }, Cmd.none)
+        -- SongDesigner.Overview state -> 
+        --   (model, Cmd.none)
+   
+        -- SongDesigner.EditingTitle state ->
+        --  let
+        --    yy = Debug.log "state, title from song designer is"  (state)
+        --  in
+        --  ({ model | title = state.title}, Cmd.none)
+    
     LoadTrack track ->
       ( model, setSource track.filepath )
 
@@ -940,6 +960,7 @@ view model  =
       , case List.head model.templates of 
           Nothing -> text ""
           Just t -> Components.button (ReqTrack t) [] "Request a Song"
+      , SongDesigner.view (UpdateSongDesigner) model.designer
       , case model.mailer of 
           T.Sending -> 
             text "Working on that track for you!"
@@ -952,7 +973,7 @@ view model  =
 
 main =  Browser.element 
   { init = init
-   , update = update
-   , view = view
-   , subscriptions = subscriptions
-   }
+  , update = update
+  , view = view
+  , subscriptions = subscriptions
+  }
