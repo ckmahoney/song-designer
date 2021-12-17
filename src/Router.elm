@@ -15,6 +15,9 @@ import Http
 import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
+
+import ScopeEditor
+import EnsembleEditor
 import ComboEditor
 
 port playMusic : String -> Cmd msg
@@ -93,7 +96,7 @@ type alias Model =
   , selection : Maybe T.TrackMeta
   , playstate : Playback
   , member : Maybe T.GhostMember
-  , combo : ComboEditor.Model
+  , comboEditor : ComboEditor.Model
   }
 
 
@@ -117,8 +120,6 @@ decodeTrack =
     (Decode.field "duration_seconds" Decode.float)
 
 
-
-
 initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Maybe T.GhostMember -> Model
 initFrom v s l t m =
   Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m ComboEditor.initModel
@@ -132,7 +133,6 @@ initTest =
 initEmpty : Model
 initEmpty = 
   Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing ComboEditor.initModel
-
 
 
 initFromMember : T.GhostMember -> Model
@@ -292,13 +292,45 @@ dummyConfigVal =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    UpdateComboEditor sMsg ->
-      case sMsg of 
-        ComboEditor.Save state ->
-          (model, Cmd.none)
+    UpdateComboEditor msg_ ->
+     let
+      x = 1
+     in 
+      case msg_ of 
+        ComboEditor.Save combo ->
+          ( { model | comboEditor = ComboEditor.Overview combo } , Cmd.none)
+
+        ComboEditor.UpdateScopeEditor sMsg ->
+            case sMsg of
+              ScopeEditor.Over scope ->
+                ( { model | comboEditor = Overview (scope, ensemble_)}, Cmd.none)
+
+              ScopeEditor.Edit scope ->
+                ( EditingScope (scope, ensemble_) (ScopeEditor.Editing scope), Cmd.none)
+
+              ScopeEditor.UpdateTitle scope title ->
+               let
+                next = { scope | label = title }
+               in 
+                 ( EditingScope (next, ensemble_) ( ScopeEditor.Editing next), Cmd.none)
+
+              ScopeEditor.UpdateCPS scope cps ->
+               let
+                next = { scope | cps = cps }
+               in
+                 ( EditingScope (next, ensemble_) ( ScopeEditor.Editing next) , Cmd.none)
+
+              ScopeEditor.UpdateRoot scope root ->
+               let
+                next = { scope | root = root }
+               in
+                 (  { model | comboEditor = ScopeEditor.EditingScope (next, ensemble_) ( ScopeEditor.Editing next) }, Cmd.none)
 
         _ ->
-          (model, Cmd.none) 
+         (model, Cmd.none)
+        -- ComboEditor.UpdateEnsembleEditor eMsg ->
+          -- ( { model | comboEditor = ComboEditor.EditingEnsemble (scope, ensemble) }, Cmd.none) 
+
     
     LoadTrack track ->
       ( model, setSource track.filepath )
@@ -944,12 +976,13 @@ playlist playstate selection tracks =
 
 
 view :  Model -> Html Msg
-view model  = 
+view model =
     div [ class "section" ]
       [ case model.member of 
           Nothing -> text "hey bud"
           Just m -> text ("Welcome back " ++ m.firstname)
       , menu model.view
+      , ComboEditor.view UpdateComboEditor model.comboEditor
       , case List.head model.templates of 
           Nothing -> text ""
           Just t -> Components.button (ReqTrack t) [] "Request a Song"

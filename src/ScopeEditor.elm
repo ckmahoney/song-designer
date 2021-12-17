@@ -108,17 +108,17 @@ cpsPicker current state msg =
 
 
 view : (Msg -> msg) -> Model -> Html msg
-view msg model =
+view toMsg model =
   case model of 
     Overview state ->
-      div [onClick (msg <| Edit state)] [Elements.scope state] 
+      div [onClick (toMsg <| Edit state)] [Elements.scope state] 
 
     Editing state ->
       Components.box
-        [ input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> (updateTitle state str msg))] []
-        , cpsPicker state.cps state msg
-        , keyPicker state.root state msg
-        , Components.button (msg <| Over state) [] "Done" 
+        [ input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> (updateTitle state str toMsg))] []
+        , cpsPicker state.cps state toMsg
+        , keyPicker state.root state toMsg
+        , Components.button (toMsg <| Over state) [] "Done" 
         ]
 
 
