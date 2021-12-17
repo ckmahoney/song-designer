@@ -217,6 +217,8 @@ viewVoice voice =
     ] 
 
 
+
+
 editVoice : T.Voice -> ((Maybe T.Voice) -> msg) -> Html msg -> Html msg ->  Html msg
 editVoice voice sig buttSave buttDelete =
   let 

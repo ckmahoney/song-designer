@@ -21,6 +21,20 @@ duration cpc cps size  =
   cps * (toFloat (sizeToCycles cpc size))
 
 
+timeString : Float -> String
+timeString t =
+  let
+    m = ((round t) // 60)
+    pad = if m < 10 then "0" else "" 
+    mm = pad ++ String.fromInt m
+    
+    s = modBy 60 (round t)
+    pad2 = if s < 10 then "0" else "" 
+    ss = pad2 ++ String.fromInt s
+  in
+  mm ++ ":" ++ ss
+
+
 getTimes : List ScopeFloat -> List (Float, Int)  -- (cps, dur)
 getTimes scopes  =
   List.map (\{cps,cpc,size} -> (cps, sizeToCycles cpc size)) scopes
@@ -34,8 +48,6 @@ layoutDuration scopes =
 chromaticKey : Int -> Float
 chromaticKey index =
   getOr index Data.chromaticRoots 15.0
-
-
 
 
 conj x xs =

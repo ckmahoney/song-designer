@@ -95,15 +95,15 @@ updateTitle state str msg =
 
 keyPicker : Int -> State -> (Msg -> msg) -> Html msg
 keyPicker current state msg =
-  Components.box
-   <| (label [] [ text "Key:"]) :: List.map (\(root, name) ->
+  Components.boxWith "is-flex is-align-items-center"
+   <| (label [Attr.class "mr-3"] [ text "Key"]) :: List.map (\(root, name) ->
     Components.button (msg (UpdateRoot state root)) [Attr.class <| if current == root then "is-success is-selected" else ""] name) rootOptions
   
 
 cpsPicker : Float -> State -> (Msg -> msg) -> Html msg
 cpsPicker current state msg =
-  Components.box
-   <| (label [] [ text "BPM:"]) :: List.map (\cps ->
+  Components.boxWith "is-flex is-align-items-center"
+   <| (label [Attr.class "mr-3"] [ text "BPM"]) :: List.map (\cps ->
     Components.button (msg (UpdateCPS state cps)) [Attr.class <| if current == cps then "is-success is-selected" else ""] (String.fromFloat (Tools.cpsToBPM cps))) cpsOptions
 
 
@@ -115,12 +115,11 @@ view msg model =
 
     Editing state ->
       Components.box
-        [ input [Attr.type_ "text",  Attr.value state.label, onInput (\str -> (updateTitle state str msg))] []
+        [ input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> (updateTitle state str msg))] []
         , cpsPicker state.cps state msg
         , keyPicker state.root state msg
         , Components.button (msg <| Over state) [] "Done" 
         ]
-
 
 
 main = 
