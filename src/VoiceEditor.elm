@@ -36,7 +36,6 @@ newVoice =
   } 
 
 
-
 initModel : Model
 initModel = 
   newVoice
@@ -51,6 +50,7 @@ updateRole : Model -> (Model -> msg) -> SynthRole -> msg
 updateRole model update role =
   update { model | role = role }
 
+
 updateDensity : Model -> (Model -> msg) -> Int -> msg
 updateDensity model update density =
   update { model | density = density }
@@ -61,8 +61,8 @@ updateComplexity model update complexity =
   update { model | complexity = complexity }
 
 
-edit : Model -> (Model -> msg) -> (Model -> msg) -> Html msg
-edit model update save =
+edit : Model -> (Model -> msg) -> (Model -> msg) -> msg -> Html msg
+edit model update save kill =
  let
    options = List.map (\r -> (r, View.roleIcon r)) Data.roles
  in 
@@ -76,15 +76,13 @@ edit model update save =
        [ Components.colHalf <| Components.editInt "Density" (View.densityMessage model) Data.rangeDensity model.density (updateDensity model update)
        , Components.colHalf <| Components.editInt "Complexity" (View.complexityMessage model) Data.rangeComplexity model.complexity (updateComplexity model update) ]
      , Components.button (save model) [] "Save"
+     , Components.button kill [] "Delete"
     ]
-
-
 
 
 view : Model -> Html msg
 view model =
   View.viewVoice model
-
 
 
 main = text ""

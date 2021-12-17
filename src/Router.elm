@@ -15,10 +15,7 @@ import Http
 import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
-import ScopeEditor
-import EnsembleEditor
-import VoiceEditor
-
+import ComboEditor
 
 port playMusic : String -> Cmd msg
 
@@ -80,8 +77,8 @@ type Msg
   | ReqTrack T.Template
   | GotResp (Result Http.Error String)
 
-  | UpdateScopeEditor ScopeEditor.Msg
-  | UpdateEnsembleEditor EnsembleEditor.Msg
+  | UpdateComboEditor ComboEditor.Msg
+
 
 type alias Model =
   { view : Editor
@@ -96,9 +93,7 @@ type alias Model =
   , selection : Maybe T.TrackMeta
   , playstate : Playback
   , member : Maybe T.GhostMember
-  , scope : ScopeEditor.Model
-  , ensemble : EnsembleEditor.Model
-  , voice : Maybe VoiceEditor.Model
+  , combo : ComboEditor.Model
   }
 
 
@@ -126,7 +121,7 @@ decodeTrack =
 
 initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Maybe T.GhostMember -> Model
 initFrom v s l t m =
-  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m ScopeEditor.initModel EnsembleEditor.initModel Nothing
+  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m ComboEditor.initModel
 
 
 initTest : Model
@@ -136,7 +131,7 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing ScopeEditor.initModel EnsembleEditor.initModel Nothing
+  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing ComboEditor.initModel
 
 
 
@@ -297,62 +292,13 @@ dummyConfigVal =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    UpdateScopeEditor sMsg ->
-      case sMsg of
-        ScopeEditor.Over state ->
-          ({ model | scope = ScopeEditor.Overview state }, Cmd.none)
+    UpdateComboEditor sMsg ->
+      case sMsg of 
+        ComboEditor.Save state ->
+          (model, Cmd.none)
 
-        ScopeEditor.Edit state ->
-          ({ model | scope = ScopeEditor.Editing state }, Cmd.none)
-
-        ScopeEditor.UpdateTitle state title ->
-          ({ model | scope = ScopeEditor.Editing ({ state | label  = title }) }, Cmd.none)
-
-        ScopeEditor.UpdateCPS state cps ->
-          ({ model | scope = ScopeEditor.Editing ({ state | cps  = cps }) }, Cmd.none)
-
-        ScopeEditor.UpdateRoot state root ->
-          ({ model | scope = ScopeEditor.Editing ({ state | root  = root }) }, Cmd.none)
-
-    UpdateEnsembleEditor sMsg ->
-      case model.ensemble of 
-        EnsembleEditor.Overview state ->
-          case sMsg of 
-            EnsembleEditor.CreateVoice -> 
-             ( { model | ensemble = EnsembleEditor.Overview <| VoiceEditor.newVoice :: state }, Cmd.none)
-
-            EnsembleEditor.SelectVoice ensemble index -> 
-             let
-               v = Tools.getOr index ensemble VoiceEditor.newVoice
-             in
-             ( { model | ensemble = EnsembleEditor.Editing ensemble index v }, Cmd.none)
-
-            _ -> -- These cases should not be able to exist from the Overview state and are handled in Editing state
-             ( model, Cmd.none )
-
-        EnsembleEditor.Editing state index voice->
-          case sMsg of 
-            EnsembleEditor.CreateVoice -> 
-             ( { model | ensemble = EnsembleEditor.Overview <| VoiceEditor.newVoice :: state }, Cmd.none)
-
-            EnsembleEditor.SelectVoice ensemble newIndex -> 
-             let
-               v = Tools.getOr newIndex ensemble VoiceEditor.newVoice
-             in
-             ( { model | ensemble = EnsembleEditor.Editing ensemble newIndex v }, Cmd.none)
-          
-            EnsembleEditor.UpdateVoice ensemble curr updated -> 
-             let 
-               next = Tools.replaceAt index updated ensemble
-             in
-             ( { model | ensemble = EnsembleEditor.Editing next curr updated }, Cmd.none)
-          
-            EnsembleEditor.SaveVoice ensemble _ updated -> 
-             let 
-               next = Tools.replaceAt index updated ensemble
-             in
-             ( { model | ensemble = EnsembleEditor.Overview next }, Cmd.none)
-          
+        _ ->
+          (model, Cmd.none) 
     
     LoadTrack track ->
       ( model, setSource track.filepath )
@@ -1007,8 +953,6 @@ view model  =
       , case List.head model.templates of 
           Nothing -> text ""
           Just t -> Components.button (ReqTrack t) [] "Request a Song"
-      , ScopeEditor.view (UpdateScopeEditor) model.scope
-      , EnsembleEditor.view (UpdateEnsembleEditor) model.ensemble
       , case model.mailer of 
           T.Sending -> 
             text "Working on that track for you!"
