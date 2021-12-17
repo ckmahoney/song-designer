@@ -33,7 +33,7 @@ bounds =
   , minSeconds = 1.0
   , maxSeconds = 15.0
   , roots = [0, 4, 8]
-  , tempos = [ 0.5, 1.25, 2.5 ]
+  , tempos = [ 9/10, 4/3, 2.25 ]
   }
 
 
@@ -54,7 +54,7 @@ initState : State
 initState =
   { id = -1
   , label = "my delight"
-  , cps = 1.25
+  , cps = 4/3
   , cpc = 4
   , root = 4
   , size = 1
@@ -71,14 +71,13 @@ init =
 
 type Msg 
   = Over State
-  | EditTitle State String
+  | UpdateTitle State String
   | UpdateCPS State Float
   | UpdateRoot State Int
   | Edit State
 
 type Model
   = Overview State
-  | EditingTitle State 
   | Editing State
 
 
@@ -86,24 +85,26 @@ cpsOptions : List Float
 cpsOptions =
   bounds.tempos
 
+-- ANTI-GRAVE ALGORAVE
+-- code4life
 
 updateTitle : State -> String -> (Msg -> msg) -> msg
 updateTitle state str msg =
-  msg (EditTitle state str)
+  msg (UpdateTitle state str)
 
 
-keyPicker : State -> (Msg -> msg) -> Html msg
-keyPicker state msg =
+keyPicker : Int -> State -> (Msg -> msg) -> Html msg
+keyPicker current state msg =
   Components.box
    <| (label [] [ text "Key:"]) :: List.map (\(root, name) ->
-    Components.button (msg (UpdateRoot state root)) [] name) rootOptions
+    Components.button (msg (UpdateRoot state root)) [Attr.class <| if current == root then "is-success is-selected" else ""] name) rootOptions
   
 
-cpsPicker : State -> (Msg -> msg) -> Html msg
-cpsPicker state msg =
+cpsPicker : Float -> State -> (Msg -> msg) -> Html msg
+cpsPicker current state msg =
   Components.box
    <| (label [] [ text "BPM:"]) :: List.map (\cps ->
-    Components.button (msg (UpdateCPS state cps)) [] (String.fromFloat (Tools.cpsToBPM cps))) cpsOptions
+    Components.button (msg (UpdateCPS state cps)) [Attr.class <| if current == cps then "is-success is-selected" else ""] (String.fromFloat (Tools.cpsToBPM cps))) cpsOptions
 
 
 view : (Msg -> msg) -> Model -> Html msg
@@ -115,16 +116,11 @@ view msg model =
     Editing state ->
       Components.box
         [ input [Attr.type_ "text",  Attr.value state.label, onInput (\str -> (updateTitle state str msg))] []
-        , cpsPicker state msg
-        , keyPicker state msg
+        , cpsPicker state.cps state msg
+        , keyPicker state.root state msg
         , Components.button (msg <| Over state) [] "Done" 
         ]
 
-    EditingTitle state ->
-      div [onInput (\str -> (updateTitle state str msg))]
-       [ input [Attr.type_ "text",  Attr.value state.label] []
-       , p [onClick <| msg <| Over state] [text "done"]
-       ]
 
 
 main = 

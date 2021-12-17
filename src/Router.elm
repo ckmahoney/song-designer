@@ -15,7 +15,7 @@ import Http
 import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
-import SongDesigner
+import ScopeEditor
 
 port playMusic : String -> Cmd msg
 
@@ -77,7 +77,7 @@ type Msg
   | ReqTrack T.Template
   | GotResp (Result Http.Error String)
 
-  | UpdateSongDesigner SongDesigner.Msg
+  | UpdateScopeEditor ScopeEditor.Msg
 
 type alias Model =
   { view : Editor
@@ -92,7 +92,7 @@ type alias Model =
   , selection : Maybe T.TrackMeta
   , playstate : Playback
   , member : Maybe T.GhostMember
-  , designer : SongDesigner.Model
+  , designer : ScopeEditor.Model
   }
 
 
@@ -120,7 +120,7 @@ decodeTrack =
 
 initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Maybe T.GhostMember -> Model
 initFrom v s l t m =
-  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m SongDesigner.initModel
+  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m ScopeEditor.initModel
 
 
 initTest : Model
@@ -130,7 +130,7 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing SongDesigner.initModel
+  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing ScopeEditor.initModel
 
 
 
@@ -291,24 +291,22 @@ dummyConfigVal =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    UpdateSongDesigner sMsg ->
+    UpdateScopeEditor sMsg ->
       case sMsg of
-        SongDesigner.Over state ->
-          ({ model | designer = SongDesigner.Overview state }, Cmd.none)
+        ScopeEditor.Over state ->
+          ({ model | designer = ScopeEditor.Overview state }, Cmd.none)
 
-        SongDesigner.EditTitle state title ->
-          ({ model | designer = SongDesigner.EditingTitle ({ state | title  = title }) }, Cmd.none)
+        ScopeEditor.Edit state ->
+          ({ model | designer = ScopeEditor.Editing state }, Cmd.none)
 
-        SongDesigner.UpdateCPS state cps ->
-          ({ model | designer = SongDesigner.Overview ({ state | cps  = cps }) }, Cmd.none)
-        -- SongDesigner.Overview state -> 
-        --   (model, Cmd.none)
-   
-        -- SongDesigner.EditingTitle state ->
-        --  let
-        --    yy = Debug.log "state, title from song designer is"  (state)
-        --  in
-        --  ({ model | title = state.title}, Cmd.none)
+        ScopeEditor.UpdateTitle state title ->
+          ({ model | designer = ScopeEditor.Editing ({ state | label  = title }) }, Cmd.none)
+
+        ScopeEditor.UpdateCPS state cps ->
+          ({ model | designer = ScopeEditor.Editing ({ state | cps  = cps }) }, Cmd.none)
+
+        ScopeEditor.UpdateRoot state root ->
+          ({ model | designer = ScopeEditor.Editing ({ state | root  = root }) }, Cmd.none)
     
     LoadTrack track ->
       ( model, setSource track.filepath )
@@ -963,7 +961,7 @@ view model  =
       , case List.head model.templates of 
           Nothing -> text ""
           Just t -> Components.button (ReqTrack t) [] "Request a Song"
-      , SongDesigner.view (UpdateSongDesigner) model.designer
+      , ScopeEditor.view (UpdateScopeEditor) model.designer
       , case model.mailer of 
           T.Sending -> 
             text "Working on that track for you!"

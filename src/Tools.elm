@@ -5,6 +5,12 @@ import Array
 import Types exposing (..)
 import Data 
 
+
+cpsToBPM : Float -> Float
+cpsToBPM cps =
+  60.0 * cps
+
+
 sizeToCycles: Int -> Int -> Int
 sizeToCycles cpc size =
  cpc * (2^size)
@@ -28,6 +34,8 @@ layoutDuration scopes =
 chromaticKey : Int -> Float
 chromaticKey index =
   getOr index Data.chromaticRoots 15.0
+
+
 
 
 conj x xs =

@@ -17,9 +17,9 @@ scope : Scope -> Html msg
 scope ({label, cps, cpc, root, size} as scope_) =
   Components.card label <|
     div [] 
-      [ p [] [ text <| (String.fromInt <| Tools.sizeToCycles cpc size) ++ " beats" ]
-      , p [] [ text <| (String.fromFloat <| Tools.duration cpc cps size) ++ " seconds"]
-      , p [] [ text <| "Key of " ++ (Tuple.second <| Tools.getOr root pitches (-1, "Unkown")) ]
+      [ p [] [ text <| (String.fromInt cpc)  ++ " beats per bar using Size " ++ (String.fromInt size) ]
+      , p [] [ text <| (String.fromInt <| 2^size) ++ " bars of music" ]
+      , p [] [ text <| (String.fromFloat <| Tools.duration cpc cps size) ++ " seconds of music in the Key of " ++ (Tuple.second <| Tools.getOr root pitches (-1, "Unkown")) ]
       ]
 
 
