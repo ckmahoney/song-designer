@@ -796,13 +796,13 @@ viewComboP  ((mScope, mEnsemble) as model)  =
       label [ class "subtitle"] [ text "Select a scope." ]
 
 
--- viewCombo : T.Combo -> Html msg
--- viewCombo  (({cpc,cps,size} as scope), (eLabel, ensemble))  =
---   Components.box
---     [ label [ class "label" ] [ text scope.label ]
---     , label [ class "label" ] [ text eLabel ]
---     , p [] [ text <| timeString <| duration cpc cps size ]
---     ]
+viewCombo : T.Combo -> Html msg
+viewCombo  (({cpc,cps,size} as scope), ensemble)  =
+  Components.box
+    [ label [ class "label" ] [ text scope.label ]
+    , label [ class "label" ] [ text "Instruments" ]
+    , p [] [ text <| timeString <| duration cpc cps size ]
+    ]
        
 
 viewTemplate : T.Template -> Html msg

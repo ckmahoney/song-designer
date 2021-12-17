@@ -19,6 +19,8 @@ import Json.Encode as Encode
 import ScopeEditor
 import EnsembleEditor
 import ComboEditor
+import LayoutEditor
+
 
 port playMusic : String -> Cmd msg
 
@@ -79,8 +81,10 @@ type Msg
   | GotNewTrack (Result Http.Error  T.TrackMeta)
   | ReqTrack T.Template
   | GotResp (Result Http.Error String)
-
-  | UpdateComboEditor ComboEditor.Msg
+  
+  | SaveLayout (List T.Combo)
+  | OpenLayoutEditor (List T.Combo)
+  | UpdateLayoutEditor (List T.Combo) Int
 
 
 type alias Model =
@@ -96,7 +100,8 @@ type alias Model =
   , selection : Maybe T.TrackMeta
   , playstate : Playback
   , member : Maybe T.GhostMember
-  , comboEditor : ComboEditor.Model
+  , layout : List T.Combo
+  , layoutEditor : Maybe LayoutEditor.Model
   }
 
 
@@ -122,7 +127,7 @@ decodeTrack =
 
 initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Maybe T.GhostMember -> Model
 initFrom v s l t m =
-  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m ComboEditor.initModel
+  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m [ ] Nothing
 
 
 initTest : Model
@@ -132,7 +137,7 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing ComboEditor.initModel
+  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing [] Nothing
 
 
 initFromMember : T.GhostMember -> Model
@@ -284,55 +289,19 @@ encodeReqLoadSongs email uuid = Encode.object
     ]
 
 
-dummyConfigVal : Encode.Value
-dummyConfigVal = 
-  Encode.string "abcd"  
-
-
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    UpdateComboEditor msg_ ->
-     let
-      x = 1
-     in 
-      case msg_ of 
-        ComboEditor.Save combo ->
-          ( { model | comboEditor = ComboEditor.Overview combo } , Cmd.none)
+    SaveLayout layout ->
+      ({ model | layout = layout, layoutEditor = Nothing }, Cmd.none)
 
-        ComboEditor.UpdateScopeEditor sMsg ->
-            case sMsg of
-              ScopeEditor.Over scope ->
-                ( { model | comboEditor = Overview (scope, ensemble_)}, Cmd.none)
+    OpenLayoutEditor layout ->
+      ({ model | layoutEditor = Just <| LayoutEditor.Editing layout -1 }, Cmd.none)
 
-              ScopeEditor.Edit scope ->
-                ( EditingScope (scope, ensemble_) (ScopeEditor.Editing scope), Cmd.none)
+    UpdateLayoutEditor layout index ->
+      ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index }, Cmd.none)
 
-              ScopeEditor.UpdateTitle scope title ->
-               let
-                next = { scope | label = title }
-               in 
-                 ( EditingScope (next, ensemble_) ( ScopeEditor.Editing next), Cmd.none)
-
-              ScopeEditor.UpdateCPS scope cps ->
-               let
-                next = { scope | cps = cps }
-               in
-                 ( EditingScope (next, ensemble_) ( ScopeEditor.Editing next) , Cmd.none)
-
-              ScopeEditor.UpdateRoot scope root ->
-               let
-                next = { scope | root = root }
-               in
-                 (  { model | comboEditor = ScopeEditor.EditingScope (next, ensemble_) ( ScopeEditor.Editing next) }, Cmd.none)
-
-        _ ->
-         (model, Cmd.none)
-        -- ComboEditor.UpdateEnsembleEditor eMsg ->
-          -- ( { model | comboEditor = ComboEditor.EditingEnsemble (scope, ensemble) }, Cmd.none) 
-
-    
-    LoadTrack track ->
+    LoadTrack track -> 
       ( model, setSource track.filepath )
 
     SelectTrack track ->
@@ -974,18 +943,29 @@ playlist playstate selection tracks =
      in
      Components.songCard track.title icons) tracks
 
+-- remember
+-- the point is to make a fast and easy way to click the button
+-- include some presets! 
+-- (after it is working)
 
-view :  Model -> Html Msg
+view : Model -> Html Msg
 view model =
     div [ class "section" ]
       [ case model.member of 
-          Nothing -> text "hey bud"
-          Just m -> text ("Welcome back " ++ m.firstname)
+          Nothing -> text ""
+          Just m -> Html.h2 [class "subtitle"] [text ("Welcome back " ++ m.firstname)]
       , menu model.view
-      , ComboEditor.view UpdateComboEditor model.comboEditor
+      , case model.layoutEditor of 
+          Nothing -> 
+           Components.button (OpenLayoutEditor model.layout) [] "Edit your layout"
+
+          Just state -> 
+           LayoutEditor.view state SaveLayout UpdateLayoutEditor
+
       , case List.head model.templates of 
           Nothing -> text ""
           Just t -> Components.button (ReqTrack t) [] "Request a Song"
+
       , case model.mailer of 
           T.Sending -> 
             text "Working on that track for you!"
