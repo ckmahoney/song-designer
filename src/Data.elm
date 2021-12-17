@@ -1,7 +1,6 @@
 module Data exposing (..)
 
 import Types exposing (..)
-import Tools
 import Array
 import Html
 
@@ -56,6 +55,20 @@ rangeRoot : (Float, Float)
 rangeRoot  = (16.0, 16.0 * 2)
 
 
+fitRoot : Float -> Float
+fitRoot root = 
+  let
+    (min, max) = rangeRoot
+  in 
+  if root <= max && root >= min then 
+    root
+  else if  root > max then 
+    fitRoot (root / 2)
+  else 
+    fitRoot (root * 2)
+
+
+chromaticRoots : List Float
 chromaticRoots =
   let 
     root = Tuple.first rangeRoot
@@ -64,6 +77,7 @@ chromaticRoots =
     step = octave / nSteps
   in
   List.map (\i -> root + (step * (toFloat i))) <| List.range 0 11
+    
 
 
 sharps =
@@ -406,9 +420,21 @@ get i xs =
     in
     Array.get i tmp
 
+findIndex : a -> List a -> Int
+findIndex x xs =
+  let 
+    i = List.indexedMap (\j a -> if x == a then j else -1) xs
+      |> List.filter (\j -> not (j == -1))
+      |> List.head
+  in 
+  case i of
+  Nothing -> 
+    -1
+  
+  Just y ->
+    y
 
-findIndex = 
-  Tools.findIndex
+
 
 -- Given an item, gets the related index of the next item
 relate : a -> List a -> List b -> Maybe b

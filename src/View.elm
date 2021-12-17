@@ -61,6 +61,7 @@ layoutDuration scopes =
   List.foldl (\(cps, nCycles) total -> total + (cps * toFloat nCycles)) 0 (getTimes scopes)
 
 
+
 -- templateDetails : T.Template -> Html msg
 -- templateDetails ((mMeta, mScopes) as template) =
 --   case mScopes of 

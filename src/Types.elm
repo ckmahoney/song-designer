@@ -128,6 +128,15 @@ type alias Scope  =
   , size : Int
   }
 
+type alias ScopeFloat  =
+  { id : Int
+  , title : String
+  , cps : Float
+  , cpc : Int
+  , root : Float
+  , size : Int
+  }
+
 
 type alias GhostMember =
   { uuid : String

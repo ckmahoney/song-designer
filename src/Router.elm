@@ -298,6 +298,9 @@ update msg model =
 
         SongDesigner.EditTitle state title ->
           ({ model | designer = SongDesigner.EditingTitle ({ state | title  = title }) }, Cmd.none)
+
+        SongDesigner.UpdateCPS state cps ->
+          ({ model | designer = SongDesigner.Overview ({ state | cps  = cps }) }, Cmd.none)
         -- SongDesigner.Overview state -> 
         --   (model, Cmd.none)
    

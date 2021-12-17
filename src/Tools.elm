@@ -2,7 +2,8 @@ module Tools exposing (..)
 
 import Html
 import Array
-
+import Types exposing (..)
+import Data 
 
 sizeToCycles: Int -> Int -> Int
 sizeToCycles cpc size =
@@ -14,6 +15,20 @@ duration cpc cps size  =
   cps * (toFloat (sizeToCycles cpc size))
 
 
+getTimes : List ScopeFloat -> List (Float, Int)  -- (cps, dur)
+getTimes scopes  =
+  List.map (\{cps,cpc,size} -> (cps, sizeToCycles cpc size)) scopes
+
+
+layoutDuration : List ScopeFloat -> Float
+layoutDuration scopes =
+  List.foldl (\(cps, nCycles) total -> total + (cps * toFloat nCycles)) 0 (getTimes scopes)
+
+
+chromaticKey : Int -> Float
+chromaticKey index =
+  getOr index Data.chromaticRoots 15.0
+
 
 conj x xs =
   List.append xs [x]
@@ -24,11 +39,11 @@ get index list =
     Array.get index 
      <| Array.fromList list
 
-
--- findIndex : a -> List a -> Maybe Int
--- findIndex el els =
-  -- List.map2 Tuple.pair els (List.range 0 (List.length els))
-  -- |> List.foldl (\(i,x)  -> if el == x then i else prev) -1 els)
+getOr : Int -> List a -> a ->  a 
+getOr index list default =
+    Maybe.withDefault default 
+     <| Array.get index 
+     <| Array.fromList list
 
 
 -- Returns the index of an element in list, or -1
