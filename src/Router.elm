@@ -84,7 +84,7 @@ type Msg
   
   | OpenLayoutEditor (List T.Combo)
   | CloseLayoutEditor (List T.Combo)
-  | SelectLayoutEditor (List T.Combo) Int
+  | SelectLayoutEditor (List T.Combo) Int T.Combo
   | UpdateLayoutEditor (List T.Combo) Int T.Combo
 
 
@@ -299,14 +299,14 @@ update msg model =
     OpenLayoutEditor layout ->
       ({ model |  layoutEditor = Just <| LayoutEditor.Overview layout}, Cmd.none)
 
-    SelectLayoutEditor layout index ->
-      ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index }, Cmd.none)
+    SelectLayoutEditor layout index combo ->
+      ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index combo }, Cmd.none)
 
     UpdateLayoutEditor layout index combo ->
      let
        next = Tools.replaceAt index combo layout
      in
-      ({ model | layoutEditor = Just <| LayoutEditor.Editing next index }, Cmd.none)
+      ({ model | layoutEditor = Just <| LayoutEditor.Editing next index combo}, Cmd.none)
 
     LoadTrack track -> 
       ( model, setSource track.filepath )
@@ -970,9 +970,13 @@ view model =
           Just lModel -> 
             case lModel of 
               LayoutEditor.Overview layout -> 
-                LayoutEditor.view lModel (Debug.log "Layout:" layout) (SelectLayoutEditor layout) -- (CloseLayoutEditor test) (UpdateLayoutEditor test)
-              LayoutEditor.Editing state index -> 
-                text "" -- LayoutEditor.view state index
+                LayoutEditor.view lModel (Debug.log "Layout:" layout) (\i -> 
+                  let 
+                    combo_ = Tools.getOr i layout Data.emptyCombo
+                  in
+                   (SelectLayoutEditor layout i combo_))
+              LayoutEditor.Editing state index combo -> 
+                LayoutEditor.edit combo (\c -> (UpdateLayoutEditor state index c)) (CloseLayoutEditor state)
 
       , case List.head model.templates of 
           Nothing -> text ""
