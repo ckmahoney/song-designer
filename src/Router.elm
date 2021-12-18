@@ -82,9 +82,10 @@ type Msg
   | ReqTrack T.Template
   | GotResp (Result Http.Error String)
   
-  | SaveLayout (List T.Combo)
   | OpenLayoutEditor (List T.Combo)
-  | UpdateLayoutEditor (List T.Combo) Int
+  | CloseLayoutEditor (List T.Combo)
+  | SelectLayoutEditor (List T.Combo) Int
+  | UpdateLayoutEditor (List T.Combo) Int T.Combo
 
 
 type alias Model =
@@ -127,7 +128,7 @@ decodeTrack =
 
 initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Maybe T.GhostMember -> Model
 initFrom v s l t m =
-  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m [ ] Nothing
+  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m LayoutEditor.initState Nothing
 
 
 initTest : Model
@@ -137,7 +138,7 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing [] Nothing
+  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing LayoutEditor.initState Nothing
 
 
 initFromMember : T.GhostMember -> Model
@@ -292,14 +293,20 @@ encodeReqLoadSongs email uuid = Encode.object
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    SaveLayout layout ->
+    CloseLayoutEditor layout ->
       ({ model | layout = layout, layoutEditor = Nothing }, Cmd.none)
 
     OpenLayoutEditor layout ->
-      ({ model | layoutEditor = Just <| LayoutEditor.Editing layout -1 }, Cmd.none)
+      ({ model |  layoutEditor = Just <| LayoutEditor.Overview layout}, Cmd.none)
 
-    UpdateLayoutEditor layout index ->
+    SelectLayoutEditor layout index ->
       ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index }, Cmd.none)
+
+    UpdateLayoutEditor layout index combo ->
+     let
+       next = Tools.replaceAt index combo layout
+     in
+      ({ model | layoutEditor = Just <| LayoutEditor.Editing next index }, Cmd.none)
 
     LoadTrack track -> 
       ( model, setSource track.filepath )
@@ -944,7 +951,8 @@ playlist playstate selection tracks =
      Components.songCard track.title icons) tracks
 
 -- remember
--- the point is to make a fast and easy way to click the button
+-- the point is to make a fast and easy way
+-- click the songmaker button
 -- include some presets! 
 -- (after it is working)
 
@@ -959,8 +967,12 @@ view model =
           Nothing -> 
            Components.button (OpenLayoutEditor model.layout) [] "Edit your layout"
 
-          Just state -> 
-           LayoutEditor.view state SaveLayout UpdateLayoutEditor
+          Just lModel -> 
+            case lModel of 
+              LayoutEditor.Overview layout -> 
+                LayoutEditor.view lModel (Debug.log "Layout:" layout) (SelectLayoutEditor layout) -- (CloseLayoutEditor test) (UpdateLayoutEditor test)
+              LayoutEditor.Editing state index -> 
+                text "" -- LayoutEditor.view state index
 
       , case List.head model.templates of 
           Nothing -> text ""
