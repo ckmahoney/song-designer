@@ -82,6 +82,7 @@ type Msg
   | ReqTrack T.Template
   | GotResp (Result Http.Error String)
   
+  
   | OpenLayoutEditor (List T.Combo)
   | CloseLayoutEditor (List T.Combo)
   | SelectLayoutEditor (List T.Combo) Int T.Combo
@@ -349,9 +350,6 @@ update msg model =
     GotNewTrack response ->
       case response of 
         Ok track ->
-         let
-          yy = Debug.log "this is the track we got back: " track
-         in
           ( { model 
             | tracks = track :: model.tracks
             , selection = (Just track)
@@ -970,13 +968,14 @@ view model =
           Just lModel -> 
             case lModel of 
               LayoutEditor.Overview layout -> 
-                LayoutEditor.view lModel (Debug.log "Layout:" layout) (\i -> 
+                LayoutEditor.view layout (\i -> 
                   let 
                     combo_ = Tools.getOr i layout Data.emptyCombo
                   in
                    (SelectLayoutEditor layout i combo_))
+
               LayoutEditor.Editing state index combo -> 
-                LayoutEditor.edit combo (\c -> (UpdateLayoutEditor state index c)) (CloseLayoutEditor state)
+                LayoutEditor.edit  combo (\c -> (UpdateLayoutEditor state index c)) (CloseLayoutEditor state)
 
       , case List.head model.templates of 
           Nothing -> text ""
