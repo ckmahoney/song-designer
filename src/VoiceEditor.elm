@@ -80,6 +80,11 @@ edit model update save kill =
     ]
 
 
+icon : Model -> Html msg
+icon model = 
+  View.voiceIcon model  
+
+
 view : Model -> Html msg
 view model =
   View.viewVoice model

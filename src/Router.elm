@@ -86,7 +86,7 @@ type Msg
   | OpenLayoutEditor (List T.Combo)
   | CloseLayoutEditor (List T.Combo)
   | SelectLayoutEditor (List T.Combo) Int T.Combo
-  | UpdateLayoutEditor (List T.Combo) Int T.Combo
+  | UpdateLayoutEditor (List T.Combo) Int LayoutEditor.EditState
 
 
 type alias Model =
@@ -301,13 +301,22 @@ update msg model =
       ({ model |  layoutEditor = Just <| LayoutEditor.Overview layout}, Cmd.none)
 
     SelectLayoutEditor layout index combo ->
-      ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index combo }, Cmd.none)
+      ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index (LayoutEditor.Open combo) }, Cmd.none)
 
-    UpdateLayoutEditor layout index combo ->
-     let
-       next = Tools.replaceAt index combo layout
-     in
-      ({ model | layoutEditor = Just <| LayoutEditor.Editing next index combo}, Cmd.none)
+    UpdateLayoutEditor layout index editState ->
+      case editState of 
+        LayoutEditor.Open combo ->
+         let
+           next = Tools.replaceAt index combo layout
+         in
+          ({ model | layoutEditor = Just <| LayoutEditor.Editing next index (LayoutEditor.Open combo)}, Cmd.none)
+
+        LayoutEditor.Scope editor ->
+          ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index <| LayoutEditor.Scope editor}, Cmd.none)
+
+        LayoutEditor.Ensemble editor ->
+          ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index <| LayoutEditor.Ensemble  editor}, Cmd.none)
+
 
     LoadTrack track -> 
       ( model, setSource track.filepath )
@@ -977,15 +986,16 @@ view model =
                        (SelectLayoutEditor layout i combo_))
                 ]
 
-
-              LayoutEditor.Editing layout index combo -> 
+              LayoutEditor.Editing layout index stateModel -> 
                let
-                 up = (\next -> (UpdateLayoutEditor layout index next))
+                 up = UpdateLayoutEditor layout index
+                 combo = Tools.getOr index layout Data.emptyCombo
                in
                 div []
-                 [ Components.button (CloseLayoutEditor layout) [] "Close"
-                 ,  LayoutEditor.edit combo up (OpenLayoutEditor layout)
-                 ]
+                  [ Components.button (CloseLayoutEditor layout) [] "Close"
+                  , LayoutEditor.edit stateModel index combo up (OpenLayoutEditor layout)
+                  ]
+
       , case List.head model.templates of 
           Nothing -> text ""
           Just t -> Components.button (ReqTrack t) [] "Request a Song"

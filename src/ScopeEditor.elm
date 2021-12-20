@@ -12,6 +12,21 @@ import Elements
 import Tools
 import Components
 
+type alias State = Scope
+
+type Msg 
+  = Close State
+  | UpdateTitle State String
+  | UpdateCPS State Float
+  | UpdateRoot State Int
+  | Edit State
+
+
+type Model
+  = Overview State
+  | Editing State
+
+
 type alias Bounds = 
   { minCPS : Float
   , maxCPS : Float
@@ -24,7 +39,7 @@ type alias Bounds =
   }
 
 
-bounds : Bounds 
+bounds : Bounds
 bounds = 
   { minCPS = 1.0
   , maxCPS = 4.0
@@ -37,14 +52,12 @@ bounds =
   }
 
 
+-- Options for the Mini Song Designer
 rootOptions = 
   [ (0, "C")
   , (4, "E")
   , (8, "G#")
   ]
-
-
-type alias State = Scope
 
 
 initScope = Scope 0 "Teaser" 1.25 4 4 1
@@ -69,24 +82,10 @@ init =
   (initModel, Cmd.none)
 
 
-type Msg 
-  = Over State
-  | UpdateTitle State String
-  | UpdateCPS State Float
-  | UpdateRoot State Int
-  | Edit State
-
-type Model
-  = Overview State
-  | Editing State
-
-
 cpsOptions : List Float
 cpsOptions =
   bounds.tempos
 
--- ANTI-GRAVE ALGORAVE
--- code4life
 
 updateTitle : State -> String -> (Msg -> msg) -> msg
 updateTitle state str msg =
@@ -118,7 +117,7 @@ view toMsg model =
         [ input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> (updateTitle state str toMsg))] []
         , cpsPicker state.cps state toMsg
         , keyPicker state.root state toMsg
-        , Components.button (toMsg <| Over state) [] "Done" 
+        , Components.button (toMsg <| Close state) [] "Done" 
         ]
 
 

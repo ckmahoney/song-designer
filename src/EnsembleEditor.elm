@@ -24,7 +24,7 @@ type Msg
   | UpdateVoice State Int Voice -- loops back to Editing  
   | SaveVoice State Int Voice -- loops back to Overview
   | KillVoice State Int -- loops back to Overview
-
+  | Close State -- loops back to Overview
 
 type Model 
   = Overview State
@@ -41,9 +41,10 @@ editor toMsg state index voice =
   let
     update = (\v -> toMsg <| UpdateVoice state index v)
     save = (\v -> toMsg <| SaveVoice state index v)
+    close = (\v -> toMsg <| Close state)
     kill = toMsg <| KillVoice state index
   in 
-   VoiceEditor.edit voice update save kill
+  VoiceEditor.edit voice update save kill
 
 
 view : (Msg -> msg) -> Model -> Html msg
@@ -53,9 +54,9 @@ view toMsg model =
       if 0 == List.length state then 
         Components.button (toMsg CreateVoice) [] "Add a voice"
       else 
-        div [] <|         
-         Components.button (toMsg CreateVoice) [] "Add a voice" 
-         :: List.indexedMap (\i voice -> 
+        div [] <|
+         -- Components.button (toMsg CreateVoice) [] "Add a voice" 
+          List.indexedMap (\i voice -> 
             div [onClick <| toMsg <| SelectVoice state i] [VoiceEditor.view voice]) state
 
     Editing state index voice ->
