@@ -968,15 +968,24 @@ view model =
           Just lModel -> 
             case lModel of 
               LayoutEditor.Overview layout -> 
-                LayoutEditor.view layout (\i -> 
-                  let 
-                    combo_ = Tools.getOr i layout Data.emptyCombo
-                  in
-                   (SelectLayoutEditor layout i combo_))
+               div [] 
+                [ Components.button (CloseLayoutEditor layout) [] "Close"
+                , LayoutEditor.view layout (\i -> 
+                      let 
+                        combo_ = Tools.getOr i layout Data.emptyCombo
+                      in
+                       (SelectLayoutEditor layout i combo_))
+                ]
 
-              LayoutEditor.Editing state index combo -> 
-                LayoutEditor.edit  combo (\c -> (UpdateLayoutEditor state index c)) (CloseLayoutEditor state)
 
+              LayoutEditor.Editing layout index combo -> 
+               let
+                 up = (\next -> (UpdateLayoutEditor layout index next))
+               in
+                div []
+                 [ Components.button (CloseLayoutEditor layout) [] "Close"
+                 ,  LayoutEditor.edit combo up (OpenLayoutEditor layout)
+                 ]
       , case List.head model.templates of 
           Nothing -> text ""
           Just t -> Components.button (ReqTrack t) [] "Request a Song"

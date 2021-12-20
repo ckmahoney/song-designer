@@ -31,11 +31,8 @@ type Model
   | Editing (List Combo) Int Combo
 
 
-
-
 initState = 
-  [Data.combo1, Data.combo2]
--- []
+  [ Data.combo1, Data.combo2 ]
 
 
 initModel =
@@ -57,28 +54,25 @@ picker things icon select  =
          ] ) things)
   ]
 
+
 comboIcon : Combo -> Html msg
 comboIcon ((scope, ensemble) as model) =
   div [ Attr.class "box" ] 
     [ label [ Attr.class "label" ] [ text <| scope.label ]
     , Components.svg "ensemble"
     , p [ Attr.class "content" ] [ text <| (String.fromInt <| List.length ensemble) ++ " voices" ]
-    ] 
+    ]
+
 
 edit : Combo -> (Combo -> msg) -> msg -> Html msg
 edit combo update done =
   div [onClick done]
     [ comboIcon combo ] 
 
-view :  State -> (Int -> msg) ->Html msg
+
+view : State -> (Int -> msg) -> Html msg
 view layout select =
   picker layout View.viewCombo select
-
-
--- view : State -> Html msg
--- view layout =
---     Components.box 
---     <| List.map comboIcon layout
 
 
 main = text ""
