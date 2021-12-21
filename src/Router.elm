@@ -142,7 +142,7 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing LayoutEditor.initState Nothing ""
+  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing LayoutEditor.initState Nothing "Adventure Sound"
 
 
 initFromMember : T.GhostMember -> Model
@@ -987,20 +987,23 @@ view model =
       [ case model.member of 
           Nothing -> text ""
           Just m -> Html.h2 [class "subtitle"] [text ("Welcome back " ++ m.firstname)]
-      , menu model.view
-      , case model.layoutEditor of 
+      -- , menu model.view
+      , div [class "has-background-light"] <| List.singleton <|
+        case model.layoutEditor of 
           Nothing -> 
            Components.button (OpenLayoutEditor model.layout) [] "Edit your layout"
 
           Just lModel ->
             case lModel of 
               LayoutEditor.Overview layout -> 
+               let 
+                 addAnother = (OpenLayoutEditor <| List.reverse <| Data.emptyCombo :: layout)
+               in
                div [] 
-                [ Components.button (CloseLayoutEditor layout) [] "Close"
+                [ Components.editText "Title" (text "The name for this sound") model.title UpdateTitle
                 , LayoutEditor.view layout (\i -> 
-                    SelectLayoutEditor layout i <| Tools.getOr i layout Data.emptyCombo) (\i -> OpenLayoutEditor (Tools.removeAt i layout))
-                , if 2 > (List.length layout) then 
-                     Components.button (OpenLayoutEditor <| List.reverse <| Data.emptyCombo :: layout) [] "Add another Combo" else text ""
+                    SelectLayoutEditor layout i <| Tools.getOr i layout Data.emptyCombo) (\i -> OpenLayoutEditor (Tools.removeAt i layout)) addAnother
+                , Components.button (CloseLayoutEditor layout) [] "Reday to Make a Song"
                 ]
 
               LayoutEditor.Editing layout index stateModel -> 
@@ -1010,8 +1013,7 @@ view model =
                  done = OpenLayoutEditor layout
                in
                 div []
-                  [ Components.button (CloseLayoutEditor layout) [] "Close"
-                  , Components.editText "Title" (text "The name for this sound") model.title UpdateTitle
+                  [ div [class "mb-6"] [ Components.button (CloseLayoutEditor layout) [] "Save Layout" ]
                   , LayoutEditor.edit stateModel index combo up done
                   ]
 
@@ -1029,8 +1031,9 @@ view model =
           T.Sending -> 
             text "Working on that track for you!"
           _ ->
-            display model Select 
-      , text model.response
+            text ""
+            -- display model Select 
+      -- , text model.response
       , playlist model.playstate model.selection model.tracks
       ]
 

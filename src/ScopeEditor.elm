@@ -127,9 +127,9 @@ view : (Msg -> msg) -> Model -> msg -> Html msg
 view toMsg model done =
   case model of 
     Editing state ->
-      Components.box
-        [ card state
-        , div []
+      Components.cols
+        [ Components.col1 <| card state
+        , Components.col1 <| div []
           [ label [Attr.class "label" ] [text "Section label"]
           , p [] [text "Something like 'verse' or 'chorus' to help you remember where in the song this part is."]
           , input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> (updateTitle state str toMsg))] [] ]
@@ -147,7 +147,7 @@ view toMsg model done =
           , input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> (updateTitle state str toMsg))] [] ]
         , cpsPicker state.cps state toMsg
         , keyPicker state.root state toMsg
-        , Components.button (toMsg <| Close state) [] "Done" 
+        , Components.button (toMsg <| Close state) [] "Done2" 
         ]
 
 

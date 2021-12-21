@@ -53,15 +53,25 @@ init =
   Overview
 
 
-picker things icon select kill = 
+picker things icon select kill another = 
   Components.box
-   [ Html.h2 [] [text "Choose a scope"]
+   [ Html.h2 [ Attr.class "subtitle" ] [text "Layout"]
+   , div [ Attr.class "columns is-multiline level is-vcentered" ]
+       [ p [ Attr.class "content"] 
+           [ text "This is your layout. Use it to organize the parts of your sound. "    
+           , Html.br [] []
+           , Html.br [] []
+           , text "Click on a scope to change the details and voices." ] 
+           , Html.br [] []]
    , div [ Attr.class "columns is-multiline level is-vcentered" ] <|
      (List.indexedMap (\i thing ->
-       div [ Attr.class "column is-flex is-flex-direction-column is-align-items-center is-justify-content-center" ]
+       div [ Attr.class "is-clickable column is-flex is-flex-direction-column" ]
          [ Components.col [ Attr.class "is-full has-text-centered", onClick (select i) ] [(icon thing)]
          , Components.col [ Attr.class "is-full has-text-centered" ] [(Components.deleteIcon (kill i))] 
          ] ) things)
+   , if 4 > List.length things then 
+     Components.button another [] "Add Another"
+     else text ""
    ]
 
 
@@ -138,8 +148,73 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
                next = VoiceEditor.newVoice ::  ensemble
              in
               toMsg (Open (scope_, next)))
+
+    updateScope = (\scopeMsg ->
+      case scopeMsg of 
+        ScopeEditor.Close scope ->
+          (toMsg <| Open (scope, ensemble_))
+
+        ScopeEditor.UpdateTitle scope title ->
+          (toMsg <| Scope <| ScopeEditor.Editing { scope | label = title })
+      
+        ScopeEditor.UpdateCPS scope cps ->
+          (toMsg <| Scope <| ScopeEditor.Editing { scope | cps = cps })
+      
+        ScopeEditor.UpdateRoot scope root ->
+          (toMsg <| Scope <| ScopeEditor.Editing { scope | root = root })
+      
+        ScopeEditor.Edit scope ->
+          (toMsg <| Scope <| ScopeEditor.Editing scope)
+       )
+    updateEnsemble = (\eMsg ->
+      case eMsg of
+        EnsembleEditor.Close next ->
+          (Open (scope_, next))
+
+        EnsembleEditor.CreateVoice ensemble-> 
+         let
+           next = VoiceEditor.newVoice :: ensemble
+         in
+          (Ensemble <| EnsembleEditor.Overview next)
+
+        EnsembleEditor.SelectVoice ensemble voiceIndex -> 
+         let
+           v = Tools.getOr voiceIndex ensemble VoiceEditor.newVoice
+         in
+          (Ensemble <| EnsembleEditor.Editing ensemble voiceIndex v)
+
+        EnsembleEditor.UpdateVoice ensemble voiceIndex updated -> 
+         let 
+           next = Tools.replaceAt voiceIndex updated ensemble_
+         in
+          (Ensemble <| EnsembleEditor.Editing next voiceIndex updated)
+
+        EnsembleEditor.SaveVoice ensemble voiceIndex updated -> 
+         let 
+           next = Tools.replaceAt voiceIndex updated ensemble_
+         in
+          (Ensemble <| EnsembleEditor.Editing next voiceIndex updated)
+
+        EnsembleEditor.KillVoice ensemble voiceIndex  -> 
+         let 
+           next = Tools.removeAt voiceIndex ensemble
+         in
+          (Ensemble <| EnsembleEditor.Overview next))
+
+    saveQuit = (\msg -> (fromMsg <| ComboEditor.UpdateEnsembleEditor msg))
+
    in 
-   ComboEditor.view fromMsg (ComboEditor.Overview curr) done
+   div []
+    [ Components.col [] <| [ Components.button done [] "Save Combo"]
+    , Components.colsWith [Attr.class "is-mobile"]
+          [ Components.col [] [
+              ScopeEditor.view updateScope (ScopeEditor.Editing scope_) done ]
+          , Components.col [] [
+              EnsembleEditor.view saveQuit (EnsembleEditor.Overview ensemble_) done ]
+          ]
+    ]
+
+   -- ComboEditor.view fromMsg (ComboEditor.Overview curr) done
 
   
   Scope editor ->
@@ -162,7 +237,11 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
           (toMsg <| Scope <| ScopeEditor.Editing scope)
        )
    in
-    ScopeEditor.view updateScope editor done
+   div []
+    [ Components.col [] <| [ Components.button done [] "Save Combo"]
+    ,  ScopeEditor.view updateScope editor done
+    ]
+
 
   Ensemble editor ->
     let
@@ -202,13 +281,16 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
           (Ensemble <| EnsembleEditor.Overview next))
 
     in
-    EnsembleEditor.view (\msg -> toMsg <| updateEnsemble msg)  editor done
+   div []
+    [ EnsembleEditor.view (\msg -> toMsg <| updateEnsemble msg)  editor done
+    ]
+
      
 
 
-view : State -> (Int -> msg) -> (Int -> msg) -> Html msg
-view layout select kill =
-  picker layout View.viewCombo select kill
+view : State -> (Int -> msg) -> (Int -> msg) -> msg ->Html msg
+view layout select kill addAnother =
+  picker layout View.viewCombo select kill addAnother
 
 
 main = text ""

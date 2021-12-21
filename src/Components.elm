@@ -67,6 +67,12 @@ deleteIcon click =
   Html.span [ class "delete", onClick click ] []
 
 
+
+deleteButton : msg -> Html msg
+deleteButton click =
+  Html.button [ class "button is-fullwidth has-background-danger", onClick click ] [text "Delete"]
+
+
 keyButtonMobile : String -> Int -> (Int -> msg) -> Int -> Html msg
 keyButtonMobile name curr toMsg val =
   Html.button [ onClick (toMsg val)
@@ -163,7 +169,7 @@ editInt title html (min, max) val toMsg =
 editTextMobile : String -> Html msg -> String -> ( String -> msg ) -> Html msg
 editTextMobile title html val toMsg =
   div []
-    [ Html.label [ ] [ text title ]
+    [ Html.label [class  "is-size-2-touch is-size-2-mobile" ] [ text title ]
     ,  Html.input [ type_ "text"
             , class "input my-3 is-info"
             , value val
@@ -321,6 +327,10 @@ col : List (Html.Attribute msg) -> (List (Html msg) -> Html msg)
 col attrs =
   div ([ class "column" ] ++ attrs) 
 
+col1 : Html msg -> Html msg
+col1 child =
+  div [ class "column" ] [child]
+
 
 colSize : String -> Html msg -> Html msg
 colSize size child =
@@ -330,6 +340,10 @@ colSize size child =
 colHalf : Html msg -> Html msg
 colHalf child =
   colSize "is-half" child
+
+colFull : Html msg -> Html msg
+colFull child =
+  colSize "is-full" child
 
 
 songCard : String -> List (Html msg) -> Html msg

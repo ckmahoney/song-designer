@@ -802,9 +802,14 @@ viewComboP  ((mScope, mEnsemble) as model)  =
 
 viewCombo : T.Combo -> Html msg
 viewCombo  (({cpc,cps,size} as scope), ensemble)  =
+ let
+  nVoices = List.length ensemble
+ in 
   Components.box
-    [ label [ class "label" ] [ text scope.label ]
-    , label [ class "label" ] [ text "Instruments" ]
+    [ Components.svg "scope"
+    , label [ class "label" ] [ text scope.label ]
+    , if nVoices == 0 then text "No voices"  else 
+        label [ class "label" ] [ text <| (String.fromInt nVoices) ++ (if nVoices == 1 then " voice" else " voices")] 
     , p [] [ text <| timeString <| duration cpc cps size ]
     ]
        

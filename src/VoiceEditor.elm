@@ -67,7 +67,9 @@ edit model update save kill =
    options = List.map (\r -> (r, View.roleIcon r)) Data.roles
  in 
   div [ Attr.class "container" ]
-    [ Components.colsWith [ Attr.class "is-mobile is-flex is-justify-content-space-between" ] 
+    [ Components.cols <| [ Components.colHalf <| Components.button (save model) [] "Save"
+     , Components.col [Attr.class "is-flex is-justify-content-flex-end"] <|[Components.button kill [] "Delete"]] 
+    , Components.colsWith [ Attr.class "is-mobile is-flex is-justify-content-space-between" ] 
         [ Components.colHalf <| View.viewVoice model
         , Components.colHalf <| Components.editText "Label" (text "") model.label (updateLabel model update)
         ]  
@@ -75,8 +77,7 @@ edit model update save kill =
     , Components.colsWith [ Attr.class "is-mobile is-flex is-justify-content-space-between" ] 
        [ Components.colHalf <| Components.editInt "Density" (View.densityMessage model) Data.rangeDensity model.density (updateDensity model update)
        , Components.colHalf <| Components.editInt "Complexity" (View.complexityMessage model) Data.rangeComplexity model.complexity (updateComplexity model update) ]
-     , Components.button (save model) [] "Save"
-     , Components.button kill [] "Delete"
+
     ]
 
 
