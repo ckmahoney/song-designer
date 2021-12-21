@@ -19,7 +19,7 @@ type alias State = List Voice
 
 
 type Msg
-  = CreateVoice
+  = CreateVoice State
   | SelectVoice State Int 
   | UpdateVoice State Int Voice -- loops back to Editing  
   | SaveVoice State Int Voice -- loops back to Overview
@@ -40,11 +40,10 @@ editor : (Msg -> msg) -> State -> Int -> Voice -> Html msg
 editor toMsg state index voice =
   let
     update = (\v -> toMsg <| UpdateVoice state index v)
-    save = (\v -> toMsg <| SaveVoice state index v)
     close = (\v -> toMsg <| Close state)
     kill = toMsg <| KillVoice state index
   in 
-  VoiceEditor.edit voice update save kill
+  VoiceEditor.edit voice update close kill
 
 
 view : (Msg -> msg) -> Model -> Html msg
@@ -52,10 +51,9 @@ view toMsg model =
   case model of 
     Overview state -> 
       if 0 == List.length state then 
-        Components.button (toMsg CreateVoice) [] "Add a voice"
+        Components.button (toMsg <| CreateVoice state) [] "Add a voice"
       else 
         div [] <|
-         -- Components.button (toMsg CreateVoice) [] "Add a voice" 
           List.indexedMap (\i voice -> 
             div [onClick <| toMsg <| SelectVoice state i] [VoiceEditor.view voice]) state
 

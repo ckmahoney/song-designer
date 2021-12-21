@@ -311,11 +311,16 @@ update msg model =
          in
           ({ model | layoutEditor = Just <| LayoutEditor.Editing next index (LayoutEditor.Open combo)}, Cmd.none)
 
-        LayoutEditor.Scope editor ->
-          ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index <| LayoutEditor.Scope editor}, Cmd.none)
+        LayoutEditor.Scope editor ->         
+            ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index <| LayoutEditor.Scope editor}, Cmd.none)
 
         LayoutEditor.Ensemble editor ->
-          ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index <| LayoutEditor.Ensemble  editor}, Cmd.none)
+          case editor of 
+            EnsembleEditor.Overview ensemble ->
+              ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index <| LayoutEditor.Ensemble  editor}, Cmd.none)
+
+            EnsembleEditor.Editing ensemble voiceIndex voice ->
+              ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index <| LayoutEditor.Ensemble  editor}, Cmd.none)
 
 
     LoadTrack track -> 
@@ -974,7 +979,7 @@ view model =
           Nothing -> 
            Components.button (OpenLayoutEditor model.layout) [] "Edit your layout"
 
-          Just lModel -> 
+          Just lModel ->
             case lModel of 
               LayoutEditor.Overview layout -> 
                div [] 

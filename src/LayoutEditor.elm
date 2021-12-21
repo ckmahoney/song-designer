@@ -17,8 +17,8 @@ import ScopeEditor
 import EnsembleEditor
 import VoiceEditor
 
-type alias State = List Combo
 
+type alias State = List Combo
 
 
 type EditState
@@ -33,6 +33,7 @@ type Msg
   | Update (List Combo) Int Combo
   | Delete (List Combo) Int
   | EditCombo Int Combo EditState
+  -- | UpdateParent 
 
 
 type Model 
@@ -73,40 +74,73 @@ comboIcon ((scope, ensemble) as model) =
     ]
 
 
+editor2 : (Msg -> msg) -> State ->  Int -> Combo -> Html msg
+editor2 toMsg state index combo =
+  let
+    update = (\c -> \v -> toMsg <| Update state index c)
+    save = (\v -> toMsg <| Close state)
+    close = (\v -> toMsg <| Close state)
+    kill = toMsg <| Delete state index
+  in 
+  text "dum"  -- EnsembleEditor.editor combo update save kill
+
+
 edit : EditState -> Int -> Combo -> (EditState -> msg) -> msg -> Html msg
 edit state index ((scope_, ensemble_) as combo) toMsg done =
- let 
-   fromMsg = (\msg ->
-    case msg of 
-      ComboEditor.Save next ->
-        toMsg (Open next)
-
-      ComboEditor.UpdateScopeEditor sMsg ->
-        case sMsg of 
-          ScopeEditor.Close scope -> 
-            toMsg (Open (scope, ensemble_))
-
-          _ -> -- do nothing yet
-            toMsg (Scope <| ScopeEditor.Editing scope_)
-
-      ComboEditor.UpdateEnsembleEditor eMsg ->
-        case eMsg of 
-          EnsembleEditor.Close next -> 
-            toMsg (Open (scope_, next))
-
-          EnsembleEditor.SelectVoice ensemble voiceIndex ->
-           let
-             v = Tools.getOr voiceIndex ensemble VoiceEditor.newVoice
-           in
-            toMsg (Ensemble <| EnsembleEditor.Editing ensemble index v)
-
-          _ ->  -- do nothing yet
-            toMsg (Ensemble <| EnsembleEditor.Overview ensemble_))
-
-   viewScope =  (Scope <| ScopeEditor.Overview scope_)
- in 
- case state of 
+ case Debug.log "has the edit state:" state of 
   Open curr ->   
+   let
+    fromMsg = (\msg ->
+      case msg of 
+        ComboEditor.Save next ->
+          toMsg (Open next)
+
+        ComboEditor.UpdateScopeEditor sMsg ->
+          case sMsg of 
+            ScopeEditor.Close scope -> 
+              toMsg (Open (scope, ensemble_))
+
+            _ -> -- do nothing yet
+              toMsg (Scope <| ScopeEditor.Editing scope_)
+
+        -- Ensembles
+
+        ComboEditor.UpdateEnsembleEditor eMsg ->
+          case eMsg of 
+            EnsembleEditor.Close next -> 
+              toMsg (Open (scope_, next))
+
+            EnsembleEditor.SelectVoice ensemble voiceIndex ->
+             let
+               -- v = Tools.getOr voiceIndex ensemble VoiceEditor.newVoice
+               v = Debug.log "Found voice:" <| Tools.getOr (Debug.log "with index:" voiceIndex) ensemble VoiceEditor.newVoice
+             in
+              toMsg (Ensemble <| EnsembleEditor.Editing ensemble voiceIndex v)
+
+            EnsembleEditor.UpdateVoice  ensemble voiceIndex voice ->
+             let
+               next = Tools.replaceAt (Debug.log "voice index;" voiceIndex) voice  ensemble
+             in
+              toMsg (Ensemble <| EnsembleEditor.Editing next voiceIndex voice)
+
+            EnsembleEditor.SaveVoice  ensemble  voiceIndex voice ->
+             let
+               next = Tools.replaceAt voiceIndex voice  ensemble
+             in
+              toMsg (Ensemble <| EnsembleEditor.Editing next voiceIndex voice)
+
+            EnsembleEditor.KillVoice ensemble voiceIndex ->
+             let
+               next = Tools.removeAt voiceIndex ensemble
+             in
+              toMsg (Ensemble <| EnsembleEditor.Overview next)
+
+            EnsembleEditor.CreateVoice ensemble ->
+             let
+               next = VoiceEditor.newVoice ::  ensemble
+             in
+              toMsg (Ensemble <| EnsembleEditor.Overview next))
+   in 
     div []
       [ Components.button done [] "Save this combo"
       -- , Components.button editEnsemble [] "Edit Ensemble"
@@ -139,39 +173,41 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
     let
      updateEnsemble = (\eMsg ->
       case Debug.log "Editing an emsemble in layouteditor:" eMsg of 
-        EnsembleEditor.CreateVoice -> 
+        EnsembleEditor.Close next ->
+          (toMsg <| Open (scope_, next))
+
+        EnsembleEditor.CreateVoice ensemble-> 
          let
-           next = VoiceEditor.newVoice :: ensemble_
+           next = VoiceEditor.newVoice :: ensemble
          in
           (toMsg <| Ensemble <| EnsembleEditor.Overview next)
 
         EnsembleEditor.SelectVoice ensemble voiceIndex -> 
          let
-           v = Tools.getOr voiceIndex ensemble VoiceEditor.newVoice
+ 
+           v = Debug.log "Found voice:" Tools.getOr (Debug.log "with index:" voiceIndex)  ensemble VoiceEditor.newVoice
+
          in
-          (toMsg <| Ensemble <| EnsembleEditor.Editing ensemble_ voiceIndex <| Debug.log "Selected voice:" v)
+          (toMsg <| Ensemble <| EnsembleEditor.Editing ensemble voiceIndex <| Debug.log "Selected voice:" v)
 
         EnsembleEditor.UpdateVoice ensemble voiceIndex updated -> 
          let 
-           next = Tools.replaceAt voiceIndex updated ensemble
+           next = Tools.replaceAt (Debug.log "voice index:" voiceIndex) updated ensemble_
          in
-          (toMsg <| Ensemble <| EnsembleEditor.Editing next voiceIndex updated)
+          (toMsg <| Ensemble <| EnsembleEditor.Editing next voiceIndex <| Debug.log "updated to this voice:" updated)
 
         EnsembleEditor.SaveVoice ensemble voiceIndex updated -> 
          let 
-           next = Tools.replaceAt voiceIndex updated ensemble
+           next = Tools.replaceAt voiceIndex updated ensemble_
          in
           (toMsg <| Ensemble <| EnsembleEditor.Editing next voiceIndex updated)
-
 
         EnsembleEditor.KillVoice ensemble voiceIndex  -> 
          let 
            next = Tools.removeAt voiceIndex ensemble
          in
-          (toMsg <| Ensemble <| EnsembleEditor.Overview next)
+          (toMsg <| Ensemble <| EnsembleEditor.Overview next))
 
-        EnsembleEditor.Close next ->
-          (toMsg <| Open  (scope_, next)))
     in
     EnsembleEditor.view updateEnsemble <| Debug.log "has ens editor:" editor
      
