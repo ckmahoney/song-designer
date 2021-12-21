@@ -46,7 +46,7 @@ initState =
 
 
 initModel =
-  Overview initState
+  Just <| Overview initState
 
 
 init =

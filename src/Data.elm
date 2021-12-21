@@ -762,7 +762,7 @@ coreScores =
 
 scoreMetaT0 : ScoreMeta
 scoreMetaT0 =
-  ScoreMeta "Fun Run" 4 1 32
+  ScoreMeta "Fresh <rivers>?!?!" 4 1 32
 
 
 main = 

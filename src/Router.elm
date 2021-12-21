@@ -20,7 +20,7 @@ import ScopeEditor
 import EnsembleEditor
 import ComboEditor
 import LayoutEditor
-
+import MiniSongDesigner
 
 port playMusic : String -> Cmd msg
 
@@ -86,7 +86,10 @@ type Msg
   | CloseLayoutEditor (List T.Combo)
   | SelectLayoutEditor (List T.Combo) Int T.Combo
   | UpdateLayoutEditor (List T.Combo) Int LayoutEditor.EditState
+  | UpdateTitle (String)
 
+
+loader = MiniSongDesigner.initModel
 
 
 type alias Model =
@@ -104,6 +107,7 @@ type alias Model =
   , member : Maybe T.GhostMember
   , layout : List T.Combo
   , layoutEditor : Maybe LayoutEditor.Model
+  , title : String
   }
 
 
@@ -129,7 +133,7 @@ decodeTrack =
 
 initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Maybe T.GhostMember -> Model
 initFrom v s l t m =
-  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m LayoutEditor.initState Nothing
+  Model newLayout -1 Data.kitAll Data.scopes3 l t "" T.Welcome  [] Nothing Stop m LayoutEditor.initState Nothing ""
 
 
 initTest : Model
@@ -139,7 +143,7 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing LayoutEditor.initState Nothing
+  Model Dash -1 [] [] [] [] "" T.Welcome  [] Nothing Stop Nothing LayoutEditor.initState Nothing ""
 
 
 initFromMember : T.GhostMember -> Model
@@ -195,8 +199,9 @@ reqTrack email uuid template =
     }
 
 reqMiniTrack : String -> String -> T.Layout -> Cmd Msg
-reqMiniTrack email uuid layout =
+reqMiniTrack email uuid ((title, combos) as layout) =
  let   
+  -- meta = {Data.scoreMetaT0 | title = title }
   template = (Data.scoreMetaT0, layout)
  in
   Http.post
@@ -306,6 +311,9 @@ encodeReqLoadSongs email uuid = Encode.object
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
+    UpdateTitle title ->
+      ({ model | title = title }, Cmd.none)
+
     CloseLayoutEditor layout ->
       ({ model | layout = layout, layoutEditor = Nothing }, Cmd.none)
 
@@ -403,7 +411,7 @@ update msg model =
       case model.member of 
         Nothing -> 
          let
-          member = Data.testMember
+          member = Debug.log "Using the test member:" Data.testMember
          in
           ( { model | mailer = T.Sending }, reqTrack member.email member.uuid template )
           -- ( model, Cmd.none )
@@ -1004,18 +1012,21 @@ view model =
                let
                  up = UpdateLayoutEditor layout index
                  combo = Tools.getOr index layout Data.emptyCombo
-                 return =SelectLayoutEditor layout index combo
+                 done = OpenLayoutEditor layout
                in
                 div []
                   [ Components.button (CloseLayoutEditor layout) [] "Close"
-                  , LayoutEditor.edit stateModel index combo up return
+                  , Components.editText "Title" (text "The name for this sound") model.title UpdateTitle
+                  , LayoutEditor.edit stateModel index combo up done
                   ]
 
       , if 0 == List.length model.layout then 
            text ""
         else 
           let 
-             template = (Data.scoreMetaT0, ("sails away", model.layout))
+             ref = Data.scoreMetaT0
+             meta = { ref | title = model.title }
+             template = (meta, ("Needs a title", model.layout))
           in  
            Components.button (ReqTrack template) [] "Request a Song"
 

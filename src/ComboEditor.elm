@@ -43,12 +43,12 @@ view : (Msg -> msg) -> Model -> msg -> Html msg
 view toMsg model done  =
   case model of 
     Overview (scope, ensemble) ->
-      div [] <| List.singleton <| Components.cols
-          [ Components.button done [] "Save this combo"
-          , Components.colHalf <| div []
-             [ScopeEditor.view (\sMsg -> (toMsg <| UpdateScopeEditor sMsg)) (ScopeEditor.Editing scope) done]
-          , Components.colHalf <| 
-              EnsembleEditor.view (\msg -> (toMsg <| UpdateEnsembleEditor msg)) (EnsembleEditor.Overview ensemble) done
+-- Components.button done [] "Save this combo"
+      Components.cols
+          [ Components.col [] [
+             ScopeEditor.view (\sMsg -> (toMsg <| UpdateScopeEditor sMsg)) (ScopeEditor.Editing scope) done ]
+          , Components.col [] [
+              EnsembleEditor.view (\msg -> (toMsg <| UpdateEnsembleEditor msg)) (EnsembleEditor.Overview ensemble) done ]
           ]
 
 
