@@ -48,14 +48,17 @@ editor toMsg state index voice =
 
 view : (Msg -> msg) -> Model -> Html msg
 view toMsg model = 
-  case model of 
+  case Debug.log "viewing model:" model of 
     Overview state -> 
       if 0 == List.length state then 
         Components.button (toMsg <| CreateVoice state) [] "Add a voice"
-      else 
+      else
         div [] <|
-          List.indexedMap (\i voice -> 
-            div [onClick <| toMsg <| SelectVoice state i] [VoiceEditor.view voice]) state
+          Components.button (toMsg <| CreateVoice state) [] "Add Another Voice"
+          :: List.indexedMap (\i voice -> 
+            div [] 
+             [ div [onClick <| toMsg <| SelectVoice state i] [VoiceEditor.view voice]
+             , Components.deleteIcon (toMsg <| KillVoice state i)]) state
 
     Editing state index voice ->
       editor toMsg state index voice

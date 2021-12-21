@@ -47,9 +47,9 @@ view toMsg model =
       div [] <| List.singleton <| Components.cols
           [ Components.colHalf <| div [onClick <| toMsg <| UpdateScopeEditor <| ScopeEditor.Edit scope]
              [ScopeEditor.view (\sMsg -> (toMsg <| UpdateScopeEditor sMsg)) (ScopeEditor.Overview scope)]
-          , Components.colHalf <| div [] <|
-             List.indexedMap (\i voice ->
-              div [onClick <| toMsg <| UpdateEnsembleEditor <| EnsembleEditor.SelectVoice ensemble i] [VoiceEditor.icon voice]) ensemble
+          , Components.colHalf <| EnsembleEditor.view (\msg -> (toMsg <| UpdateEnsembleEditor msg)) (EnsembleEditor.Overview ensemble)
+             -- List.indexedMap (\i voice ->
+              -- div [onClick <| toMsg <| UpdateEnsembleEditor <| EnsembleEditor.SelectVoice ensemble i] [VoiceEditor.icon voice]) ensemble
           ]
 
 
@@ -107,42 +107,6 @@ view toMsg model =
 --           next = { scope | root = root }
 --          in
 --            ( EditingScope (next, ensemble_) ( ScopeEditor.Editing next), Cmd.none)
-
---     UpdateEnsembleEditor eMsg ->
---       case Debug.log "editing an ensemble in ComboEditor:" eMsg of 
---         EnsembleEditor.CreateVoice -> 
---          let
---            next = VoiceEditor.newVoice :: ensemble_
---          in
---           (EditingEnsemble (scope_, next) (EnsembleEditor.Overview next), Cmd.none)
-
---         EnsembleEditor.SelectVoice state index -> 
---          let
---            v = Tools.getOr index state VoiceEditor.newVoice
---          in
---           (EditingEnsemble (scope_, ensemble_) (EnsembleEditor.Editing ensemble_ index v), Cmd.none)
-
---         EnsembleEditor.UpdateVoice state index updated -> 
---          let 
---            next = Tools.replaceAt index updated state
---          in
---           (EditingEnsemble (scope_, next) (EnsembleEditor.Editing next index updated), Cmd.none)
-
---         EnsembleEditor.SaveVoice state index updated -> 
---          let 
---            next = Tools.replaceAt index updated state
---          in
---           (EditingEnsemble (scope_, next) (EnsembleEditor.Editing next index updated), Cmd.none)
-
---         EnsembleEditor.KillVoice state index  -> 
---          let 
---            next = Tools.removeAt index state
---          in
---           (EditingEnsemble (scope_, next) (EnsembleEditor.Overview next), Cmd.none)
-
---         EnsembleEditor.Close next ->
---           (Overview (scope_, next), Cmd.none)
-
 
 
 main = text ""

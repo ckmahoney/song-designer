@@ -265,8 +265,8 @@ presets = [p1,p2,p3,p4]
 
 kitAll : Ensemble
 kitAll =
-  [ Voice 20 Structure Kick "clock" 1 1 0
-  , Voice 21 Structure Perc "clap" 3 2 0
+  [ Voice 20 Structure Kick "clock" 1 1 1
+  , Voice 21 Structure Perc "clap" 3 2 1
   , Voice 22 Structure Hat "offbeat" 5 3 1
   , Voice 23 Structure Bass "pedal" 5 3 1
   , Voice 24 Structure Chords "hook" 5 3 1
@@ -276,8 +276,8 @@ kitAll =
 
 kitBeat : Ensemble
 kitBeat =
-  [ Voice 30 Structure Kick "clock" 1 1 0
-  , Voice 31 Structure Perc "clap" 3 2 0
+  [ Voice 30 Structure Kick "clock" 1 1 1
+  , Voice 31 Structure Perc "clap" 3 2 1
   , Voice 32 Structure Hat "offbeat" 5 3 1
   ]
 
@@ -480,7 +480,7 @@ textureLabel texture =
       ("density", "Density")
 
     Complexity ->
-      ("complexity", "Complexity")
+      ("complexity", "Group")
 
 
 roleDuty: SynthRole -> SynthDuty
@@ -646,8 +646,8 @@ coreLayoutTitles =
 
 kitVC1 : Ensemble
 kitVC1 =
-  [ Voice 0 Structure Kick "clock" 1 1 0
-  , Voice 1 Structure Perc "clap" 3 2 0
+  [ Voice 0 Structure Kick "clock" 1 1 1
+  , Voice 1 Structure Perc "clap" 3 2 1
   , Voice 3 Structure Bass "clap" 3 3 1
   , Voice 4 Structure Chords "hook" 5 3 1
   , Voice 5 Expression Melody "phrase" 5 3 1
@@ -657,9 +657,9 @@ kitVC1 =
 
 kitVC2 : Ensemble
 kitVC2 =
-  [ Voice 10 Structure Hat "clock" 1 1 0
-  , Voice 11 Structure Hat "clap" 3 2 0
-  , Voice 12 Expression Hat "clap" 3 2 0
+  [ Voice 10 Structure Hat "clock" 1 1 1
+  , Voice 11 Structure Hat "clap" 3 2 1
+  , Voice 12 Expression Hat "clap" 3 2 1
   , Voice 13 Structure Bass "clap" 3 3 1
   , Voice 14 Structure Melody "hook" 5 3 1
   , Voice 15 Structure Chords "phrase" 5 3 1
