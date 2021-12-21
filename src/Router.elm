@@ -89,6 +89,7 @@ type Msg
   | UpdateLayoutEditor (List T.Combo) Int LayoutEditor.EditState
 
 
+
 type alias Model =
   { view : Editor
   , index : Int
@@ -985,10 +986,9 @@ view model =
                div [] 
                 [ Components.button (CloseLayoutEditor layout) [] "Close"
                 , LayoutEditor.view layout (\i -> 
-                      let 
-                        combo_ = Tools.getOr i layout Data.emptyCombo
-                      in
-                       (SelectLayoutEditor layout i combo_))
+                    SelectLayoutEditor layout i <| Tools.getOr i layout Data.emptyCombo) (\i -> OpenLayoutEditor (Tools.removeAt i layout))
+                , if 2 > (List.length layout) then 
+                     Components.button (OpenLayoutEditor <| List.reverse <| Data.emptyCombo :: layout) [] "Add another Combo" else text ""
                 ]
 
               LayoutEditor.Editing layout index stateModel -> 

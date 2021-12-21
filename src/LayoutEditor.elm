@@ -33,7 +33,6 @@ type Msg
   | Update (List Combo) Int Combo
   | Delete (List Combo) Int
   | EditCombo Int Combo EditState
-  -- | UpdateParent 
 
 
 type Model 
@@ -53,14 +52,14 @@ init =
   Overview
 
 
-picker things icon select  = 
+picker things icon select kill = 
   Components.box
    [ Html.h2 [] [text "Choose a scope"]
    , div [ Attr.class "columns is-multiline level is-vcentered" ] <|
      (List.indexedMap (\i thing ->
        div [ Attr.class "column is-flex is-flex-direction-column is-align-items-center is-justify-content-center" ]
          [ Components.col [ Attr.class "is-full has-text-centered", onClick (select i) ] [(icon thing)]
-         -- , Components.col [ Attr.class "is-full has-text-centered" ] [(Components.deleteIcon (kill i))] 
+         , Components.col [ Attr.class "is-full has-text-centered" ] [(Components.deleteIcon (kill i))] 
          ] ) things)
    ]
 
@@ -72,17 +71,6 @@ comboIcon ((scope, ensemble) as model) =
     , Components.svg "ensemble"
     , p [ Attr.class "content" ] [ text <| (String.fromInt <| List.length ensemble) ++ " voices" ]
     ]
-
-
-editor2 : (Msg -> msg) -> State ->  Int -> Combo -> Html msg
-editor2 toMsg state index combo =
-  let
-    update = (\c -> \v -> toMsg <| Update state index c)
-    save = (\v -> toMsg <| Close state)
-    close = (\v -> toMsg <| Close state)
-    kill = toMsg <| Delete state index
-  in 
-  text "dum"  -- EnsembleEditor.editor combo update save kill
 
 
 edit : EditState -> Int -> Combo -> (EditState -> msg) -> msg -> Html msg
@@ -108,11 +96,10 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
         ComboEditor.UpdateEnsembleEditor eMsg ->
           case eMsg of 
             EnsembleEditor.Close next -> 
-              toMsg (Open (scope_, next))
+              toMsg (Open (scope_, Debug.log "saved ensemble in LayoutEditor.edit:" next))
 
             EnsembleEditor.SelectVoice ensemble voiceIndex ->
              let
-               -- v = Tools.getOr voiceIndex ensemble VoiceEditor.newVoice
                v = Debug.log "Found voice:" <| Tools.getOr (Debug.log "with index:" voiceIndex) ensemble VoiceEditor.newVoice
              in
               toMsg (Ensemble <| EnsembleEditor.Editing ensemble voiceIndex v)
@@ -133,19 +120,16 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
              let
                next = Tools.removeAt voiceIndex ensemble
              in
-              toMsg (Ensemble <| EnsembleEditor.Overview next)
+              toMsg (Open (scope_,  next))
 
             EnsembleEditor.CreateVoice ensemble ->
              let
                next = VoiceEditor.newVoice ::  ensemble
              in
-              toMsg (Ensemble <| EnsembleEditor.Overview next))
+              toMsg (Open (scope_, next)))
    in 
-    div []
-      [ Components.button done [] "Save this combo"
-      -- , Components.button editEnsemble [] "Edit Ensemble"
-      , ComboEditor.view fromMsg (ComboEditor.Overview curr)
-      ]
+   ComboEditor.view fromMsg (ComboEditor.Overview curr) done
+
   
   Scope editor ->
    let 
@@ -167,65 +151,53 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
           (toMsg <| Scope <| ScopeEditor.Editing scope)
        )
    in
-    ScopeEditor.view updateScope editor
+    ScopeEditor.view updateScope editor done
 
   Ensemble editor ->
     let
      updateEnsemble = (\eMsg ->
-      case Debug.log "Editing an emsemble in layouteditor:" eMsg of 
+      case eMsg of
         EnsembleEditor.Close next ->
-          (toMsg <| Open (scope_, next))
+          (Open (scope_, next))
 
         EnsembleEditor.CreateVoice ensemble-> 
          let
            next = VoiceEditor.newVoice :: ensemble
          in
-          (toMsg <| Ensemble <| EnsembleEditor.Overview next)
+          (Ensemble <| EnsembleEditor.Overview next)
 
         EnsembleEditor.SelectVoice ensemble voiceIndex -> 
          let
- 
-           v = Debug.log "Found voice:" Tools.getOr (Debug.log "with index:" voiceIndex)  ensemble VoiceEditor.newVoice
-
+           v = Tools.getOr voiceIndex ensemble VoiceEditor.newVoice
          in
-          (toMsg <| Ensemble <| EnsembleEditor.Editing ensemble voiceIndex <| Debug.log "Selected voice:" v)
+          (Ensemble <| EnsembleEditor.Editing ensemble voiceIndex v)
 
         EnsembleEditor.UpdateVoice ensemble voiceIndex updated -> 
          let 
-           next = Tools.replaceAt (Debug.log "voice index:" voiceIndex) updated ensemble_
+           next = Tools.replaceAt voiceIndex updated ensemble_
          in
-          (toMsg <| Ensemble <| EnsembleEditor.Editing next voiceIndex <| Debug.log "updated to this voice:" updated)
+          (Ensemble <| EnsembleEditor.Editing next voiceIndex updated)
 
         EnsembleEditor.SaveVoice ensemble voiceIndex updated -> 
          let 
            next = Tools.replaceAt voiceIndex updated ensemble_
          in
-          (toMsg <| Ensemble <| EnsembleEditor.Editing next voiceIndex updated)
+          (Ensemble <| EnsembleEditor.Editing next voiceIndex updated)
 
         EnsembleEditor.KillVoice ensemble voiceIndex  -> 
          let 
            next = Tools.removeAt voiceIndex ensemble
          in
-          (toMsg <| Ensemble <| EnsembleEditor.Overview next))
+          (Ensemble <| EnsembleEditor.Overview next))
 
     in
-    EnsembleEditor.view updateEnsemble <| Debug.log "has ens editor:" editor
+    EnsembleEditor.view (\msg -> toMsg <| updateEnsemble msg)  editor done
      
-  -- Scope scopeEditor ->
-  --   case scopeEditor of 
-  --     ScopeEditor.Overview scope ->
-  --       text "editing the scope"        
-
-  --     ScopeEditor.Editing scope ->
-  --       text "editing the scope"    
-
-  -- Ensemble ensembleEditor ->  
-  --   text "editing the ensemble"
 
 
-view : State -> (Int -> msg) -> Html msg
-view layout select =
-  picker layout View.viewCombo select
+view : State -> (Int -> msg) -> (Int -> msg) -> Html msg
+view layout select kill =
+  picker layout View.viewCombo select kill
 
 
 main = text ""

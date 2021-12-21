@@ -106,8 +106,8 @@ cpsPicker current state msg =
     Components.button (msg (UpdateCPS state cps)) [Attr.class <| if current == cps then "is-success is-selected" else ""] (String.fromFloat (Tools.cpsToBPM cps))) cpsOptions
 
 
-view : (Msg -> msg) -> Model -> Html msg
-view toMsg model =
+view : (Msg -> msg) -> Model -> msg -> Html msg
+view toMsg model done =
   case model of 
     Overview state ->
       div [onClick (toMsg <| Edit state)] [Elements.scope state] 
