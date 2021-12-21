@@ -76,9 +76,10 @@ comboIcon ((scope, ensemble) as model) =
 
 edit : EditState -> Int -> Combo -> (EditState -> msg) -> msg -> Html msg
 edit state index ((scope_, ensemble_) as combo) toMsg done =
- case Debug.log "has the edit state:" state of 
+ case state of 
   Open curr ->   
    let
+
     fromMsg = (\msg ->
       case msg of 
         ComboEditor.Save next ->
@@ -89,25 +90,34 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
             ScopeEditor.Close scope -> 
               toMsg (Open (scope, ensemble_))
 
-            _ -> -- do nothing yet
-              toMsg (Scope <| ScopeEditor.Editing scope_)
 
+            ScopeEditor.UpdateTitle scope title ->
+              (toMsg <| Scope <| ScopeEditor.Editing { scope | label = title })
+
+            ScopeEditor.UpdateCPS scope cps ->
+              (toMsg <| Scope <| ScopeEditor.Editing { scope | cps = cps })
+
+            ScopeEditor.UpdateRoot scope root ->
+              (toMsg <| Scope <| ScopeEditor.Editing { scope | root = root })
+
+            ScopeEditor.Edit scope ->
+              (toMsg <| Scope <| ScopeEditor.Editing scope)
         -- Ensembles
 
         ComboEditor.UpdateEnsembleEditor eMsg ->
           case eMsg of 
             EnsembleEditor.Close next -> 
-              toMsg (Open (scope_, Debug.log "saved ensemble in LayoutEditor.edit:" next))
+              toMsg (Open (scope_,  next))
 
             EnsembleEditor.SelectVoice ensemble voiceIndex ->
              let
-               v = Debug.log "Found voice:" <| Tools.getOr (Debug.log "with index:" voiceIndex) ensemble VoiceEditor.newVoice
+               v = Tools.getOr voiceIndex ensemble VoiceEditor.newVoice
              in
               toMsg (Ensemble <| EnsembleEditor.Editing ensemble voiceIndex v)
 
             EnsembleEditor.UpdateVoice  ensemble voiceIndex voice ->
              let
-               next = Tools.replaceAt (Debug.log "voice index;" voiceIndex) voice  ensemble
+               next = Tools.replaceAt voiceIndex voice  ensemble
              in
               toMsg (Ensemble <| EnsembleEditor.Editing next voiceIndex voice)
 

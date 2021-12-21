@@ -20,7 +20,7 @@ import ScopeEditor
 import EnsembleEditor
 import ComboEditor
 import LayoutEditor
-import MiniSongDesigner
+
 
 port playMusic : String -> Cmd msg
 
@@ -89,7 +89,6 @@ type Msg
   | UpdateTitle (String)
 
 
-loader = MiniSongDesigner.initModel
 
 
 type alias Model =
@@ -191,10 +190,9 @@ apiUrl endpoint =
 
 reqTrack : String -> String -> T.Template -> Cmd Msg
 reqTrack email uuid template =
-  Debug.log "Posting:" <| 
   Http.post
     { url = apiUrl "track"
-    , body = Debug.log "sending body:" <| Http.jsonBody <| encodeReqTrack email uuid template
+    , body =  Http.jsonBody <| encodeReqTrack email uuid template
     , expect = Http.expectJson GotNewTrack decodeTrack
     }
 
@@ -391,9 +389,6 @@ update msg model =
             , mailer = T.Received }, setSource ("http://localhost:3000/" ++ track.filepath ) )
 
         Err errr ->
-         let
-           yy = Debug.log "Bad response. This is the raw err:" errr
-         in
           case errr of 
             Http.BadBody str -> 
               ({ model | mailer = T.Failed str }, Cmd.none)
@@ -411,7 +406,7 @@ update msg model =
       case model.member of 
         Nothing -> 
          let
-          member = Debug.log "Using the test member:" Data.testMember
+          member = Data.testMember
          in
           ( { model | mailer = T.Sending }, reqTrack member.email member.uuid template )
           -- ( model, Cmd.none )
