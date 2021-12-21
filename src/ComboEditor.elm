@@ -27,8 +27,7 @@ type Msg
 
 type Model 
   = Overview State
-  | EditingScope State ScopeEditor.Model 
-  | EditingEnsemble State EnsembleEditor.Model
+
 
 
 initState =
@@ -46,26 +45,11 @@ view toMsg model done  =
     Overview (scope, ensemble) ->
       div [] <| List.singleton <| Components.cols
           [ Components.button done [] "Save this combo"
-          , Components.colHalf <| div [onClick <| toMsg <| UpdateScopeEditor <| ScopeEditor.Edit scope]
-             [ScopeEditor.view (\sMsg -> (toMsg <| UpdateScopeEditor sMsg)) (ScopeEditor.Overview scope) done]
-          , Components.colHalf <| EnsembleEditor.view (\msg -> (toMsg <| UpdateEnsembleEditor msg)) (EnsembleEditor.Overview ensemble) done
+          , Components.colHalf <| div []
+             [ScopeEditor.view (\sMsg -> (toMsg <| UpdateScopeEditor sMsg)) (ScopeEditor.Editing scope) done]
+          , Components.colHalf <| 
+              EnsembleEditor.view (\msg -> (toMsg <| UpdateEnsembleEditor msg)) (EnsembleEditor.Overview ensemble) done
           ]
-
-
-    EditingScope (scope_, ensemble) scope ->
-      div []
-        [ ScopeEditor.view (\sMsg -> (toMsg <| UpdateScopeEditor sMsg)) scope done
-        ]
-
-    EditingEnsemble (scope, ensemble_) eModel ->
-     case eModel of 
-      EnsembleEditor.Editing ensemble voiceIndex voice ->
-       div []
-        [ EnsembleEditor.editor (\emsg -> (toMsg <| UpdateEnsembleEditor emsg)) ensemble_ voiceIndex voice
-        ]
-
-      _ ->
-        text "unhandled ensemble editor case"
 
 
 

@@ -7,7 +7,7 @@ import Html.Attributes as Attr
 import Html.Events exposing (onClick, onInput)
 
 import Types exposing (..)
-import View 
+import View
 import Elements
 import Tools
 import Components
@@ -55,14 +55,14 @@ bounds =
 -- Options for the Mini Song Designer
 rootOptions = 
   [ (0, "C")
-  , (4, "E")
-  , (8, "G")
-  , (9, "G#")
-  , (10, "F")
+  , (2, "D")
+  , (5, "F")
+  , (7, "G")
+  , (10, "Bb")
   ]
 
 
-initScope = Scope 0 "Teaser" 1.25 4 4 1
+initScope = Scope 0 "Teaser" 1.25 4 5 (44//10)
 
 
 initState : State
@@ -108,6 +108,21 @@ cpsPicker current state msg =
     Components.button (msg (UpdateCPS state cps)) [Attr.class <| if current == cps then "is-success is-selected" else ""] (String.fromFloat (Tools.cpsToBPM cps))) cpsOptions
 
 
+icon : Model -> Html msg
+icon model =
+  text "icon"
+
+
+card :State -> Html msg
+card model = 
+  Components.card model.label <| Components.cols 
+   [  View.meterMessage model.cpc
+    , View.sizeMessage model.cpc  model.size
+    , text <| "Key of " ++ View.keyLabel model.root
+    ] 
+
+
+
 view : (Msg -> msg) -> Model -> msg -> Html msg
 view toMsg model done =
   case model of 
@@ -116,7 +131,8 @@ view toMsg model done =
 
     Editing state ->
       Components.box
-        [ input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> (updateTitle state str toMsg))] []
+        [ card state
+        , input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> (updateTitle state str toMsg))] []
         , cpsPicker state.cps state toMsg
         , keyPicker state.root state toMsg
         , Components.button (toMsg <| Close state) [] "Done" 

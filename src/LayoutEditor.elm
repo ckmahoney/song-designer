@@ -42,6 +42,7 @@ type Model
 
 initState = 
   [ Data.combo1, Data.combo2 ]
+  -- []
 
 
 initModel =

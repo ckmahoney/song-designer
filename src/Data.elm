@@ -516,9 +516,9 @@ v1 : Scope
 v1 =
   { id = -11
   , label = "verse"
-  , cps = 2
+  , cps = 33/10
   , cpc = 4 
-  , root = 30
+  , root = 5
   , size = 1
   }
 
@@ -527,9 +527,9 @@ v2 : Scope
 v2 =
   { id = -13
   , label = "verse 2"
-  , cps = 4
+  , cps = 44/10
   , cpc = 8
-  , root = 45
+  , root = 2
   , size = 2
   }
 
@@ -618,6 +618,10 @@ emptyComboP =
 emptyMember : GhostMember
 emptyMember =
   GhostMember "" "" "" "" "" False False []
+
+testMember : GhostMember
+testMember =
+  GhostMember "263bb49a-a3e7-471e-a945-74570b25fd53" "test-user" "test-user mike" "" "demo@mail.com" False False []
 
 
 scopes1 : List Scope
@@ -754,6 +758,11 @@ coreScores =
       , (c1,kitAll)
       ] )
   ] 
+
+
+scoreMetaT0 : ScoreMeta
+scoreMetaT0 =
+  ScoreMeta "Fun Run" 4 1 32
 
 
 main = 

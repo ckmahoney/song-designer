@@ -50,7 +50,7 @@ type Playback
  | Pause
  | Stop  
 
--- holds permanent state intended for database io
+-- data prepared for storage on server
 type Msg 
   = ChangeView Editor 
   | Select Int
@@ -81,7 +81,6 @@ type Msg
   | GotNewTrack (Result Http.Error  T.TrackMeta)
   | ReqTrack T.Template
   | GotResp (Result Http.Error String)
-  
   
   | OpenLayoutEditor (List T.Combo)
   | CloseLayoutEditor (List T.Combo)
@@ -135,7 +134,7 @@ initFrom v s l t m =
 
 initTest : Model
 initTest = 
-  initFrom [Data.p1, Data.p2] [] [] [Data.someTemplate]  Nothing
+  initFrom [Data.p1, Data.p2] [] [] []  Nothing
 
 
 initEmpty : Model
@@ -188,6 +187,18 @@ apiUrl endpoint =
 
 reqTrack : String -> String -> T.Template -> Cmd Msg
 reqTrack email uuid template =
+  Debug.log "Posting:" <| 
+  Http.post
+    { url = apiUrl "track"
+    , body = Debug.log "sending body:" <| Http.jsonBody <| encodeReqTrack email uuid template
+    , expect = Http.expectJson GotNewTrack decodeTrack
+    }
+
+reqMiniTrack : String -> String -> T.Layout -> Cmd Msg
+reqMiniTrack email uuid layout =
+ let   
+  template = (Data.scoreMetaT0, layout)
+ in
   Http.post
   { url = apiUrl "track"
   , body = Http.jsonBody <| encodeReqTrack email uuid template
@@ -391,7 +402,11 @@ update msg model =
     ReqTrack template -> 
       case model.member of 
         Nothing -> 
-          ( model, Cmd.none )
+         let
+          member = Data.testMember
+         in
+          ( { model | mailer = T.Sending }, reqTrack member.email member.uuid template )
+          -- ( model, Cmd.none )
 
         Just member ->
           ( { model | mailer = T.Sending }, reqTrack member.email member.uuid template )
@@ -769,7 +784,6 @@ display model select =
                       v
 
                   uLayout = (\l ->
-                    -- UpdateLayout model.index (Just l))
                     (ChangeView <| ELayout model.index (Just l)))
                   editComboP = (\cp ->
                     ChangeView <| ELayoutEdit layout)
@@ -963,11 +977,6 @@ playlist playstate selection tracks =
      in
      Components.songCard track.title icons) tracks
 
--- remember
--- the point is to make a fast and easy way
--- click the songmaker button
--- include some presets! 
--- (after it is working)
 
 view : Model -> Html Msg
 view model =
@@ -995,15 +1004,20 @@ view model =
                let
                  up = UpdateLayoutEditor layout index
                  combo = Tools.getOr index layout Data.emptyCombo
+                 return =SelectLayoutEditor layout index combo
                in
                 div []
                   [ Components.button (CloseLayoutEditor layout) [] "Close"
-                  , LayoutEditor.edit stateModel index combo up (OpenLayoutEditor layout)
+                  , LayoutEditor.edit stateModel index combo up return
                   ]
 
-      , case List.head model.templates of 
-          Nothing -> text ""
-          Just t -> Components.button (ReqTrack t) [] "Request a Song"
+      , if 0 == List.length model.layout then 
+           text ""
+        else 
+          let 
+             template = (Data.scoreMetaT0, ("sails away", model.layout))
+          in  
+           Components.button (ReqTrack template) [] "Request a Song"
 
       , case model.mailer of 
           T.Sending -> 

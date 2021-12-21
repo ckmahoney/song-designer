@@ -406,7 +406,7 @@ metaTempoMessage  cps  =
 
 meterMessage : Int -> Html msg
 meterMessage cpc =
-  p [] [ text <| "This section has " ++ (timeSigString cpc) ++ " time." ]
+  p [] [ text <| "This section is in " ++ (timeSigString cpc) ++ " time." ]
 
 
 sizeToCycles: Int -> Int -> Int
@@ -447,8 +447,15 @@ sizeText cpc size =
 sizeMessage : Int -> Int -> Html msg
 sizeMessage cpc size =
   div [] 
-    [ p [] [ text <| "Using size " ++ (String.fromInt size) ++ " and " ++ String.fromInt cpc ++ " cycles per measure," ]
-    , p [] [ text <| "That means this section is " ++ (sizeText cpc size) ++ " cycles long." ] ]
+    [ p [] [ text <| 
+   case size of 
+     1 -> 
+      "This is a short part."
+     2 -> "This part is medium length."
+   
+     3 -> "This part is large."
+     _ -> "Woah, you made it even larger!>"
+    , p [] [ text <| "It's in " ++ String.fromInt cpc ++ "/4 time." ] ] ]
 
 
 totalLength : List T.Scope -> Float
@@ -463,7 +470,6 @@ countStems score =
     sum + (List.length ensemble)) 0 score
 
 
--- editVoice : T.Voice -> ((Maybe T.Voice) -> msg) -> Html msg -> Html msg ->  Html msg
 editScope : T.Scope -> ((Maybe T.Scope) -> msg) -> Html msg -> Html msg -> Html msg
 editScope model sig buttSave buttDelete = 
   let
@@ -473,7 +479,6 @@ editScope model sig buttSave buttDelete =
     updateSize = (\int -> justSig { model | size = int })
     updateCPS = (\flt -> justSig { model | cps = flt })
     updateRoot = (\flt -> justSig { model | root = flt })
-    -- done = (sig Nothing)
   in 
     Components.card2  ("Scope: " ++ model.label) [buttSave, buttDelete] <| div [ class "scope-editor v3" ]
      [ Components.editText "Label" labelInfo model.label updateLabel
@@ -482,7 +487,6 @@ editScope model sig buttSave buttDelete =
      , Components.editRange "Tempo" (tempoMessage model.cpc model.cps model.size) D.rangeCPS model.cps updateCPS 
      , Components.keyPicker False model.root updateRoot 
      ] 
-
 
 
 editScopeOld : T.Scope -> ((Maybe T.Scope) -> msg) -> Html msg 
