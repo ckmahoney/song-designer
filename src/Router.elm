@@ -953,7 +953,7 @@ updateIn el els index =
 
 playlist : Playback -> (Maybe T.TrackMeta) -> List T.TrackMeta -> Html Msg
 playlist playstate selection tracks =
-  Components.box <| 
+  Components.box <| List.singleton  <| Components.colsMulti <|
    List.map (\track ->
      let 
        icons = case selection of 
@@ -978,7 +978,7 @@ playlist playstate selection tracks =
              [ div [onClick <| SelectTrack (Just track)] [Components.svg "play"] ]
 
      in
-     Components.songCard track.title icons) tracks
+     Components.col [class "is-one-fifth"] [ Components.songCard track.title icons]) tracks
 
 
 
