@@ -18,6 +18,7 @@ type Msg
   = Close State
   | UpdateTitle State String
   | UpdateCPS State Float
+  | UpdateCPC State Int
   | UpdateRoot State Int
   | Edit State
 
@@ -48,7 +49,7 @@ bounds =
   , minSeconds = 1.0
   , maxSeconds = 15.0
   , roots = [0, 4, 8]
-  , tempos = [5/10, 14/10,  9/10, 22/10, 33/10, 44/10  ]
+  , tempos = [5/10, 1, 14/10, 22/10, 33/10, 44/10  ]
   }
 
 
@@ -59,6 +60,11 @@ rootOptions =
   , (5, "F")
   , (7, "G")
   , (10, "Bb")
+  ]
+
+cpcOptions : List Int
+cpcOptions =
+  [ 3, 4, 6, 8
   ]
 
 
@@ -93,19 +99,30 @@ updateTitle : State -> String -> (Msg -> msg) -> msg
 updateTitle state str msg =
   msg (UpdateTitle state str)
 
+flexStyles = "is-flex is-justify-content-space-around is-flex-wrap-wrap"
+
 
 keyPicker : Int -> State -> (Msg -> msg) -> Html msg
 keyPicker current state msg =
-  Components.boxWith "is-flex is-align-items-center"
-   <| (label [Attr.class "mr-3"] [ text "Key"]) :: List.map (\(root, name) ->
-    Components.button (msg (UpdateRoot state root)) [Attr.class <| if current == root then "is-success is-selected" else ""] name) rootOptions
+  Components.box
+   <| [ label [Attr.class "mr-3"] [ text "Key"]
+      ,  div [Attr.class flexStyles] <| List.map (\(root, name) ->
+    Components.button (msg (UpdateRoot state root)) [Attr.class <| if current == root then "is-success is-selected" else ""] name) rootOptions]
   
 
 cpsPicker : Float -> State -> (Msg -> msg) -> Html msg
 cpsPicker current state msg =
-  Components.boxWith "is-flex is-align-items-center"
-   <| (label [Attr.class "mr-3"] [ text "BPM"]) :: List.map (\cps ->
-    Components.button (msg (UpdateCPS state cps)) [Attr.class <| if current == cps then "is-success is-selected" else ""] (String.fromFloat (Tools.cpsToBPM cps))) cpsOptions
+  Components.box
+   <| [ label [Attr.class "mr-3"] [ text "BPM"]
+      , div [Attr.class flexStyles] <| List.map (\cps ->
+    Components.button (msg (UpdateCPS state cps)) [Attr.class <| if current == cps then "is-success is-selected" else ""] (String.fromFloat (Tools.cpsToBPM cps))) cpsOptions ]
+
+cpcPicker : Int -> State -> (Msg -> msg) -> Html msg
+cpcPicker current state msg =
+  Components.box
+   <| [ label [Attr.class "mr-3"] [ text "Phrase Length"]
+    , div [Attr.class flexStyles] <| List.map (\cpc ->
+    Components.button (msg (UpdateCPC state cpc)) [Attr.class <| if current == cpc then "is-success is-selected" else ""] (String.fromInt cpc)) cpcOptions ]
 
 
 icon : Model -> Html msg
@@ -115,10 +132,10 @@ icon model =
 
 card :State -> Html msg
 card model = 
-  Components.card model.label <| Components.cols 
-   [  View.meterMessage model.cpc
-    , View.sizeMessage model.cpc  model.size
-    , text <| "Key of " ++ View.keyLabel model.root
+  Components.cardWith "has-background-warning" model.label <| Components.cols 
+   [  View.sizeMessage model.cpc  model.size
+    , p [Attr.class "has-text-centered"] [text <| "Key of " ++ View.keyLabel model.root]
+    , p [Attr.class "has-text-centered"] [text <| View.durString model.cpc model.cps model.size ++ " seconds long"]
     ] 
 
 
@@ -128,27 +145,32 @@ view toMsg model done =
   case model of 
     Editing state ->
       Components.cols
-        [ Components.col1 <| card state
-        , Components.col1 <| div []
-          [ label [Attr.class "label" ] [text "Section label"]
-          , p [] [text "Something like 'verse' or 'chorus' to help you remember where in the song this part is."]
-          , input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> (updateTitle state str toMsg))] [] ]
+        [ card state
+        , Components.card "Scope label" <| div []
+          [ p [] [text "Something like 'verse' or 'chorus' to help you what this part is doing."]
+          , input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> toMsg (UpdateTitle state str))] [] ]
         , cpsPicker state.cps state toMsg
+        , cpcPicker state.cpc state toMsg
         , keyPicker state.root state toMsg
-        , Components.button (toMsg <| Close state) [] "Done" 
+        , Components.button (toMsg <| Close state) [] "Save Scope" 
         ]
 
     Overview state ->
-      Components.box
-        [ card state
-        , div []
-          [ label [Attr.class "label" ] [text "Section label"]
-          , p [] [text "Something like 'verse' or 'chorus' to help you remember where in the song this part is."]
-          , input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> (updateTitle state str toMsg))] [] ]
-        , cpsPicker state.cps state toMsg
-        , keyPicker state.root state toMsg
-        , Components.button (toMsg <| Close state) [] "Done2" 
-        ]
+      text "Thanks for finding this bug, can you please tell me about it? How did you get here?"
+
+
+view1 : (Msg -> msg ) -> State  -> Html msg
+view1 toMsg state  =
+   Components.cols
+     [  card state
+        , Components.card "Scope label" <| div []
+        [ p [] [text "Something like 'verse' or 'chorus' to help you what this part is doing."]
+        , input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> toMsg (UpdateTitle state str))] [] ]
+     , cpsPicker state.cps state toMsg
+     , cpcPicker state.cpc state toMsg
+     , keyPicker state.root state toMsg
+     ]
+
 
 
 main = 

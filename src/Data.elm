@@ -170,7 +170,7 @@ palette3 =
 
 emptyScope : Scope
 emptyScope = 
-  Scope -969 "Scope" 1 1 1 1
+  Scope -969 "New Scope" 1.0 4 0 1
 
 
 emptyEnsemble : Ensemble
@@ -537,9 +537,9 @@ v2 =
 c1 =
   { id = -12
   , label = "chorus"
-  , cps = 2
+  , cps = 14/10
   , cpc = 4 
-  , root = 42
+  , root = 7
   , size = 1
   }
 
@@ -547,9 +547,9 @@ c1 =
 c2 =
   { id = -14
   , label = "chorus 2"
-  , cps = 4
+  , cps = 5/10
   , cpc = 4 
-  , root = 35
+  , root = 2
   , size = 2
   }
 

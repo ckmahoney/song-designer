@@ -391,7 +391,7 @@ tempoMessage : Int -> Float -> Int -> Html msg
 tempoMessage cpc  cps size =
   div [class "content"] 
     [ p [] [text "The speed for this element. Higher BPM are faster, and lower BPM are slower."]
-    , p [] [ text <| "With size " ++ (String.fromInt size) ++ " at " ++ (bpmString cps) ++ "BPM, that means this section is " ++ (String.fromFloat (duration cpc cps size)) ++  " seconds long." ] ]
+    , p [] [ text <| "With size " ++ (String.fromInt size) ++ " at " ++ (bpmString cps) ++ "BPM, that means this section is " ++ (String.fromInt (round <| duration cpc cps size)) ++  " seconds long." ] ]
 
 
 metaTempoMessage :  Float -> Html msg
@@ -416,7 +416,11 @@ sizeToCycles cpc size =
 
 duration : Int -> Float -> Int -> Float
 duration cpc cps size  =
-  cps * (toFloat (sizeToCycles cpc size))
+  (1/cps) * (toFloat (sizeToCycles cpc size))
+
+durString : Int -> Float -> Int -> String
+durString cpc cps size  =
+  String.fromInt <| round <| duration cpc cps size  
 
 
 -- Given a Float seconds, returns a MM:SS string
@@ -450,12 +454,12 @@ sizeMessage cpc size =
     [ p [] [ text <| 
    case size of 
      1 -> 
-      "This is a short part."
-     2 -> "This part is medium length."
+      "This is a short part, "
+     2 -> "This part is medium length, "
    
-     3 -> "This part is large."
-     _ -> "Woah, you made it even larger!>"
-    , p [] [ text <| "It's in " ++ String.fromInt cpc ++ "/4 time." ] ] ]
+     3 -> "This part is large, "
+     _ -> "Woah, you made it even larger!"
+    , p [] [ text <| "and the phrases will feel like they are about " ++ String.fromInt cpc ++ " beats long." ] ] ]
 
 
 totalLength : List T.Scope -> Float
@@ -519,18 +523,6 @@ designEnsemble options current update =
 
     Just ens ->
       div [] [ text "Add and remove voices from this ensemble to update it. When you are done, save your changes." ]
-
-
--- viewEnsembleWithRemover : T.NamedEnsemble -> (T.Voice -> msg) -> Html msg
--- viewEnsembleWithRemover (label, ensemble) remove =
---   Components.box 
---     [ p [ class "mb-3" ] [ text "Remove voices from this ensemble." ] 
---     , div [ class "columns is-mobile is-multiline" ] <| 
---        List.map (\voice -> 
---         div [ class "column has-text-centered" ] 
---           [ roleIcon voice.role
---           , p [] [ text voice.label ]
---           , span [class "delete", onClick (remove voice) ] [] ] ) ensemble ]
 
 
 

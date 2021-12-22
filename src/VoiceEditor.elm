@@ -68,8 +68,12 @@ edit model update save kill =
  in 
   div [ Attr.class "container" ]
     [ Components.cols <| [ Components.colHalf <| Components.button (save model) [] "Save"
-     , Components.col [Attr.class "is-flex is-justify-content-flex-end"] <|[Components.button kill [] "Delete"]] 
-    , Components.colsWith [ Attr.class "is-mobile is-flex is-justify-content-space-between" ] 
+     , Components.col [Attr.class "is-flex is-justify-content-flex-end has-background-danger"] <|[Components.button kill [] "Delete"]] 
+    , Components.colsWith [ Attr.class "is-hidden-tablet is-mobile is-flex is-flex-wrap-wrap" ] 
+        [ Components.colFull <| Components.editText "Label" (text "") model.label (updateLabel model update)
+        , Components.col [Attr.class "is-full has-text-centered"] [View.viewVoice model]
+        ]  
+    , Components.colsWith [ Attr.class "is-hidden-mobile is-tablet is-flex is-justify-content-space-between" ] 
         [ Components.colHalf <| View.viewVoice model
         , Components.colHalf <| Components.editText "Label" (text "") model.label (updateLabel model update)
         ]  

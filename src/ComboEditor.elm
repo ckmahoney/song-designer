@@ -43,11 +43,10 @@ view : (Msg -> msg) -> Model -> msg -> Html msg
 view toMsg model done  =
   case model of 
     Overview (scope, ensemble) ->
--- Components.button done [] "Save this combo"
       Components.cols
           [ Components.col [] [
              ScopeEditor.view (\sMsg -> (toMsg <| UpdateScopeEditor sMsg)) (ScopeEditor.Editing scope) done ]
-          , Components.col [] [
+          , Components.col [Attr.class "is-full has-text-centered"] [
               EnsembleEditor.view (\msg -> (toMsg <| UpdateEnsembleEditor msg)) (EnsembleEditor.Overview ensemble) done ]
           ]
 

@@ -981,6 +981,62 @@ playlist playstate selection tracks =
      Components.songCard track.title icons) tracks
 
 
+
+requestSongButton : Model -> Html Msg
+requestSongButton model =
+  if 0 == List.length model.layout then 
+     text ""
+  else 
+    let 
+       ref = Data.scoreMetaT0
+       meta = { ref | title = model.title }
+       template = (meta, ("Needs a title", model.layout))
+    in  
+     Components.button (ReqTrack template) [style "width" "100%", class "is-primary mb-3"] "Request a Song"
+
+
+editLayoutButton : Model -> Html Msg
+editLayoutButton model =
+  Components.button (OpenLayoutEditor model.layout) [style "width" "100%", class "is-info mb-3"] "Edit your layout"
+
+
+
+miniSongDesigner : Model -> Html Msg
+miniSongDesigner model =
+  div [class "has-background-light"] <| List.singleton <|
+    case model.layoutEditor of 
+      Nothing -> 
+       Components.box <|
+         [ editLayoutButton model
+         , requestSongButton model
+         , LayoutEditor.look model.layout View.viewCombo
+         ]
+
+      Just lModel ->
+        case lModel of 
+          LayoutEditor.Overview layout -> 
+           let 
+             addAnother = (OpenLayoutEditor <| List.reverse <| Data.emptyCombo :: layout)
+           in
+           div [] 
+            [ Components.editText "Title" (text "The name for this sound") model.title UpdateTitle
+            , LayoutEditor.view layout (\i -> 
+                SelectLayoutEditor layout i <| Tools.getOr i layout Data.emptyCombo) (\i -> OpenLayoutEditor (Tools.removeAt i layout)) addAnother
+            , Components.button (CloseLayoutEditor layout) [] "Reday to Make a Song"
+            ]
+
+          LayoutEditor.Editing layout index stateModel -> 
+           let
+             up = UpdateLayoutEditor layout index
+             combo = Tools.getOr index layout Data.emptyCombo
+             done = OpenLayoutEditor layout
+           in
+            div []
+              [ div [class "mb-6"] [ Components.button (CloseLayoutEditor layout) [] "Save Layout" ]
+              , LayoutEditor.edit stateModel index combo up done
+              ]
+
+
 view : Model -> Html Msg
 view model =
     div [ class "section" ]
@@ -988,50 +1044,13 @@ view model =
           Nothing -> text ""
           Just m -> Html.h2 [class "subtitle"] [text ("Welcome back " ++ m.firstname)]
       -- , menu model.view
-      , div [class "has-background-light"] <| List.singleton <|
-        case model.layoutEditor of 
-          Nothing -> 
-           Components.button (OpenLayoutEditor model.layout) [] "Edit your layout"
-
-          Just lModel ->
-            case lModel of 
-              LayoutEditor.Overview layout -> 
-               let 
-                 addAnother = (OpenLayoutEditor <| List.reverse <| Data.emptyCombo :: layout)
-               in
-               div [] 
-                [ Components.editText "Title" (text "The name for this sound") model.title UpdateTitle
-                , LayoutEditor.view layout (\i -> 
-                    SelectLayoutEditor layout i <| Tools.getOr i layout Data.emptyCombo) (\i -> OpenLayoutEditor (Tools.removeAt i layout)) addAnother
-                , Components.button (CloseLayoutEditor layout) [] "Reday to Make a Song"
-                ]
-
-              LayoutEditor.Editing layout index stateModel -> 
-               let
-                 up = UpdateLayoutEditor layout index
-                 combo = Tools.getOr index layout Data.emptyCombo
-                 done = OpenLayoutEditor layout
-               in
-                div []
-                  [ div [class "mb-6"] [ Components.button (CloseLayoutEditor layout) [] "Save Layout" ]
-                  , LayoutEditor.edit stateModel index combo up done
-                  ]
-
-      , if 0 == List.length model.layout then 
-           text ""
-        else 
-          let 
-             ref = Data.scoreMetaT0
-             meta = { ref | title = model.title }
-             template = (meta, ("Needs a title", model.layout))
-          in  
-           Components.button (ReqTrack template) [] "Request a Song"
-
       , case model.mailer of 
           T.Sending -> 
             text "Working on that track for you!"
           _ ->
-            text ""
+            miniSongDesigner model
+      
+
             -- display model Select 
       -- , text model.response
       , playlist model.playstate model.selection model.tracks

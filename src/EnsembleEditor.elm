@@ -55,12 +55,16 @@ view toMsg model done =
         if 0 == List.length state then 
           Components.button (toMsg <| CreateVoice state) [] "Add a voice"
         else
-          div [] <|
+          div [Attr.class "is-full has-text-centered"] <|
             Components.button (toMsg <| CreateVoice state) [] "Add Another Voice"
             :: List.indexedMap (\i voice -> 
-              div [Attr.class "mb-6"] 
-               [ div [onClick <| toMsg <| SelectVoice state i] [VoiceEditor.view voice]
-               , Components.deleteButton (toMsg <| KillVoice state i)]) state
+              div [Attr.class "my-3"] 
+               [ Components.colsWith [Attr.class "is-flex"] 
+                  [ Components.col [Attr.style "width" "50%"] <| List.singleton <| Components.button (toMsg <| SelectVoice state i) [Attr.class "has-background-primary is-fullwidth has-text-light has-text-weight-bold" ] ("Edit " ++ voice.label) 
+                  , Components.col [Attr.style "width" "50%"] <| List.singleton <|Components.deleteButton (toMsg <| KillVoice state i)]
+               , VoiceEditor.view voice
+               ]) state 
+
 
       Editing state index voice ->
         editor toMsg state index voice

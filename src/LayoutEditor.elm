@@ -53,12 +53,30 @@ init =
   Overview
 
 
+look things icon =
+  Components.box
+   [ Html.h2 [ Attr.class "subtitle" ] [text "Layout"]
+   , div [ Attr.class "columns is-multiline level is-vcentered" ]
+       [ p [ Attr.class "content"] 
+           [ text "Here is your layout."
+           , Html.br [] []
+           , Html.br [] []
+           , text "Each combo has a name, some voices, and duration in seconds."] ]
+   , div [ Attr.class "columns is-multiline level is-vcentered is-flex is-justify-content-flex-start" ] <|
+     (List.indexedMap (\i thing ->
+       div [ Attr.class "is-flex is-flex-direction-column" ]
+         [ Components.col [ Attr.class "is-full has-text-centered" ] [(icon thing)]
+         ] ) things)
+
+   ]
+
+
 picker things icon select kill another = 
   Components.box
    [ Html.h2 [ Attr.class "subtitle" ] [text "Layout"]
    , div [ Attr.class "columns is-multiline level is-vcentered" ]
        [ p [ Attr.class "content"] 
-           [ text "This is your layout. Use it to organize the parts of your sound. "    
+           [ text "Organize the parts of your sound. "    
            , Html.br [] []
            , Html.br [] []
            , text "Click on a scope to change the details and voices." ] 
@@ -70,7 +88,7 @@ picker things icon select kill another =
          , Components.col [ Attr.class "is-full has-text-centered" ] [(Components.deleteIcon (kill i))] 
          ] ) things)
    , if 4 > List.length things then 
-     Components.button another [] "Add Another"
+     Components.button another [] "Add Another Combo"
      else text ""
    ]
 
@@ -106,6 +124,9 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
 
             ScopeEditor.UpdateCPS scope cps ->
               (toMsg <| Scope <| ScopeEditor.Editing { scope | cps = cps })
+
+            ScopeEditor.UpdateCPC scope cpc ->
+              (toMsg <| Scope <| ScopeEditor.Editing { scope | cpc = cpc })
 
             ScopeEditor.UpdateRoot scope root ->
               (toMsg <| Scope <| ScopeEditor.Editing { scope | root = root })
@@ -159,6 +180,9 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
       
         ScopeEditor.UpdateCPS scope cps ->
           (toMsg <| Scope <| ScopeEditor.Editing { scope | cps = cps })
+
+        ScopeEditor.UpdateCPC scope cpc ->
+          (toMsg <| Scope <| ScopeEditor.Editing { scope | cpc = cpc })
       
         ScopeEditor.UpdateRoot scope root ->
           (toMsg <| Scope <| ScopeEditor.Editing { scope | root = root })
@@ -206,10 +230,10 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
    in 
    div []
     [ Components.col [] <| [ Components.button done [] "Save Combo"]
-    , Components.colsWith [Attr.class "is-mobile"]
+    , Components.colsWith [Attr.class ""]
           [ Components.col [] [
-              ScopeEditor.view updateScope (ScopeEditor.Editing scope_) done ]
-          , Components.col [] [
+              ScopeEditor.view1 updateScope scope_ ]
+          , Components.col [Attr.class "is-full has-text-centerd"] [
               EnsembleEditor.view saveQuit (EnsembleEditor.Overview ensemble_) done ]
           ]
     ]
@@ -230,6 +254,10 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
         ScopeEditor.UpdateCPS scope cps ->
           (toMsg <| Scope <| ScopeEditor.Editing { scope | cps = cps })
       
+
+        ScopeEditor.UpdateCPC scope cpc ->
+          (toMsg <| Scope <| ScopeEditor.Editing { scope | cpc = cpc })
+
         ScopeEditor.UpdateRoot scope root ->
           (toMsg <| Scope <| ScopeEditor.Editing { scope | root = root })
       

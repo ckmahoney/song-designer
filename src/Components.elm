@@ -70,7 +70,7 @@ deleteIcon click =
 
 deleteButton : msg -> Html msg
 deleteButton click =
-  Html.button [ class "button is-fullwidth has-background-danger", onClick click ] [text "Delete"]
+  Html.button [ class "button is-fullwidth has-background-danger has-text-weight-bold ", onClick click ] [text "Delete"]
 
 
 keyButtonMobile : String -> Int -> (Int -> msg) -> Int -> Html msg
@@ -159,7 +159,11 @@ editInt title html (min, max) val toMsg =
     [ div [ class "columns is-multiline"]
       [ div [ class "columns is-multiline column is-full"] 
             [ Html.h5 [ class "column is-half subtitle"] [ text title ]
-            , div [ class "column is-half is-flex is-flex-row level"] 
+            , div [ class "is-block-tablet column is-half is-flex is-flex-direction-column level"] 
+                     [ less
+                     , Html.b [] [" " ++ String.fromInt val |> text ]
+                     , more ] 
+            , div [ class "is-hidden-mobile column is-half is-flex level"] 
                      [ less
                      , Html.b [] [" " ++ String.fromInt val |> text ]
                      , more ] ] 
@@ -215,6 +219,17 @@ card title content =
   div [ class "card my-3" ] 
     [ Html.header [ class "card-header" ] 
       [ Html.p [ class "card-header-title" ] [ text title ]
+      ]
+   , div [ class "card-content" ] [ content ]
+   ]
+
+
+
+cardWith : String -> String -> Html msg-> Html msg
+cardWith classes  title content = 
+  div [ class "card my-3", class classes ] 
+    [ Html.header [ class "card-header has-background-black" ] 
+      [ Html.p [ class "has-text-weight-normal card-header-title  has-text-light" ] [ text title ]
       ]
    , div [ class "card-content" ] [ content ]
    ]
