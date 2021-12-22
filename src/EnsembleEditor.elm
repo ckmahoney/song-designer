@@ -58,7 +58,7 @@ view toMsg model done =
           div [Attr.class "is-full has-text-centered"] <|
             Components.button (toMsg <| CreateVoice state) [] "Add Another Voice"
             :: List.indexedMap (\i voice -> 
-              div [Attr.class "my-3"] 
+              div [Attr.class "my-3", Attr.style "border" "1px solid lightgrey",  Attr.style "border-radius" "5px" ] 
                [ Components.colsWith [Attr.class "is-flex"] 
                   [ Components.col [Attr.style "width" "50%"] <| List.singleton <| Components.button (toMsg <| SelectVoice state i) [Attr.class "has-background-primary is-fullwidth has-text-light has-text-weight-bold" ] ("Edit " ++ voice.label) 
                   , Components.col [Attr.style "width" "50%"] <| List.singleton <|Components.deleteButton (toMsg <| KillVoice state i)]

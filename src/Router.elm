@@ -992,7 +992,7 @@ requestSongButton model =
        meta = { ref | title = model.title }
        template = (meta, ("Needs a title", model.layout))
     in  
-     Components.button (ReqTrack template) [style "width" "100%", class "is-primary mb-3"] "Request a Song"
+     Components.button (ReqTrack template) [style "width" "100%", class "is-primary mb-3"] ("Write A New Song: " ++ model.title )
 
 
 editLayoutButton : Model -> Html Msg
@@ -1022,7 +1022,7 @@ miniSongDesigner model =
             [ Components.editText "Title" (text "The name for this sound") model.title UpdateTitle
             , LayoutEditor.view layout (\i -> 
                 SelectLayoutEditor layout i <| Tools.getOr i layout Data.emptyCombo) (\i -> OpenLayoutEditor (Tools.removeAt i layout)) addAnother
-            , Components.button (CloseLayoutEditor layout) [] "Reday to Make a Song"
+            , Components.button (CloseLayoutEditor layout) [] " Make a Song"
             ]
 
           LayoutEditor.Editing layout index stateModel -> 

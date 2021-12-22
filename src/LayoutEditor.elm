@@ -88,7 +88,7 @@ picker things icon select kill another =
          , Components.col [ Attr.class "is-full has-text-centered" ] [(Components.deleteIcon (kill i))] 
          ] ) things)
    , if 4 > List.length things then 
-     Components.button another [] "Add Another Combo"
+     Components.button another [Attr.class "is-primary"] "Add Another Combo"
      else text ""
    ]
 
@@ -230,7 +230,13 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
    in 
    div []
     [ Components.col [] <| [ Components.button done [] "Save Combo"]
-    , Components.colsWith [Attr.class ""]
+    , Components.colsWith [Attr.class "is-hidden-mobile"]
+          [ Components.colHalf <|
+              ScopeEditor.view1 updateScope scope_ 
+          , Components.colHalf <|
+              EnsembleEditor.view saveQuit (EnsembleEditor.Overview ensemble_) done 
+          ]
+    , Components.colsWith [Attr.class "is-hidden-tablet"]
           [ Components.col [] [
               ScopeEditor.view1 updateScope scope_ ]
           , Components.col [Attr.class "is-full has-text-centerd"] [
@@ -265,10 +271,24 @@ edit state index ((scope_, ensemble_) as combo) toMsg done =
           (toMsg <| Scope <| ScopeEditor.Editing scope)
        )
    in
-   div []
-    [ Components.col [] <| [ Components.button done [] "Save Combo"]
-    ,  ScopeEditor.view updateScope editor done
-    ]
+   case editor of 
+     ScopeEditor.Overview s ->
+      div []
+       [ Components.col [] <| [ Components.button done [] "Save Combo"]
+       , Components.colsWith [Attr.class "is-hidden-mobile"]
+          [ ScopeEditor.view1 updateScope s]
+       , Components.colsWith [Attr.class "is-hidden-tablet"]
+          [ ScopeEditor.viewMobile updateScope(ScopeEditor.Editing s) done  ]
+       ]
+
+     ScopeEditor.Editing s ->
+      div []
+       [ Components.col [] <| [ Components.button done [] "Save Combo"]
+       , Components.colsWith [Attr.class "is-hidden-mobile"]
+          [ ScopeEditor.view1 updateScope s ]
+       , Components.colsWith [Attr.class "is-hidden-tablet"]
+          [ ScopeEditor.viewMobile updateScope(ScopeEditor.Editing s) done  ]
+       ]
 
 
   Ensemble editor ->

@@ -188,7 +188,7 @@ complexityMessage {complexity} =
     3 ->
       text "Higher depths of harmony with ambiguous results."
     _ ->
-      text "Extra special complexity bug 1837"
+      text "Too complex for this bod"
 
 
 densityMessage : T.Voice -> Html msg
@@ -199,9 +199,9 @@ densityMessage {density} =
     2->
       text "Embelleshments and variations for featured parts."
     3 ->
-      text "A lot of motionk, induces more energy but requires more focus."
+      text "A lot of motion, induces more energy but requires more focus."
     _ ->
-      text "Extra special density bug 21837"
+      text "Too dense for this bod"
 
 
 viewVoice : T.Voice -> Html msg
@@ -755,23 +755,6 @@ comboCompleteIcon ((scope, ensemble) as model) =
   div [ class "columns is-multiline" ] 
    [ div [ class "column is-full" ] [ scopeIcon scope ]
    , div [ class "column is-full" ] [ ensembleIcon ensemble ] ]
-
-
--- comboIncompleteIcon : T.ComboP -> Html msg
--- comboIncompleteIcon ((scope, ensemble) as model) =
---   case model of
---     (Just a, Just b) -> 
---       comboCompleteIcon (a,b)
-
---     (Nothing, Nothing) -> 
---       label [ class "has-background-danger subtitle"] [ text "Needs a scope and an ensemble." ]
-
---     (Just a, Nothing) -> 
---       label [ class "has-background-warning subtitle"] [ text "Needs an ensemble." ]
-
---     (Nothing, Just a) ->
---       label [ class "has-background-warning "] [ text "Needs a scope." ]
-
 
 viewComboP : T.ComboP -> Html msg
 viewComboP  ((mScope, mEnsemble) as model)  =

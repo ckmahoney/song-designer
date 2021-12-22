@@ -255,6 +255,10 @@ boxWith c =
   div [ class "box", class c ]
 
 
+boxAttrs attrs  =
+  div ([ class "box" ] ++ attrs)
+
+
 
 button : msg -> List (Html.Attribute msg) -> String -> Html.Html msg
 button toMsg attrs content =

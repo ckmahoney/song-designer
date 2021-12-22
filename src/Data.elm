@@ -170,7 +170,7 @@ palette3 =
 
 emptyScope : Scope
 emptyScope = 
-  Scope -969 "New Scope" 1.0 4 0 1
+  Scope -969 "New Scope" 1.0 4 0 2
 
 
 emptyEnsemble : Ensemble
@@ -519,7 +519,7 @@ v1 =
   , cps = 33/10
   , cpc = 4 
   , root = 5
-  , size = 1
+  , size = 2
   }
 
 
@@ -540,7 +540,7 @@ c1 =
   , cps = 14/10
   , cpc = 4 
   , root = 7
-  , size = 1
+  , size = 2
   }
 
 

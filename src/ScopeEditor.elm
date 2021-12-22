@@ -70,6 +70,8 @@ cpcOptions =
 
 initScope = Scope 0 "Teaser" 1.25 4 5 (44//10)
 
+border = 
+ [Attr.style "border" "1px solid lightgrey",  Attr.style "border-radius" "5px"]
 
 initState : State
 initState =
@@ -104,7 +106,7 @@ flexStyles = "is-flex is-justify-content-space-around is-flex-wrap-wrap"
 
 keyPicker : Int -> State -> (Msg -> msg) -> Html msg
 keyPicker current state msg =
-  Components.box
+  Components.boxAttrs border
    <| [ label [Attr.class "mr-3"] [ text "Key"]
       ,  div [Attr.class flexStyles] <| List.map (\(root, name) ->
     Components.button (msg (UpdateRoot state root)) [Attr.class <| if current == root then "is-success is-selected" else ""] name) rootOptions]
@@ -112,14 +114,14 @@ keyPicker current state msg =
 
 cpsPicker : Float -> State -> (Msg -> msg) -> Html msg
 cpsPicker current state msg =
-  Components.box
+  Components.boxAttrs border
    <| [ label [Attr.class "mr-3"] [ text "BPM"]
       , div [Attr.class flexStyles] <| List.map (\cps ->
     Components.button (msg (UpdateCPS state cps)) [Attr.class <| if current == cps then "is-success is-selected" else ""] (String.fromFloat (Tools.cpsToBPM cps))) cpsOptions ]
 
 cpcPicker : Int -> State -> (Msg -> msg) -> Html msg
 cpcPicker current state msg =
-  Components.box
+  Components.boxAttrs border
    <| [ label [Attr.class "mr-3"] [ text "Phrase Length"]
     , div [Attr.class flexStyles] <| List.map (\cpc ->
     Components.button (msg (UpdateCPC state cpc)) [Attr.class <| if current == cpc then "is-success is-selected" else ""] (String.fromInt cpc)) cpcOptions ]
@@ -135,20 +137,23 @@ card model =
   Components.cardWith "has-background-warning" model.label <| Components.cols 
    [  View.sizeMessage model.cpc  model.size
     , p [Attr.class "has-text-centered"] [text <| "Key of " ++ View.keyLabel model.root]
+    , Html.br [] [] 
+    , Html.hr [] [] 
+    , Html.br [] [] 
     , p [Attr.class "has-text-centered"] [text <| View.durString model.cpc model.cps model.size ++ " seconds long"]
     ] 
 
 
-
-view : (Msg -> msg) -> Model -> msg -> Html msg
-view toMsg model done =
+-- better for mobile
+viewMobile : (Msg -> msg) -> Model -> msg -> Html msg
+viewMobile toMsg model done =
   case model of 
     Editing state ->
       Components.cols
         [ card state
-        , Components.card "Scope label" <| div []
+        , Components.card "Scope label" <| div border
           [ p [] [text "Something like 'verse' or 'chorus' to help you what this part is doing."]
-          , input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> toMsg (UpdateTitle state str))] [] ]
+          , input [Attr.class "view0 input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> toMsg (UpdateTitle state str))] [] ]
         , cpsPicker state.cps state toMsg
         , cpcPicker state.cpc state toMsg
         , keyPicker state.root state toMsg
@@ -159,9 +164,10 @@ view toMsg model done =
       text "Thanks for finding this bug, can you please tell me about it? How did you get here?"
 
 
+-- better for desktop
 view1 : (Msg -> msg ) -> State  -> Html msg
 view1 toMsg state  =
-   Components.cols
+   div [Attr.class "is-flex is-flex-direction-column view1"]
      [  card state
         , Components.card "Scope label" <| div []
         [ p [] [text "Something like 'verse' or 'chorus' to help you what this part is doing."]

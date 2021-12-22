@@ -44,8 +44,7 @@ view toMsg model done  =
   case model of 
     Overview (scope, ensemble) ->
       Components.cols
-          [ Components.col [] [
-             ScopeEditor.view (\sMsg -> (toMsg <| UpdateScopeEditor sMsg)) (ScopeEditor.Editing scope) done ]
+          [ Components.col [] [ text "scope editor view 0" ] 
           , Components.col [Attr.class "is-full has-text-centered"] [
               EnsembleEditor.view (\msg -> (toMsg <| UpdateEnsembleEditor msg)) (EnsembleEditor.Overview ensemble) done ]
           ]
