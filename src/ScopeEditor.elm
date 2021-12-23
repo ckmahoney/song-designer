@@ -7,25 +7,58 @@ import Html.Attributes as Attr
 import Html.Events exposing (onClick, onInput)
 
 import Types exposing (..)
-import View
+import View as V
 import Elements
 import Tools
 import Components
 
+
 type alias State = Scope
 
+
 type Msg 
-  = Close State
-  | UpdateTitle State String
-  | UpdateCPS State Float
-  | UpdateCPC State Int
-  | UpdateRoot State Int
+  = Save State
+  | Update Field
   | Edit State
+
+type Field
+  = Title String
+  | CPS Float
+  | CPC Int
+  | Root Int
+  | Size Int
 
 
 type Model
   = Overview State
   | Editing State
+
+
+update : Msg -> State -> Model
+update msg state = 
+  case msg of 
+    Save next -> 
+      Overview next
+    
+    Edit s ->
+      Editing s
+
+    Update field ->
+      case field of 
+        Title title ->
+          Editing { state | label = title }
+
+        CPS cps ->
+          Editing { state | cps = cps }
+
+        CPC cpc ->
+          Editing { state | cpc = cpc }
+
+        Root root ->
+          Editing { state | root = root }
+
+        Size size ->
+          Editing { state | size = size }
 
 
 type alias Bounds = 
@@ -99,32 +132,32 @@ cpsOptions =
 
 updateTitle : State -> String -> (Msg -> msg) -> msg
 updateTitle state str msg =
-  msg (UpdateTitle state str)
+  msg (Update <| Title str)
 
 flexStyles = "is-flex is-justify-content-space-around is-flex-wrap-wrap"
 
 
-keyPicker : Int -> State -> (Msg -> msg) -> Html msg
-keyPicker current state msg =
+keyPicker : Int -> (Msg -> msg) -> Html msg
+keyPicker current msg =
   Components.boxAttrs border
    <| [ label [Attr.class "mr-3"] [ text "Key"]
       ,  div [Attr.class flexStyles] <| List.map (\(root, name) ->
-    Components.button (msg (UpdateRoot state root)) [Attr.class <| if current == root then "is-success is-selected" else ""] name) rootOptions]
+    Components.button (msg (Update <| Root root)) [Attr.class <| if current == root then "is-success is-selected" else ""] name) rootOptions]
   
 
-cpsPicker : Float -> State -> (Msg -> msg) -> Html msg
-cpsPicker current state msg =
+cpsPicker : Float -> (Msg -> msg) -> Html msg
+cpsPicker current msg =
   Components.boxAttrs border
    <| [ label [Attr.class "mr-3"] [ text "BPM"]
       , div [Attr.class flexStyles] <| List.map (\cps ->
-    Components.button (msg (UpdateCPS state cps)) [Attr.class <| if current == cps then "is-success is-selected" else ""] (String.fromFloat (Tools.cpsToBPM cps))) cpsOptions ]
+    Components.button (msg (Update <| CPS cps)) [Attr.class <| if current == cps then "is-success is-selected" else ""] (String.fromFloat (Tools.cpsToBPM cps))) cpsOptions ]
 
-cpcPicker : Int -> State -> (Msg -> msg) -> Html msg
-cpcPicker current state msg =
+cpcPicker : Int -> (Msg -> msg) -> Html msg
+cpcPicker current msg =
   Components.boxAttrs border
    <| [ label [Attr.class "mr-3"] [ text "Phrase Length"]
     , div [Attr.class flexStyles] <| List.map (\cpc ->
-    Components.button (msg (UpdateCPC state cpc)) [Attr.class <| if current == cpc then "is-success is-selected" else ""] (String.fromInt cpc)) cpcOptions ]
+    Components.button (msg (Update <| CPC cpc)) [Attr.class <| if current == cpc then "is-success is-selected" else ""] (String.fromInt cpc)) cpcOptions ]
 
 
 icon : Model -> Html msg
@@ -135,48 +168,72 @@ icon model =
 card :State -> Html msg
 card model = 
   Components.cardWith "has-background-warning" model.label <| Components.cols 
-   [  View.sizeMessage model.cpc  model.size
-    , p [Attr.class "has-text-centered"] [text <| "Key of " ++ View.keyLabel model.root]
+   [  V.sizeMessage model.cpc  model.size
+    , p [Attr.class "has-text-centered"] [text <| "Key of " ++ V.keyLabel model.root]
     , Html.br [] [] 
     , Html.hr [] [] 
     , Html.br [] [] 
-    , p [Attr.class "has-text-centered"] [text <| View.durString model.cpc model.cps model.size ++ " seconds long"]
+    , p [Attr.class "has-text-centered"] [text <| V.durString model.cpc model.cps model.size ++ " seconds long"]
     ] 
 
 
--- better for mobile
-viewMobile : (Msg -> msg) -> Model -> msg -> Html msg
-viewMobile toMsg model done =
-  case model of 
-    Editing state ->
-      Components.cols
-        [ card state
-        , Components.card "Scope label" <| div border
-          [ p [] [text "Something like 'verse' or 'chorus' to help you what this part is doing."]
-          , input [Attr.class "view0 input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> toMsg (UpdateTitle state str))] [] ]
-        , cpsPicker state.cps state toMsg
-        , cpcPicker state.cpc state toMsg
-        , keyPicker state.root state toMsg
-        , Components.button (toMsg <| Close state) [] "Save Scope" 
-        ]
-
-    Overview state ->
-      text "Thanks for finding this bug, can you please tell me about it? How did you get here?"
+thumb : State -> Html msg
+thumb state =
+  Components.box 
+    [ Components.cols <|
+       [ Components.colHalf <| Components.label state.label
+       , Components.colHalf <| text <| V.scopeTimeString state
+       ]
+    , p [ Attr.class "content" ] [ V.sizeMessage state.cpc state.size ]   
+    ] 
 
 
--- better for desktop
-view1 : (Msg -> msg ) -> State  -> Html msg
-view1 toMsg state  =
+
+editorMobile : (Msg -> msg) -> State ->  Html msg
+editorMobile toMsg state  =
+  Components.cols
+    [ card state
+    , Components.card "Scope label" <| div border
+      [ p [] [text "Something like 'verse' or 'chorus' to help you what this part is doing."]
+      , input [Attr.class "view0 input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> toMsg (Update <| Title  str))] [] ]
+    , cpsPicker state.cps toMsg
+    , cpcPicker state.cpc toMsg
+    , keyPicker state.root toMsg
+    , Components.button (toMsg <| Save state) [] "Save Scope" 
+    ]
+
+
+editorDesktop : (Msg -> msg) -> State -> Html msg
+editorDesktop toMsg state  =
    div [Attr.class "is-flex is-flex-direction-column view1"]
      [  card state
         , Components.card "Scope label" <| div []
         [ p [] [text "Something like 'verse' or 'chorus' to help you what this part is doing."]
-        , input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> toMsg (UpdateTitle state str))] [] ]
-     , cpsPicker state.cps state toMsg
-     , cpcPicker state.cpc state toMsg
-     , keyPicker state.root state toMsg
+        , input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> toMsg (Update <| Title  str))] [] ]
+     , cpsPicker state.cps toMsg
+     , cpcPicker state.cpc toMsg
+     , keyPicker state.root toMsg
      ]
 
+
+editor : State -> (Msg -> msg) -> Html msg
+editor state toMsg =
+  div []
+   [ Components.button (toMsg <| Save state) [] "Save Scope"
+   , Components.mobileOnly <| editorMobile toMsg state
+   , Components.tabletOnly <| editorMobile toMsg state
+   , Components.desktopOnly <| editorDesktop toMsg state 
+   ]
+
+
+view : Model -> (Msg -> msg) -> msg -> Html msg
+view model toMsg close =
+  case model of 
+     Overview state ->
+      div [onClick <| toMsg <| Edit state] [ thumb state ]
+
+     Editing state ->
+        editor state toMsg
 
 
 main = 

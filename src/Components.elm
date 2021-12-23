@@ -12,6 +12,18 @@ type Modal
   | Showing
 
 
+
+
+mobileOnly child =
+  div [ class "is-hidden-tablet" ] [ child ]
+
+tabletOnly child =
+  div [ class "is-block-tablet-only" ] [ child ]
+
+desktopOnly child =
+  div [ class "is-hidden-touch" ] [ child ]
+
+
 invertColor : Html msg -> Html msg
 invertColor el =
   div [ style "filter" "invert(1)" ] [ el ] 
@@ -133,6 +145,11 @@ strvalToFloat min max str =
   if val > max then max else if val < min then min else val
 
 
+label : String -> Html msg
+label content =
+  Html.label [class "m-0 subtitle"] [ text content ]
+
+
 editRange : String -> Html msg -> (Float, Float) -> Float -> (Float -> msg) -> Html msg
 editRange title html (mn, mx)  val fltMsg =
   div [ class "box level"
@@ -197,14 +214,16 @@ editTextDesktop title html val toMsg =
 editText : String -> Html msg -> String -> ( String -> msg ) -> Html msg
 editText title html val toMsg =
   div [class "box"]
-    [ div [ class "is-hidden-tablet" ] [ editTextMobile title html val toMsg ]
-    , div [ class "is-hidden-mobile" ] [ editTextDesktop title html val toMsg ] ] 
+    [ mobileOnly <| editTextMobile title html val toMsg 
+    , tabletOnly <| editTextMobile title html val toMsg 
+    , desktopOnly <| editTextDesktop title html val toMsg 
+    ] 
 
 
 editSelection : a -> String -> Html msg -> List (a, (Html msg)) -> a -> (a -> msg) -> Html msg
-editSelection curr label info options current select =
+editSelection curr name info options current select =
   div [ class "box" ]
-    [ Html.h5 [ class "subtitle" ] [ Html.label [] [ text label ] ]
+    [ Html.h5 [ class "subtitle" ] [ Html.label [] [ text name ] ]
     , info
     , div [ class "columns" ] <|
       List.map (\(val, html) -> 
@@ -246,6 +265,8 @@ card2 title titleMore content =
         [ content ] ]
 
 
+
+
 box : (List (Html msg)) -> Html msg
 box =
   div [ class "box" ]
@@ -265,6 +286,15 @@ button toMsg attrs content =
   Html.button ([class "button", onClick toMsg] ++ attrs) [ text content ]
 
 
+plusButton : msg -> Html msg
+plusButton msg  =
+  button msg [ class "is-primary" ] "+"
+
+addButton : msg -> String -> Html msg
+addButton msg content =
+  button msg [ class "is-primary" ] content
+
+
 skButtons : msg -> msg -> Html msg
 skButtons saveMsg killMsg  =
   div [class "column is-flex is-justify-content-space-between" ]
@@ -273,11 +303,11 @@ skButtons saveMsg killMsg  =
 
 
 editToggle : String -> (a, String) -> (a, String) -> a -> (a -> msg) -> Html msg
-editToggle label (x, labelX) (y, labelY) curr toMsg =
+editToggle name (x, labelX) (y, labelY) curr toMsg =
   div [ class "box" ]
     [ div [ class "columns is-multiline " ] 
       [ div [ class "columns is-multiline column is-full" ] 
-        [ Html.h5 [ class "column is-one-quarter subtitle"] [ text label ]  
+        [ Html.h5 [ class "column is-one-quarter subtitle"] [ text name ]  
         , div [ class "column is-half is-flex is-justify-content-space-between" ] 
           [ button (toMsg x) [class <| if curr == x then "is-success" else ""] labelX
           , button (toMsg y) [class <| if curr == y then "is-success" else ""] labelY
@@ -335,6 +365,11 @@ colsWith attrs =
 cols :  (List (Html msg) -> Html msg)
 cols  =
   div [ class "columns" ]
+
+
+colsFor : (List (Html msg)) -> Html msg
+colsFor children =
+  cols <| List.map (\c -> div [class "column"] [c]) children
 
 
 colsMulti :  (List (Html msg) -> Html msg)

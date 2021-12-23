@@ -81,11 +81,16 @@ type Msg
   | GotNewTrack (Result Http.Error  T.TrackMeta)
   | ReqTrack T.Template
   | GotResp (Result Http.Error String)
+
+
+  | Overview (List T.Combo)
+  | EditingLayout (List T.Combo) Int LayoutEditor.Model
   
   | OpenLayoutEditor (List T.Combo)
   | CloseLayoutEditor (List T.Combo)
+  | SaveLayoutEditor  (List T.Combo)
   | SelectLayoutEditor (List T.Combo) Int T.Combo
-  | UpdateLayoutEditor (List T.Combo) Int LayoutEditor.EditState
+  | UpdateLayoutEditor (List T.Combo) Int LayoutEditor.Msg
   | UpdateTitle (String)
 
 
@@ -183,9 +188,14 @@ templateDash =
   clear ETemplate
 
 
+hostname = 
+  -- "http://localhost:3000/"
+  "https://synthony.app"
+
+
 apiUrl : String -> String 
 apiUrl endpoint =
-  Url.crossOrigin "http://localhost:3000" [ endpoint ] []
+  Url.crossOrigin hostname [ endpoint ] []
 
 
 reqTrack : String -> String -> T.Template -> Cmd Msg
@@ -309,37 +319,33 @@ encodeReqLoadSongs email uuid = Encode.object
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
+    Overview state ->
+      (model, Cmd.none)
+
+    EditingLayout layout index mod  ->
+      ({ model | layoutEditor = Just <| LayoutEditor.Overview layout}, Cmd.none)
+
+    OpenLayoutEditor layout ->
+      ({ model | layoutEditor = Just <| LayoutEditor.Overview layout } , Cmd.none)
     UpdateTitle title ->
       ({ model | title = title }, Cmd.none)
 
     CloseLayoutEditor layout ->
       ({ model | layout = layout, layoutEditor = Nothing }, Cmd.none)
 
-    OpenLayoutEditor layout ->
-      ({ model |  layoutEditor = Just <| LayoutEditor.Overview layout}, Cmd.none)
+    SaveLayoutEditor layout ->
+      ({ model |  layout = layout, layoutEditor = Just <| LayoutEditor.Overview layout }, Cmd.none)
 
     SelectLayoutEditor layout index combo ->
-      ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index (LayoutEditor.Open combo) }, Cmd.none)
+      ({ model | layoutEditor = Just <| LayoutEditor.update (LayoutEditor.Select index) layout }, Cmd.none)
 
-    UpdateLayoutEditor layout index editState ->
-      case editState of 
-        LayoutEditor.Open combo ->
-         let
-           next = Tools.replaceAt index combo layout
-         in
-          ({ model | layoutEditor = Just <| LayoutEditor.Editing next index (LayoutEditor.Open combo)}, Cmd.none)
-
-        LayoutEditor.Scope editor ->         
-            ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index <| LayoutEditor.Scope editor}, Cmd.none)
-
-        LayoutEditor.Ensemble editor ->
-          case editor of 
-            EnsembleEditor.Overview ensemble ->
-              ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index <| LayoutEditor.Ensemble  editor}, Cmd.none)
-
-            EnsembleEditor.Editing ensemble voiceIndex voice ->
-              ({ model | layoutEditor = Just <| LayoutEditor.Editing layout index <| LayoutEditor.Ensemble  editor}, Cmd.none)
-
+    UpdateLayoutEditor layout index sMsg ->
+     let 
+       mod = Debug.log "UPdating layout:" LayoutEditor.update sMsg layout
+     in 
+     case mod of 
+      LayoutEditor.Overview next -> ( { model | layout = next, layoutEditor = Just <| LayoutEditor.Overview next  }, Cmd.none)
+      LayoutEditor.Editing _ _ _  -> ( { model | layoutEditor = Just mod }, Cmd.none)
 
     LoadTrack track -> 
       ( model, setSource track.filepath )
@@ -349,7 +355,7 @@ update msg model =
         Nothing -> 
           ( { model | playstate = Stop, selection = Nothing }, setSource "" )
         Just t -> 
-          ( { model | playstate = Play, selection = Just t }, setSource ("http://localhost:3000/" ++ t.filepath ))
+          ( { model | playstate = Play, selection = Just t }, setSource (hostname ++ t.filepath ))
 
     PlayTrack ->
       ( { model | playstate = Play } , playMusic "" )
@@ -386,7 +392,7 @@ update msg model =
             | tracks = track :: model.tracks
             , selection = (Just track)
             , playstate = Play
-            , mailer = T.Received }, setSource ("http://localhost:3000/" ++ track.filepath ) )
+            , mailer = T.Received }, setSource (hostname ++ track.filepath ) )
 
         Err errr ->
           case errr of 
@@ -1001,6 +1007,31 @@ editLayoutButton model =
 
 
 
+prevEditor model lModel =
+ case lModel of 
+  LayoutEditor.Overview layout -> 
+   let 
+     addAnother = (OpenLayoutEditor <| List.reverse <| Data.emptyCombo :: layout)
+   in
+   div [] 
+    [ Components.editText "Title" (text "The name for this sound") model.title UpdateTitle
+    , LayoutEditor.view layout (\i -> 
+        SelectLayoutEditor layout i <| Tools.getOr i layout Data.emptyCombo) (\i -> OpenLayoutEditor (Tools.removeAt i layout)) addAnother
+    , Components.button (CloseLayoutEditor layout) [] " Make a Song"
+    ]
+
+  LayoutEditor.Editing layout index stateModel -> 
+   let
+     up = UpdateLayoutEditor layout index
+     combo = Tools.getOr index layout Data.emptyCombo
+     done = OpenLayoutEditor layout
+   in
+    div []
+      [ div [class "mb-6"] [ Components.button (CloseLayoutEditor layout) [] "Save Layout" ]
+      -- , LayoutEditor.edit stateModel index combo up done
+      ]
+
+
 miniSongDesigner : Model -> Html Msg
 miniSongDesigner model =
   div [class "has-background-light"] <| List.singleton <|
@@ -1009,33 +1040,15 @@ miniSongDesigner model =
        Components.box <|
          [ editLayoutButton model
          , requestSongButton model
-         , LayoutEditor.look model.layout View.viewCombo
+         , div [] <| LayoutEditor.look model.layout
          ]
 
       Just lModel ->
         case lModel of 
+          LayoutEditor.Editing layout index b ->
+            LayoutEditor.viewNew lModel (UpdateLayoutEditor layout index)
           LayoutEditor.Overview layout -> 
-           let 
-             addAnother = (OpenLayoutEditor <| List.reverse <| Data.emptyCombo :: layout)
-           in
-           div [] 
-            [ Components.editText "Title" (text "The name for this sound") model.title UpdateTitle
-            , LayoutEditor.view layout (\i -> 
-                SelectLayoutEditor layout i <| Tools.getOr i layout Data.emptyCombo) (\i -> OpenLayoutEditor (Tools.removeAt i layout)) addAnother
-            , Components.button (CloseLayoutEditor layout) [] " Make a Song"
-            ]
-
-          LayoutEditor.Editing layout index stateModel -> 
-           let
-             up = UpdateLayoutEditor layout index
-             combo = Tools.getOr index layout Data.emptyCombo
-             done = OpenLayoutEditor layout
-           in
-            div []
-              [ div [class "mb-6"] [ Components.button (CloseLayoutEditor layout) [] "Save Layout" ]
-              , LayoutEditor.edit stateModel index combo up done
-              ]
-
+            div [] <| LayoutEditor.look layout
 
 view : Model -> Html Msg
 view model =
