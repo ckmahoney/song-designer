@@ -24,7 +24,7 @@ type alias State = List Combo
 type Msg
   = Update Int Combo
   | Save State
-  | Local Internal
+  | Local ComboEditor.Model Internal
 
 
 type Internal 
@@ -36,7 +36,7 @@ type Internal
 
 type Model 
   = Overview State
-  | Editing State Int
+  | Editing State Int ComboEditor.Model
 
 
 apply : State -> Internal -> State
@@ -61,14 +61,14 @@ apply state msg =
      Tools.replaceAt index combo state
 
 
-edit : State -> Internal -> Model
-edit state msg =
+edit : State -> Internal -> ComboEditor.Model -> Model
+edit state msg mod =
  let
   next = apply state  msg
  in 
   case msg of 
    Select index ->
-     Editing state index
+     Editing state index <| ComboEditor.initModel state index
 
    Create -> 
     let
@@ -76,14 +76,14 @@ edit state msg =
       n = List.append state [ v ]
       index = List.length n
     in 
-    Editing next index
+    Editing next index <| ComboEditor.initModel next index
 
    Kill index ->
     Overview <| Tools.removeAt index state
 
 
    Edit index combo ->
-     Editing (Tools.replaceAt index combo state) index
+     Overview (Tools.replaceAt index combo state) 
 
 
 update : Msg -> State -> Model
@@ -97,10 +97,10 @@ update msg state =
      let
       next = Tools.replaceAt index combo state
      in
-      Editing next index
+      Overview next
 
-   Local x ->
-     edit state x
+   Local mod internal ->
+     edit state internal mod
 
   
 
@@ -108,6 +108,10 @@ initState =
   [ Data.combo1, Data.combo2 ]
   -- []
 
+
+initTest = 
+  Overview initState
+  -- Editing initState 0 <| ComboEditor.initModel initState 0 
 
 initModel =
   Just <| Overview initState
@@ -190,30 +194,33 @@ fromCombo state index combo =
   Tools.replaceAt index combo state
 
 
-editor : State -> Int -> (State -> msg) -> (State -> msg) -> msg -> Html msg
-editor state index up save close  =
-  let 
-    upper = (\c -> (up (fromCombo state index c)))
-    combo = Tools.getOr index state Data.emptyCombo
-  in 
-  ComboEditor.view combo upper close
-
-
-view : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> msg -> Html msg
-view model forward up save close  =
+view : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
+view model forward save close  =
   case Debug.log "has model:" model of 
     Overview state ->
+     let 
+      k = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
+     in 
       Components.box <|
-        [ Components.button close [] "Save"
-        , Components.plusButton (save (apply state Create))
-        , picker state View.viewCombo (\i -> (forward <| edit state <| Select i)) (\i -> (up <| apply state <| Kill i))
+        [ Components.button (close state) [] "Close" 
+        , picker state View.viewCombo (\i -> (forward <| edit state  (Select i) <| ComboEditor.initModel state i)) k
         , if 4 > List.length state then 
-            Components.button (up (apply state Create)) [Attr.class "is-primary"] "Add Another Combo"
+            Components.plusButton (forward <| update (Save (apply state Create)) state)
             else text ""
         ]
 
-    Editing state index ->
-      editor state index up save close
+    Editing state index mod ->
+      let 
+        curr = Tools.getOr index state Data.emptyCombo 
+        continue = (\cModel -> Local cModel <| Edit index curr)
+        -- cont= Local cModel <| Edit index 
+        -- keep = (\combo ->  Tools.replaceAt index c state)
+        keep =  (\combo -> forward <| (update (Update index combo) state))
+      in 
+         text "b"
+      -- ComboEditor.view mod continue keep close
+      
+
 
 
 main = text ""

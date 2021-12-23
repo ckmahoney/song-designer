@@ -59,7 +59,7 @@ type Msg
   | Overview (List Combo)
   | EditingLayout (List Combo) Int LayoutEditor.Model
   
-  | CloseLayoutEditor
+  | CloseLayoutEditor (List Combo)
   | UpdateTitle (String)
   | SaveLayout (List Combo)
   | OpenLayoutEditor (List Combo)
@@ -138,7 +138,7 @@ decodeTrack =
 
 initFrom : List Voice -> List Scope -> List Layout -> List Template -> Maybe GhostMember -> Model
 initFrom v s l t m =
-  Model  "" Welcome  [] Nothing Stop m LayoutEditor.initState Nothing ""
+  Model  "" Welcome  [] Nothing Stop m LayoutEditor.initState  (Just LayoutEditor.initTest) ""
 
 
 initTest : Model
@@ -148,7 +148,7 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  Model  "" Welcome  [] Nothing Stop Nothing LayoutEditor.initState Nothing "Adventure Sound"
+  Model  "" Welcome  [] Nothing Stop Nothing LayoutEditor.initState (Just LayoutEditor.initTest) "Adventure Sound"
 
 
 initFromMember : GhostMember -> Model
@@ -311,8 +311,8 @@ update msg model =
     UpdateTitle title ->
       ({ model | title = title }, Cmd.none)
 
-    CloseLayoutEditor ->
-      ({ model | layoutEditor = Nothing }, Cmd.none)
+    CloseLayoutEditor layout ->
+      ({ model | layout = layout, layoutEditor = Nothing }, Cmd.none)
 
     OpenLayoutEditor layout ->
       ({ model | layoutEditor = Just <| LayoutEditor.Overview layout } , Cmd.none)
@@ -561,7 +561,7 @@ miniSongDesigner model =
          ]
 
       Just mod ->
-        LayoutEditor.view mod (\m -> UpdateEditor <| Just m)  SaveLayout OpenLayoutEditor CloseLayoutEditor
+        LayoutEditor.view mod (\m -> UpdateEditor <| Just m) SaveLayout CloseLayoutEditor
 
 
 view : Model -> Html Msg
