@@ -561,8 +561,7 @@ miniSongDesigner model =
          ]
 
       Just mod ->
-        LayoutEditor.viewNew mod SaveLayout OpenLayoutEditor CloseLayoutEditor
-
+        LayoutEditor.view mod (\m -> UpdateEditor <| Just m)  SaveLayout OpenLayoutEditor CloseLayoutEditor
 
 
 view : Model -> Html Msg

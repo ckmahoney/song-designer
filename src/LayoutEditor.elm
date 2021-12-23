@@ -42,7 +42,7 @@ type Model
 apply : State -> Internal -> State
 apply state msg =
   case msg of 
-   Select _ ->
+   Select index ->
       state 
 
    Create -> 
@@ -169,8 +169,6 @@ look layout =
   List.map ComboEditor.thumb layout
 
 
-
-
 create : State -> State
 create state  =
  List.append state [ Data.emptyCombo ]
@@ -201,14 +199,14 @@ editor state index up save close  =
   ComboEditor.view combo upper close
 
 
-viewNew : Model -> (State -> msg) -> (State -> msg) -> msg -> Html msg
-viewNew model up save close  =
+view : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> msg -> Html msg
+view model forward up save close  =
   case Debug.log "has model:" model of 
     Overview state ->
       Components.box <|
         [ Components.button close [] "Save"
         , Components.plusButton (save (apply state Create))
-        , picker state View.viewCombo (\i -> (up <| apply state <| Select i)) (\i -> (up <| apply state <| Kill i))
+        , picker state View.viewCombo (\i -> (forward <| edit state <| Select i)) (\i -> (up <| apply state <| Kill i))
         , if 4 > List.length state then 
             Components.button (up (apply state Create)) [Attr.class "is-primary"] "Add Another Combo"
             else text ""
