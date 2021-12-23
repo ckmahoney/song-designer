@@ -64,8 +64,7 @@ type Msg
   | DeleteScope T.Scope
 
   | CreateLayout T.Layout
-  | UpdateLayout Int (Maybe T.Layout)
-  | DeleteLayout T.Layout
+  | UpdateLayout Int (Maybe T.Layout)  | DeleteLayout T.Layout
 
   | CreateTemplate T.Template
   | UpdateTemplate Int (Maybe T.Template)
@@ -90,7 +89,7 @@ type Msg
   | CloseLayoutEditor (List T.Combo)
   | SaveLayoutEditor  (List T.Combo)
   | SelectLayoutEditor (List T.Combo) Int T.Combo
-  | UpdateLayoutEditor (List T.Combo) Int LayoutEditor.Msg
+  | UpdateLayoutEditor LayoutEditor.Msg
   | UpdateTitle (String)
 
 
@@ -339,13 +338,16 @@ update msg model =
     SelectLayoutEditor layout index combo ->
       ({ model | layoutEditor = Just <| LayoutEditor.update (LayoutEditor.Select index) layout }, Cmd.none)
 
-    UpdateLayoutEditor layout index sMsg ->
+    UpdateLayoutEditor sMsg ->
      let 
-       mod = Debug.log "UPdating layout:" LayoutEditor.update sMsg layout
+       mod = Debug.log "UPdating layout:" LayoutEditor.update sMsg model.layout
      in 
-     case mod of 
-      LayoutEditor.Overview next -> ( { model | layout = next, layoutEditor = Just <| LayoutEditor.Overview next  }, Cmd.none)
-      LayoutEditor.Editing _ _ _  -> ( { model | layoutEditor = Just mod }, Cmd.none)
+     case sMsg of 
+      LayoutEditor.Save next -> ( { model | layout = next, layoutEditor = Just <| LayoutEditor.Overview next }, Cmd.none)
+      _ -> ({ model | layoutEditor = Just <| LayoutEditor.update sMsg model.layout }, Cmd.none)
+
+      -- LayoutEditor.Overview next -> ( { model | layout = next, layoutEditor = Just <| LayoutEditor.Overview next  }, Cmd.none)
+      -- LayoutEditor.Editing _ _ _  -> ( { model | layoutEditor = Just mod }, Cmd.none)
 
     LoadTrack track -> 
       ( model, setSource track.filepath )
@@ -1022,7 +1024,7 @@ prevEditor model lModel =
 
   LayoutEditor.Editing layout index stateModel -> 
    let
-     up = UpdateLayoutEditor layout index
+     up = UpdateLayoutEditor 
      combo = Tools.getOr index layout Data.emptyCombo
      done = OpenLayoutEditor layout
    in
@@ -1044,11 +1046,7 @@ miniSongDesigner model =
          ]
 
       Just lModel ->
-        case lModel of 
-          LayoutEditor.Editing layout index b ->
-            LayoutEditor.viewNew lModel (UpdateLayoutEditor layout index)
-          LayoutEditor.Overview layout -> 
-            div [] <| LayoutEditor.look layout
+        LayoutEditor.viewNew lModel UpdateLayoutEditor 
 
 view : Model -> Html Msg
 view model =

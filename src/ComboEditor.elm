@@ -95,14 +95,10 @@ thumb (scope, ensemble) =
 
 view : (Msg -> msg) -> Model -> msg -> Html msg
 view toMsg model done  =
-  text "combo editor"
-
-viewMe : (Msg -> msg) -> Model -> msg -> Html msg
-viewMe toMsg model done  =
   case model of 
     Overview ((scope, ensemble) as state)->
-      Components.cols
-          [ Components.col [Attr.class "columns"]
+      Components.colsMulti
+          [ Components.col [Attr.class "columns is-full"]
               [ Components.col [] [ Components.editText "Label" (Components.label scope.label) scope.label (\str -> toMsg <| UpdateLabel str) ]
               , Components.col [] [Components.button (toMsg <| Save state) [Attr.class "is-primary"] "Checkmark" ]   ] 
           , Components.col []  [ thumb state] 

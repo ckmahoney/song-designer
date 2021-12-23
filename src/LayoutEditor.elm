@@ -22,12 +22,13 @@ type alias State = List Combo
 
 
 type Msg
-  = Save State
-  | Create
+  = Create
+  | Save State
   | Open  Int
   | Select Int
   | Update Int ComboEditor.Msg
   | Kill Int
+
 
 
 type Model 
@@ -38,7 +39,24 @@ type Model
 update : Msg -> State -> Model
 update msg state =
   case msg of 
-    _ -> 
+   Save next->
+    Overview next
+
+   Kill index ->
+    let
+      next = Tools.removeAt index state
+    in
+    Overview next
+
+   Create -> 
+    let
+      v = Data.emptyCombo
+      next = List.append state [ v ]
+      index = List.length next
+    in 
+    Editing next index <| ComboEditor.update (ComboEditor.Save v) v
+
+   _ -> 
       Overview state
   
 
@@ -121,11 +139,12 @@ editor toMsg state index comboModel =
 
 viewNew : Model -> (Msg -> msg) -> Html msg
 viewNew model toMsg  =
-  case model of 
+  case Debug.log "has model:" model of 
     Overview state ->
       Components.box <|
-        Components.plusButton (toMsg Create)
-        :: look state
+        [Components.plusButton (toMsg Create)
+        , (picker state View.viewCombo (\i -> toMsg <| Select i) (\i -> toMsg <| Kill i) (toMsg Create))
+        ]
 
     Editing state index comboModel ->
       editor toMsg state index comboModel 

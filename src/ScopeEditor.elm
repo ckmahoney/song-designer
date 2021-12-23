@@ -180,11 +180,11 @@ card model =
 thumb : State -> Html msg
 thumb state =
   Components.box 
-    [ Components.colsWith [Components.centerText]  <|
+    [ div [Components.centerText] [ Components.label state.label ]
+    , Components.colsWith [Components.centerText]  <|
        [ Components.colHalf <| text <| V.scopeTimeString state
        , Components.colHalf <| text <| Components.keyMessage True state.root
        ]
-    ,  div [Components.centerText] [ Components.label state.label ]
     ] 
 
 
