@@ -30,7 +30,6 @@ type Msg
   | Kill Int
 
 
-
 type Model 
   = Overview State
   | Editing State Int ComboEditor.Model
@@ -41,6 +40,18 @@ update msg state =
   case msg of 
    Save next->
     Overview next
+
+   Open index ->
+    let
+     it = Tools.getOr index state Data.emptyCombo
+    in
+     Editing state index <| ComboEditor.update (ComboEditor.Save it) it
+
+   Select index ->
+    let
+     it = Tools.getOr index state Data.emptyCombo
+    in
+     Editing state index <| ComboEditor.update (ComboEditor.Save it) it
 
    Kill index ->
     let
@@ -56,8 +67,19 @@ update msg state =
     in 
     Editing next index <| ComboEditor.update (ComboEditor.Save v) v
 
-   _ -> 
-      Overview state
+   Update index sMsg ->
+     case sMsg of 
+       ComboEditor.Save combo ->
+         let
+          next = Tools.replaceAt index combo state
+         in 
+         Overview next 
+       _ -> 
+        let 
+         curr = Tools.getOr index state Data.emptyCombo
+        in
+         Editing state index <| ComboEditor.update sMsg curr
+
   
 
 initState = 
@@ -121,10 +143,6 @@ comboIcon ((scope, ensemble) as model) =
     , p [ Attr.class "content" ] [ text <| (String.fromInt <| List.length ensemble) ++ " voices" ]
     ]
 
-
-view : State -> (Int -> msg) -> (Int -> msg) -> msg ->Html msg
-view layout select kill addAnother =
-  picker layout View.viewCombo select kill addAnother
 
 
 look : State -> List (Html msg)

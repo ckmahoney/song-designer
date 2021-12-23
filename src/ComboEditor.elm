@@ -85,10 +85,11 @@ initModel =
   Overview initState
 
 
+
 thumb : Combo -> Html msg
 thumb (scope, ensemble) =
   Components.cols <| 
-    [ Components.colHalf <| ScopeEditor.thumb scope
+    [ Components.colHalf <| ScopeEditor.brief scope
     , Components.colHalf <| EnsembleEditor.thumb ensemble
     ]
 
@@ -101,7 +102,15 @@ view toMsg model done  =
           [ Components.col [Attr.class "columns is-full"]
               [ Components.col [] [ Components.editText "Label" (Components.label scope.label) scope.label (\str -> toMsg <| UpdateLabel str) ]
               , Components.col [] [Components.button (toMsg <| Save state) [Attr.class "is-primary"] "Checkmark" ]   ] 
-          , Components.col []  [ thumb state] 
+              , Components.cols <| 
+                  [ Components.col [Attr.class "is-half", onClick (toMsg <| UpdateScope scope)] [ ScopeEditor.brief scope ]
+                  , Components.colHalf <| EnsembleEditor.picker ensemble (\i -> 
+                         let  
+                           voice = Tools.getOr i ensemble Data.emptyVoice
+                         in
+                         toMsg <| UpdateEnsemble ensemble i voice)
+                  ]
+
           ]
 
     Scope state editor ->

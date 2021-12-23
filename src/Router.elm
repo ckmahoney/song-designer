@@ -989,7 +989,6 @@ playlist playstate selection tracks =
      Components.col [class "is-one-fifth"] [ Components.songCard track.title icons]) tracks
 
 
-
 requestSongButton : Model -> Html Msg
 requestSongButton model =
   if 0 == List.length model.layout then 
@@ -1017,8 +1016,8 @@ prevEditor model lModel =
    in
    div [] 
     [ Components.editText "Title" (text "The name for this sound") model.title UpdateTitle
-    , LayoutEditor.view layout (\i -> 
-        SelectLayoutEditor layout i <| Tools.getOr i layout Data.emptyCombo) (\i -> OpenLayoutEditor (Tools.removeAt i layout)) addAnother
+    -- , LayoutEditor.view layout (\i -> 
+        -- SelectLayoutEditor layout i <| Tools.getOr i layout Data.emptyCombo) (\i -> OpenLayoutEditor (Tools.removeAt i layout)) addAnother
     , Components.button (CloseLayoutEditor layout) [] " Make a Song"
     ]
 
@@ -1047,6 +1046,7 @@ miniSongDesigner model =
 
       Just lModel ->
         LayoutEditor.viewNew lModel UpdateLayoutEditor 
+
 
 view : Model -> Html Msg
 view model =

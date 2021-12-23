@@ -199,6 +199,21 @@ brief state =
     ] 
 
 
+info : State -> Html msg
+info state =
+  Components.box 
+    [ Components.cols <| List.map (\(label, content) -> Components.col [] [text label, text content])
+      [ ("Key", Components.keyMessage True state.root)
+      , ("Phrasing", String.fromInt state.cpc)
+      , ("Tempo", String.fromFloat state.cps)
+      , ("Size", String.fromInt state.size)
+      , ("Duration", V.durString  state.cpc state.cps state.size)
+      ]
+
+
+    ] 
+
+
 editorMobile : (Msg -> msg) -> State ->  Html msg
 editorMobile toMsg state  =
   Components.cols
@@ -230,9 +245,10 @@ editor : State -> (Msg -> msg) -> Html msg
 editor state toMsg =
   div []
    [ Components.button (toMsg <| Save state) [] "Save Scope"
-   , Components.mobileOnly <| editorMobile toMsg state
-   , Components.tabletOnly <| editorMobile toMsg state
-   , Components.desktopOnly <| editorDesktop toMsg state 
+   , editorDesktop toMsg state
+   -- , Components.mobileOnly <| editorMobile toMsg state
+   -- , Components.tabletOnly <| editorMobile toMsg state
+   -- , Components.desktopOnly <| editorDesktop toMsg state 
    ]
 
 
