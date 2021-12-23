@@ -5,7 +5,7 @@ import Html exposing (Html, button, div, text, label, p)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
-import Types as T
+import Types exposing (..)
 import Data
 import View 
 import Components
@@ -39,50 +39,51 @@ type Playback
  | Stop  
 
 
+-- what is the problem Cortland?
+-- I need to change the layout every time a change happens below
+-- just do that even if it looks dumb
+
 -- data prepared for storage on server
 type Msg 
-  = LoadTrack T.TrackMeta
+  = LoadTrack TrackMeta
   | PlayTrack 
   | PauseTrack
   | StopTrack
-  | SelectTrack (Maybe T.TrackMeta)
+  | SelectTrack (Maybe TrackMeta)
  
-  | GotTracks (Result Http.Error (List T.TrackMeta))
-  | GotNewTrack (Result Http.Error  T.TrackMeta)
-  | ReqTrack T.Template
+  | GotTracks (Result Http.Error (List TrackMeta))
+  | GotNewTrack (Result Http.Error  TrackMeta)
+  | ReqTrack Template
   | GotResp (Result Http.Error String)
 
-
-  | Overview (List T.Combo)
-  | EditingLayout (List T.Combo) Int LayoutEditor.Model
+  | Overview (List Combo)
+  | EditingLayout (List Combo) Int LayoutEditor.Model
   
-  | OpenLayoutEditor (List T.Combo)
-  | CloseLayoutEditor (List T.Combo)
-  | ChangeLayoutEditor (List T.Combo)
-  | SaveLayoutEditor  (List T.Combo)
-  | SelectLayoutEditor (List T.Combo) Int T.Combo
-  | UpdateLayoutEditor LayoutEditor.Msg
+  | CloseLayoutEditor
   | UpdateTitle (String)
+  | SaveLayout (List Combo)
+  | OpenLayoutEditor (List Combo)
+  | UpdateEditor (Maybe LayoutEditor.Model)
 
 
-changeLayout : Model -> (List T.Combo) -> Model
+
+
+changeLayout : Model -> (List Combo) -> Model
 changeLayout model layout = 
   { model | layout = layout }
 
 
 type alias Model =
   { response : String
-  , mailer : T.Posting
-  , tracks : List T.TrackMeta
-  , selection : Maybe T.TrackMeta
+  , mailer : Posting
+  , tracks : List TrackMeta
+  , selection : Maybe TrackMeta
   , playstate : Playback
-  , member : Maybe T.GhostMember
-  , layout : List T.Combo
+  , member : Maybe GhostMember
+  , layout : List Combo
   , layoutEditor : Maybe LayoutEditor.Model
   , title : String
   }
-
-
 
 
 -- -- access scope
@@ -115,18 +116,18 @@ type alias Model =
 -- LayoutEditor.Update iLayout 
   -- <| ComboEditor.UpdateScope scope
 
-decodeTrackPrev : Decode.Decoder T.Track
+decodeTrackPrev : Decode.Decoder Track
 decodeTrackPrev =
-  Decode.map4 T.Track
+  Decode.map4 Track
     (Decode.field "id" Decode.int)
     (Decode.field "src" Decode.string)
     (Decode.field "size" Decode.int)
     (Decode.field "duration" Decode.float)
 
 
-decodeTrack : Decode.Decoder T.TrackMeta
+decodeTrack : Decode.Decoder TrackMeta
 decodeTrack =
-  Decode.map6 T.TrackMeta
+  Decode.map6 TrackMeta
     (Decode.field "id" Decode.int)
     (Decode.field "account_id" Decode.int)
     (Decode.field "filepath" Decode.string)
@@ -135,9 +136,9 @@ decodeTrack =
     (Decode.field "duration_seconds" Decode.float)
 
 
-initFrom : List T.Voice -> List T.Scope -> List T.Layout -> List T.Template -> Maybe T.GhostMember -> Model
+initFrom : List Voice -> List Scope -> List Layout -> List Template -> Maybe GhostMember -> Model
 initFrom v s l t m =
-  Model  "" T.Welcome  [] Nothing Stop m LayoutEditor.initState Nothing ""
+  Model  "" Welcome  [] Nothing Stop m LayoutEditor.initState Nothing ""
 
 
 initTest : Model
@@ -147,10 +148,10 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  Model  "" T.Welcome  [] Nothing Stop Nothing LayoutEditor.initState Nothing "Adventure Sound"
+  Model  "" Welcome  [] Nothing Stop Nothing LayoutEditor.initState Nothing "Adventure Sound"
 
 
-initFromMember : T.GhostMember -> Model
+initFromMember : GhostMember -> Model
 initFromMember member = 
   let
     rec = { initEmpty | member = Just member }
@@ -158,7 +159,7 @@ initFromMember member =
   { initTest | member = Just member }
 
 
-init : Maybe T.GhostMember -> (Model, Cmd Msg)
+init : Maybe GhostMember -> (Model, Cmd Msg)
 init flags =
   case flags of 
     Nothing -> 
@@ -180,7 +181,7 @@ apiUrl endpoint =
   Url.crossOrigin hostname [ endpoint ] []
 
 
-reqTrack : String -> String -> T.Template -> Cmd Msg
+reqTrack : String -> String -> Template -> Cmd Msg
 reqTrack email uuid template =
   Http.post
     { url = apiUrl "track"
@@ -188,7 +189,7 @@ reqTrack email uuid template =
     , expect = Http.expectJson GotNewTrack decodeTrack
     }
 
-reqMiniTrack : String -> String -> T.Layout -> Cmd Msg
+reqMiniTrack : String -> String -> Layout -> Cmd Msg
 reqMiniTrack email uuid ((title, combos) as layout) =
  let   
   -- meta = {Data.scoreMetaT0 | title = title }
@@ -210,7 +211,7 @@ getSongs email uuid =
   }
 
 
-encodeScope : T.Scope -> Encode.Value
+encodeScope : Scope -> Encode.Value
 encodeScope {label, cps, cpc, root, size} =
   Encode.object
     [ ("label", Encode.string label)
@@ -221,7 +222,7 @@ encodeScope {label, cps, cpc, root, size} =
     ]
 
 
-encodeVoice : T.Voice -> Encode.Value
+encodeVoice : Voice -> Encode.Value
 encodeVoice {duty, role, label, voice, density, complexity} =
   Encode.object
     [ ("duty", Encode.string <| Data.dutyString duty)
@@ -233,12 +234,12 @@ encodeVoice {duty, role, label, voice, density, complexity} =
     ]
 
 
-encodeEnsemble : T.Ensemble -> Encode.Value
+encodeEnsemble : Ensemble -> Encode.Value
 encodeEnsemble  =
   Encode.list encodeVoice 
 
 
-encodeScoreMeta : T.ScoreMeta -> Encode.Value
+encodeScoreMeta : ScoreMeta -> Encode.Value
 encodeScoreMeta {title, cps, root, cpc} =
   Encode.object
     [ ("title", Encode.string title)
@@ -248,7 +249,7 @@ encodeScoreMeta {title, cps, root, cpc} =
     ]
 
 
-encodeCombo : T.Combo -> Encode.Value
+encodeCombo : Combo -> Encode.Value
 encodeCombo (scope, ensemble) =
   Encode.object
     [ ("scope", encodeScope scope) 
@@ -256,7 +257,7 @@ encodeCombo (scope, ensemble) =
     ]
 
 
-encodeLayout : T.Layout -> Encode.Value
+encodeLayout : Layout -> Encode.Value
 encodeLayout (label, combos) =
   Encode.object
     [ ("title", Encode.string label)
@@ -264,7 +265,7 @@ encodeLayout (label, combos) =
     ]
 
 
-encodeReqTrack : String -> String -> T.Template -> Encode.Value
+encodeReqTrack : String -> String -> Template -> Encode.Value
 encodeReqTrack email uuid template =
   Encode.object
     [ ("meta", encodeScoreMeta <| Tuple.first template)
@@ -274,7 +275,7 @@ encodeReqTrack email uuid template =
     ]
 
 
-encodeMember : T.GhostMember -> Encode.Value
+encodeMember : GhostMember -> Encode.Value
 encodeMember member =
   Encode.object
     [ ("name", Encode.string member.name)
@@ -307,33 +308,26 @@ update msg model =
     EditingLayout layout index mod  ->
       ({ model | layoutEditor = Just <| LayoutEditor.Overview layout}, Cmd.none)
 
-    OpenLayoutEditor layout ->
-      ({ model | layoutEditor = Just <| LayoutEditor.Overview layout } , Cmd.none)
     UpdateTitle title ->
       ({ model | title = title }, Cmd.none)
 
-    ChangeLayoutEditor layout ->
-      ({ model | layout = layout, layoutEditor = Just <| LayoutEditor.Overview layout }, Cmd.none)
+    CloseLayoutEditor ->
+      ({ model | layoutEditor = Nothing }, Cmd.none)
 
-    CloseLayoutEditor layout ->
-      ({ model | layout = layout, layoutEditor = Nothing }, Cmd.none)
+    OpenLayoutEditor layout ->
+      ({ model | layoutEditor = Just <| LayoutEditor.Overview layout } , Cmd.none)
 
-    SaveLayoutEditor layout ->
-      ({ model |  layout = layout, layoutEditor = Just <| LayoutEditor.Overview layout }, Cmd.none)
+    UpdateEditor editor ->
+      ({ model | layoutEditor = editor  } , Cmd.none)
 
-    SelectLayoutEditor layout index combo ->
-      ({ model | layoutEditor = Just <| LayoutEditor.update (LayoutEditor.Select index) layout }, Cmd.none)
+    -- UpdateEditor (Nothing) -> 
+    --   ({ model | layoutEditor = Nothing  } , Cmd.none)
 
-    UpdateLayoutEditor sMsg ->
-     let 
-       mod = Debug.log "UPdating layout:" LayoutEditor.update sMsg model.layout
-     in 
-     case sMsg of 
-      LayoutEditor.Save next -> ( { model | layout = next, layoutEditor = Just <| LayoutEditor.Overview next }, Cmd.none)
-      _ -> ({ model | layoutEditor = Just <| LayoutEditor.update sMsg model.layout }, Cmd.none)
+    -- UpdateEditor (Just next index) ->
+    --   ({ model | layoutEditor = Just <| LayoutEditor.Editing next index } , Cmd.none)
 
-      -- LayoutEditor.Overview next -> ( { model | layout = next, layoutEditor = Just <| LayoutEditor.Overview next  }, Cmd.none)
-      -- LayoutEditor.Editing _ _ _  -> ( { model | layoutEditor = Just mod }, Cmd.none)
+    SaveLayout layout ->
+      ({ model | layout = layout }, Cmd.none)
 
     LoadTrack track -> 
       ( model, setSource track.filepath )
@@ -357,21 +351,21 @@ update msg model =
     GotTracks response ->
       case response of 
         Ok tracks ->
-         ({ model | mailer = T.Received, tracks = tracks }, Cmd.none)
+         ({ model | mailer = Received, tracks = tracks }, Cmd.none)
 
         Err errr ->
           case errr of 
             Http.BadBody str -> 
-              ({ model | mailer = T.Failed str }, Cmd.none)
+              ({ model | mailer = Failed str }, Cmd.none)
  
             Http.BadUrl str -> 
-              ({ model | mailer = T.Failed str }, Cmd.none)
+              ({ model | mailer = Failed str }, Cmd.none)
 
             Http.BadStatus int -> 
-              ({ model | mailer = T.Failed <| String.fromInt int }, Cmd.none)
+              ({ model | mailer = Failed <| String.fromInt int }, Cmd.none)
 
             _ -> 
-              ({ model | mailer = T.Failed "big bug" }, Cmd.none)
+              ({ model | mailer = Failed "big bug" }, Cmd.none)
 
     GotNewTrack response ->
       case response of 
@@ -380,21 +374,21 @@ update msg model =
             | tracks = track :: model.tracks
             , selection = (Just track)
             , playstate = Play
-            , mailer = T.Received }, setSource (hostname ++ track.filepath ) )
+            , mailer = Received }, setSource (hostname ++ track.filepath ) )
 
         Err errr ->
           case errr of 
             Http.BadUrl str -> 
-              ({ model | mailer = T.Failed str }, Cmd.none)
+              ({ model | mailer = Failed str }, Cmd.none)
 
             Http.BadStatus int -> 
-              ({ model | mailer = T.Failed <| String.fromInt int }, Cmd.none)
+              ({ model | mailer = Failed <| String.fromInt int }, Cmd.none)
 
             Http.BadBody str -> 
-              ({ model | mailer = T.Failed str }, Cmd.none)
+              ({ model | mailer = Failed str }, Cmd.none)
  
             _ -> 
-              ({ model | mailer = T.Failed "big bug" }, Cmd.none)
+              ({ model | mailer = Failed "big bug" }, Cmd.none)
 
     ReqTrack template -> 
       case model.member of 
@@ -402,11 +396,11 @@ update msg model =
          let
           member = Data.testMember
          in
-          ( { model | mailer = T.Sending }, reqTrack member.email member.uuid template )
+          ( { model | mailer = Sending }, reqTrack member.email member.uuid template )
           -- ( model, Cmd.none )
 
         Just member ->
-          ( { model | mailer = T.Sending }, reqTrack member.email member.uuid template )
+          ( { model | mailer = Sending }, reqTrack member.email member.uuid template )
 
     GotResp result -> 
       case result of 
@@ -507,7 +501,7 @@ updateIn el els index =
   Tools.replaceAt index el els
 
 
-playlist : Playback -> (Maybe T.TrackMeta) -> List T.TrackMeta -> Html Msg
+playlist : Playback -> (Maybe TrackMeta) -> List TrackMeta -> Html Msg
 playlist playstate selection tracks =
   Components.box <| List.singleton  <| Components.colsMulti <|
    List.map (\track ->
@@ -555,32 +549,6 @@ editLayoutButton model =
   Components.button (OpenLayoutEditor model.layout) [style "width" "100%", class "is-info mb-3"] "Edit your layout"
 
 
-
-prevEditor model lModel =
- case lModel of 
-  LayoutEditor.Overview layout -> 
-   let 
-     addAnother = (OpenLayoutEditor <| List.reverse <| Data.emptyCombo :: layout)
-   in
-   div [] 
-    [ Components.editText "Title" (text "The name for this sound") model.title UpdateTitle
-    -- , LayoutEditor.view layout (\i -> 
-        -- SelectLayoutEditor layout i <| Tools.getOr i layout Data.emptyCombo) (\i -> OpenLayoutEditor (Tools.removeAt i layout)) addAnother
-    , Components.button (CloseLayoutEditor layout) [] " Make a Song"
-    ]
-
-  LayoutEditor.Editing layout index stateModel -> 
-   let
-     up = UpdateLayoutEditor 
-     combo = Tools.getOr index layout Data.emptyCombo
-     done = OpenLayoutEditor layout
-   in
-    div []
-      [ div [class "mb-6"] [ Components.button (CloseLayoutEditor layout) [] "Save Layout" ]
-      -- , LayoutEditor.edit stateModel index combo up done
-      ]
-
-
 miniSongDesigner : Model -> Html Msg
 miniSongDesigner model =
   div [class "has-background-light"] <| List.singleton <|
@@ -592,8 +560,9 @@ miniSongDesigner model =
          , div [] <| LayoutEditor.look model.layout
          ]
 
-      Just lModel ->
-        LayoutEditor.viewNew lModel UpdateLayoutEditor (ChangeLayoutEditor) (CloseLayoutEditor model.layout)
+      Just mod ->
+        LayoutEditor.viewNew mod SaveLayout OpenLayoutEditor CloseLayoutEditor
+
 
 
 view : Model -> Html Msg
@@ -602,16 +571,13 @@ view model =
       [ case model.member of 
           Nothing -> text ""
           Just m -> Html.h2 [class "subtitle"] [text ("Welcome back " ++ m.firstname)]
-      -- , menu model.view
+
       , case model.mailer of 
-          T.Sending -> 
+          Sending -> 
             text "Working on that track for you!"
           _ ->
             miniSongDesigner model
-      
 
-            -- display model Select 
-      -- , text model.response
       , playlist model.playstate model.selection model.tracks
       ]
 

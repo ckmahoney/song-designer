@@ -21,9 +21,8 @@ type alias State = Combo
 
 type Msg 
   = Save State
-  | UpdateLabel String
-  | UpdateScope Scope
-  | UpdateEnsemble Ensemble Int Voice
+  | SaveScope Scope
+  | SaveEnsemble Ensemble Int Voice
 
 type Model 
   = Overview State
@@ -35,11 +34,20 @@ type EditState
   = EScope State ScopeEditor.Msg
   | EEnsemble State EnsembleEditor.Msg
 
+
+withScope : State -> Scope -> State
+withScope (_, ensemble) scope =
+  (scope, ensemble)
+
+withVoice : State -> Ensemble -> Int -> Voice -> State
+withVoice (scope, prev) ensemble i voice =
+  (scope, Tools.replaceAt i voice ensemble)
+
 saveScope : State -> ScopeEditor.Msg -> Msg
 saveScope ((s,e) as state) msg = 
   case msg of 
     ScopeEditor.Save scope ->
-      UpdateScope scope
+      SaveScope scope
     _ ->
       Save state
   
@@ -50,13 +58,13 @@ router incoming =
     EScope (scope, e) msg ->
       case msg of
         ScopeEditor.Save next -> 
-          UpdateScope next
+          SaveScope next
 
         ScopeEditor.Update field -> 
           Save (ScopeEditor.change scope field, e)
         
         ScopeEditor.Edit next -> 
-          UpdateScope next
+          SaveScope next
 
         ScopeEditor.Close -> 
           Save (scope, e)
@@ -73,13 +81,10 @@ update msg ((s, e) as state) =
     Save next ->
       Overview next
 
-    UpdateLabel label ->
-      Overview ({s | label = label}, e)
-
-    UpdateScope scope ->
+    SaveScope scope ->
       Scope (scope, e) <| ScopeEditor.Editing scope
 
-    UpdateEnsemble ensemble int v ->
+    SaveEnsemble ensemble int v ->
       Ensemble (s, ensemble) <| EnsembleEditor.Editing ensemble int v
 
 
@@ -110,29 +115,36 @@ fromEnsemble (scope, prev) mod next =
   (scope, next)
 
 
-view : (State -> msg) -> (Msg -> msg) -> Model -> msg -> Html msg
-view changing toMsg model done  =
+view : Combo -> (State -> msg) -> msg -> Html msg
+view combo up done  =
+ let
+   toMsg = identity
+   model = Overview combo
+ in 
   case model of 
     Overview ((scope, ensemble) as state)->
       Components.colsMulti
           [ Components.col [Attr.class "columns is-full"]
-              [ Components.col [] [ Components.editText "Label" (Components.label scope.label) scope.label (\str -> toMsg <| UpdateLabel str) ]
-              , Components.col [] [Components.button (toMsg <| Save state) [Attr.class "is-primary"] "Checkmark" ]   ] 
+              [ Components.col [] [Components.button done [Attr.class "is-primary"] "Checkmark" ]   ] 
               , Components.cols <| 
-                  [ Components.col [Attr.class "is-half", onClick (toMsg <| UpdateScope scope)] [ ScopeEditor.brief scope ]
+                  [ Components.col [Attr.class "is-half", onClick (up (withScope state scope))] [ ScopeEditor.brief scope ]
+
                   , Components.colHalf <| EnsembleEditor.picker ensemble (\i -> 
                          let  
                            voice = Tools.getOr i ensemble Data.emptyVoice
                          in
-                         toMsg <| UpdateEnsemble ensemble i voice)
+                         up (withVoice state ensemble i voice))
                   ]
 
           ]
+ 
+    _ -> 
+     text "wip"
 
-    Scope state editor ->
-      ScopeEditor.view (changing << fromScope state editor)  editor (\msg -> toMsg <| router (EScope state msg)) (toMsg <| Save state) 
+    -- Scope state editor ->
+    --   ScopeEditor.view (up << fromScope state editor)  editor (\msg -> toMsg <| router (EScope state msg)) (toMsg <| Save state) 
 
-    Ensemble state editor ->
-      EnsembleEditor.view (changing << fromEnsemble state editor) editor (\msg -> toMsg <| router (EEnsemble state msg)) (toMsg <| Save state)
+    -- -- Ensemble state editor ->
+    -- EnsembleEditor.view (up << fromEnsemble state editor) editor (\msg -> toMsg <| router (EEnsemble state msg)) (toMsg <| Save state)
 
 main = text ""
