@@ -100,6 +100,10 @@ thumb (scope, ensemble) =
     , Components.colHalf <| EnsembleEditor.thumb ensemble
     ]
 
+thumbEdit : Combo -> (Combo -> msg) -> Html msg
+thumbEdit combo up =
+  text "updating"
+
 
 fromScope : State -> ScopeEditor.Model -> ScopeEditor.State -> State
 fromScope (prev, ensemble) mod next =

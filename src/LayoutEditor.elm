@@ -213,14 +213,12 @@ view model forward save close  =
       let 
         curr = Tools.getOr index state Data.emptyCombo 
         continue = (\cModel -> Local cModel <| Edit index curr)
-        -- cont= Local cModel <| Edit index 
-        -- keep = (\combo ->  Tools.replaceAt index c state)
+        swap = (\c ->  Tools.replaceAt index c state)
         keep =  (\combo -> forward <| (update (Update index combo) state))
       in 
-         text "b"
-      -- ComboEditor.view mod continue keep close
-      
-
+      div [] [ Components.button (forward <| update (Save state) state)  [] "Done"
+        , ComboEditor.thumbEdit curr keep
+        ] 
 
 
 main = text ""
