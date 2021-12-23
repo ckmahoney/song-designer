@@ -180,13 +180,23 @@ card model =
 thumb : State -> Html msg
 thumb state =
   Components.box 
+    [ Components.colsWith [Components.centerText]  <|
+       [ Components.colHalf <| text <| V.scopeTimeString state
+       , Components.colHalf <| text <| Components.keyMessage True state.root
+       ]
+    ,  div [Components.centerText] [ Components.label state.label ]
+    ] 
+
+
+brief : State -> Html msg
+brief state =
+  Components.box 
     [ Components.cols <|
        [ Components.colHalf <| Components.label state.label
        , Components.colHalf <| text <| V.scopeTimeString state
        ]
     , p [ Attr.class "content" ] [ V.sizeMessage state.cpc state.size ]   
     ] 
-
 
 
 editorMobile : (Msg -> msg) -> State ->  Html msg

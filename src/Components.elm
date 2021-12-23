@@ -5,7 +5,7 @@ import Html exposing (Html, text, div)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Data as D
-
+import Tools
 
 type Modal
   = Hidden
@@ -67,10 +67,33 @@ pickerCell el icon html =
 
 
 
+keys : Bool -> List (Int, String)
+keys useSharps = 
+  (if useSharps then D.indexedSharps else D.indexedFlats)
+
+
+keyMessage : Bool -> Int -> String
+keyMessage useSharps root = 
+  let  
+    (_, tonic) = Tools.getOr root (keys useSharps)  (0, "mysterious")
+  in 
+  "Key of " ++ tonic
+
+
+centerText =
+ class "has-text-centered"
+
 svg : String -> Html msg
 svg name = 
   Html.img [ width 50
       , height 50
+      , src <| "/assets/svg/" ++ name ++ ".svg"] []
+
+
+svgSquare : String -> Int -> Html msg
+svgSquare name x = 
+  Html.img [ width x
+      , height x
       , src <| "/assets/svg/" ++ name ++ ".svg"] []
 
 

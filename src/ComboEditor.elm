@@ -87,7 +87,7 @@ initModel =
 
 thumb : Combo -> Html msg
 thumb (scope, ensemble) =
-  Components.cols <|
+  Components.cols <| 
     [ Components.colHalf <| ScopeEditor.thumb scope
     , Components.colHalf <| EnsembleEditor.thumb ensemble
     ]

@@ -60,6 +60,13 @@ update msg state =
 
 thumb : State -> Html msg
 thumb state =
+   Components.colsMulti <| if List.length state == 0 then 
+    [ text "No voices in this ensemble." ] else 
+    List.map (\{role} -> Components.colSize "is-one-quarter" <| Components.svg  (Tuple.first <| Data.roleLabel role)) state
+
+
+brief : State -> Html msg
+brief state =
   Components.box <| if List.length state == 0 then 
     [ text "No voices in this ensemble." ] else 
     List.map (\{role} -> View.roleIcon role) state
