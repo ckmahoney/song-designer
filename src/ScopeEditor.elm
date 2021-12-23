@@ -20,6 +20,7 @@ type Msg
   = Save State
   | Update Field
   | Edit State
+  | Close
 
 type Field
   = Title String
@@ -34,31 +35,39 @@ type Model
   | Editing State
 
 
+change : State -> Field -> State
+change state field =
+  case field of 
+    Title title ->
+      { state | label = title }
+
+    CPS cps ->
+      { state | cps = cps }
+
+    CPC cpc ->
+      { state | cpc = cpc }
+
+    Root root ->
+      { state | root = root }
+
+    Size size ->
+      { state | size = size }
+
+
 update : Msg -> State -> Model
 update msg state = 
   case msg of 
+    Close -> 
+      Overview state
+
     Save next -> 
       Overview next
     
-    Edit s ->
-      Editing s
+    Edit curr ->
+      Editing curr
 
     Update field ->
-      case field of 
-        Title title ->
-          Editing { state | label = title }
-
-        CPS cps ->
-          Editing { state | cps = cps }
-
-        CPC cpc ->
-          Editing { state | cpc = cpc }
-
-        Root root ->
-          Editing { state | root = root }
-
-        Size size ->
-          Editing { state | size = size }
+      Editing <| change state field
 
 
 type alias Bounds = 
@@ -247,13 +256,13 @@ editor state toMsg =
    [ Components.button (toMsg <| Save state) [] "Save Scope"
    , editorDesktop toMsg state
    -- , Components.mobileOnly <| editorMobile toMsg state
-   -- , Components.tabletOnly <| editorMobile toMsg state
-   -- , Components.desktopOnly <| editorDesktop toMsg state 
+   , Components.tabletOnly <| editorMobile toMsg state
+   , Components.desktopOnly <| editorDesktop toMsg state 
    ]
 
 
-view : Model -> (Msg -> msg) -> msg -> Html msg
-view model toMsg close =
+view : (State -> msg) -> Model -> (Msg -> msg) -> msg -> Html msg
+view changing model toMsg close =
   case model of 
      Overview state ->
       div [onClick <| toMsg <| Edit state] [ thumb state ]

@@ -35,6 +35,8 @@ type Model
   | Editing State Int ComboEditor.Model
 
 
+
+
 update : Msg -> State -> Model
 update msg state =
   case msg of 
@@ -74,6 +76,10 @@ update msg state =
           next = Tools.replaceAt index combo state
          in 
          Overview next 
+
+       -- ComboEditor.UpdateLabel String -> 
+       -- ComboEditor.UpdateScope Scope
+       -- ComboEditor.UpdateEnsemble Ensemble Int Voice
        _ -> 
         let 
          curr = Tools.getOr index state Data.emptyCombo
@@ -144,28 +150,33 @@ comboIcon ((scope, ensemble) as model) =
     ]
 
 
-
 look : State -> List (Html msg)
 look layout =
   List.map ComboEditor.thumb layout
 
 
-editor : (Msg -> msg) -> State -> Int -> ComboEditor.Model -> Html msg
-editor toMsg state index comboModel =
-  ComboEditor.view (\msg -> toMsg <| Update index msg) comboModel (toMsg <| Save state) 
+fromCombo : State -> Int -> Combo -> State
+fromCombo state index combo =
+  Tools.replaceAt index combo state
 
 
-viewNew : Model -> (Msg -> msg) -> Html msg
-viewNew model toMsg  =
+editor : (State -> msg) -> (Msg -> msg) -> State -> Int -> ComboEditor.Model -> Html msg
+editor changing toMsg state index comboModel =
+  ComboEditor.view (changing << fromCombo state index) (\msg -> toMsg <| Update index msg) comboModel (toMsg <| Save state) 
+
+
+viewNew : Model -> (Msg -> msg) -> (State -> msg) -> msg -> Html msg
+viewNew model toMsg changing close  =
   case Debug.log "has model:" model of 
     Overview state ->
       Components.box <|
-        [Components.plusButton (toMsg Create)
+        [ Components.button close [] "Save"
+        , Components.plusButton (toMsg Create)
         , (picker state View.viewCombo (\i -> toMsg <| Select i) (\i -> toMsg <| Kill i) (toMsg Create))
         ]
 
     Editing state index comboModel ->
-      editor toMsg state index comboModel 
+      editor changing toMsg state index comboModel 
 
 
 main = text ""

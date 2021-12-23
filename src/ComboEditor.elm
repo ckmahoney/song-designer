@@ -35,8 +35,6 @@ type EditState
   = EScope State ScopeEditor.Msg
   | EEnsemble State EnsembleEditor.Msg
 
-
-
 saveScope : State -> ScopeEditor.Msg -> Msg
 saveScope ((s,e) as state) msg = 
   case msg of 
@@ -51,8 +49,17 @@ router incoming =
   case incoming of 
     EScope (scope, e) msg ->
       case msg of
-        ScopeEditor.Save next -> Save (next, e)
-        _ -> UpdateScope scope
+        ScopeEditor.Save next -> 
+          UpdateScope next
+
+        ScopeEditor.Update field -> 
+          Save (ScopeEditor.change scope field, e)
+        
+        ScopeEditor.Edit next -> 
+          UpdateScope next
+
+        ScopeEditor.Close -> 
+          Save (scope, e)
 
     EEnsemble (s, ensemble) msg ->
       case msg of
@@ -94,8 +101,17 @@ thumb (scope, ensemble) =
     ]
 
 
-view : (Msg -> msg) -> Model -> msg -> Html msg
-view toMsg model done  =
+fromScope : State -> ScopeEditor.Model -> ScopeEditor.State -> State
+fromScope (prev, ensemble) mod next =
+  (next, ensemble)
+
+fromEnsemble : State ->  EnsembleEditor.Model -> EnsembleEditor.State ->State
+fromEnsemble (scope, prev) mod next =
+  (scope, next)
+
+
+view : (State -> msg) -> (Msg -> msg) -> Model -> msg -> Html msg
+view changing toMsg model done  =
   case model of 
     Overview ((scope, ensemble) as state)->
       Components.colsMulti
@@ -114,9 +130,9 @@ view toMsg model done  =
           ]
 
     Scope state editor ->
-      ScopeEditor.view editor (\msg -> toMsg <| router (EScope state msg)) (toMsg <| Save state) 
+      ScopeEditor.view (changing << fromScope state editor)  editor (\msg -> toMsg <| router (EScope state msg)) (toMsg <| Save state) 
 
     Ensemble state editor ->
-      EnsembleEditor.view editor (\msg -> toMsg <| router (EEnsemble state msg)) (toMsg <| Save state)
+      EnsembleEditor.view (changing << fromEnsemble state editor) editor (\msg -> toMsg <| router (EEnsemble state msg)) (toMsg <| Save state)
 
 main = text ""

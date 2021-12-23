@@ -18,7 +18,7 @@ mobileOnly child =
   div [ class "is-hidden-tablet" ] [ child ]
 
 tabletOnly child =
-  div [ class "is-block-tablet-only" ] [ child ]
+  div [ class "is-hidden-desktop" ] [ child ]
 
 desktopOnly child =
   div [ class "is-hidden-touch" ] [ child ]
@@ -237,8 +237,7 @@ editTextDesktop title html val toMsg =
 editText : String -> Html msg -> String -> ( String -> msg ) -> Html msg
 editText title html val toMsg =
   div [class "box"]
-    [ mobileOnly <| editTextMobile title html val toMsg 
-    , tabletOnly <| editTextMobile title html val toMsg 
+    [ tabletOnly <| editTextMobile title html val toMsg 
     , desktopOnly <| editTextDesktop title html val toMsg 
     ] 
 

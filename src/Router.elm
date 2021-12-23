@@ -87,6 +87,7 @@ type Msg
   
   | OpenLayoutEditor (List T.Combo)
   | CloseLayoutEditor (List T.Combo)
+  | ChangeLayoutEditor (List T.Combo)
   | SaveLayoutEditor  (List T.Combo)
   | SelectLayoutEditor (List T.Combo) Int T.Combo
   | UpdateLayoutEditor LayoutEditor.Msg
@@ -113,6 +114,38 @@ type alias Model =
   , title : String
   }
 
+
+
+
+-- -- access scope
+-- (\layout i-layout scope)
+
+-- -- create scope
+-- (\layout i-layout ensemble i-ensemble)  
+
+-- -- delete scope
+-- (\layout i-layout ensemble i-ensemble)  
+
+-- -- update scope
+-- (\layout i-layout ensemble i-ensemble scope field)  
+
+
+-- -- create voice
+-- (\layout i-layout ensemble i-ensemble)  
+
+-- -- delete voice
+-- (\layout i-layout ensemble i-ensemble)  
+
+-- -- access voice
+-- (\layout i-layout ensemble i-ensemble voice)  
+
+-- -- update voice
+-- (\layout i-layout ensemble i-ensemble voice field)  
+
+
+-- updateLayoutScope layout iLayout scope iEnsemble scope field)   =
+-- LayoutEditor.Update iLayout 
+  -- <| ComboEditor.UpdateScope scope
 
 decodeTrackPrev : Decode.Decoder T.Track
 decodeTrackPrev =
@@ -328,6 +361,9 @@ update msg model =
       ({ model | layoutEditor = Just <| LayoutEditor.Overview layout } , Cmd.none)
     UpdateTitle title ->
       ({ model | title = title }, Cmd.none)
+
+    ChangeLayoutEditor layout ->
+      ({ model | layout = layout, layoutEditor = Just <| LayoutEditor.Overview layout }, Cmd.none)
 
     CloseLayoutEditor layout ->
       ({ model | layout = layout, layoutEditor = Nothing }, Cmd.none)
@@ -1045,7 +1081,7 @@ miniSongDesigner model =
          ]
 
       Just lModel ->
-        LayoutEditor.viewNew lModel UpdateLayoutEditor 
+        LayoutEditor.viewNew lModel UpdateLayoutEditor (ChangeLayoutEditor) (CloseLayoutEditor model.layout)
 
 
 view : Model -> Html Msg

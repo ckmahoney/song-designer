@@ -152,8 +152,8 @@ display model toMsg =
     editor toMsg state index mod
 
 
-view : Model -> (Msg -> msg) -> msg -> Html msg
-view model toMsg close = 
+view : (State -> msg) -> Model -> (Msg -> msg) -> msg -> Html msg
+view changer model toMsg close = 
   Components.box 
     [ Components.button close [] "Save Ensemble"
     , display model toMsg
