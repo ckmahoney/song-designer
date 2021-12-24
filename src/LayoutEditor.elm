@@ -61,14 +61,19 @@ apply state msg =
      Tools.replaceAt index combo state
 
 
+curr state index =
+  Tools.getOr index state Data.emptyCombo
+
+
 edit : State -> Internal -> ComboEditor.Model -> Model
 edit state msg mod =
  let
   next = apply state  msg
+
  in 
   case msg of 
    Select index ->
-     Editing state index <| ComboEditor.initModel state index
+     Editing state index <| ComboEditor.Overview (curr state index)
 
    Create -> 
     let
@@ -76,14 +81,14 @@ edit state msg mod =
       n = List.append state [ v ]
       index = List.length n
     in 
-    Editing next index <| ComboEditor.initModel next index
+    Overview  next
 
    Kill index ->
     Overview <| Tools.removeAt index state
 
 
    Edit index combo ->
-     Overview (Tools.replaceAt index combo state) 
+     Editing state index  mod
 
 
 update : Msg -> State -> Model
@@ -200,10 +205,11 @@ view model forward save close  =
     Overview state ->
      let 
       kill = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
+      select = (\i -> (forward <| edit state (Select i) <| ComboEditor.initModel state i))
      in 
       Components.box <|
         [ Components.button (close state) [] "Close" 
-        , picker state View.viewCombo (\i -> (forward <| edit state (Select i) <| ComboEditor.initModel state i)) kill
+        , picker state View.viewCombo select kill
         , if 4 > List.length state then 
             Components.plusButton (forward <| update (Save (apply state Create)) state)
             else text ""
@@ -211,13 +217,12 @@ view model forward save close  =
 
     Editing state index mod ->
       let 
-        curr = Tools.getOr index state Data.emptyCombo 
-        continue = (\cModel -> forward <| edit state (Edit index curr) cModel)
+        continue = (\cModel -> forward <| edit state (Edit index (curr state index)) cModel)
         swap = (\c ->  Tools.replaceAt index c state)
         keep =  (\combo -> forward <| (update (Update index combo) state))
       in 
       div [] [ Components.button (forward <| update (Save state) state)  [] "Done"
-        , ComboEditor.thumbEdit mod continue curr keep
+        , ComboEditor.thumbEdit mod continue (curr state index) keep
         ] 
 
 

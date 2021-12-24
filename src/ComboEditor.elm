@@ -21,6 +21,7 @@ type alias State = Combo
 
 type Msg 
   = Save State
+  | PickScope Scope
   | SaveScope Scope
   | SaveEnsemble Ensemble Int Voice
 
@@ -39,21 +40,14 @@ withScope : State -> Scope -> State
 withScope (_, ensemble) scope =
   (scope, ensemble)
 
+
 withVoice : State -> Ensemble -> Int -> Voice -> State
 withVoice (scope, prev) ensemble i voice =
   (scope, Tools.replaceAt i voice ensemble)
 
-saveScope : State -> ScopeEditor.Msg -> Msg
-saveScope ((s,e) as state) msg = 
-  case msg of 
-    ScopeEditor.Save scope ->
-      SaveScope scope
-    _ ->
-      Save state
-  
 
-router : EditState -> Msg
-router incoming =
+edit : EditState -> Msg
+edit incoming =
   case incoming of 
     EScope (scope, e) msg ->
       case msg of
@@ -62,7 +56,7 @@ router incoming =
 
         ScopeEditor.Update field -> 
           Save (ScopeEditor.change scope field, e)
-        
+              
         ScopeEditor.Edit next -> 
           SaveScope next
 
@@ -81,8 +75,11 @@ update msg ((s, e) as state) =
     Save next ->
       Overview next
 
-    SaveScope scope ->
-      Scope (scope, e) <| ScopeEditor.Editing scope
+    SaveScope next ->
+     Overview (next,e)
+
+    PickScope next ->
+      Scope state <| ScopeEditor.Editing next
 
     SaveEnsemble ensemble int v ->
       Ensemble (s, ensemble) <| EnsembleEditor.Editing ensemble int v
@@ -100,23 +97,6 @@ thumb (scope, ensemble) =
     , Components.colHalf <| EnsembleEditor.thumb ensemble
     ]
 
-thumbEdit : Model -> (Model -> msg) -> Combo -> (Combo -> msg) -> Html msg
-thumbEdit model forward ((scope, ensemble) as s) up =
-  case model of 
-    Overview state -> 
-      thumb state
-   
-    Scope state mod ->
-     let
-        continue = (\m -> forward <| Scope state m)
-        keep = (\combo -> forward <| update (Save (fromScope state mod combo)) state)
-        done = (\_ -> forward <| Overview state)
-     in
-      ScopeEditor.viewNew mod continue keep done
-
-    Ensemble _ _ ->
-      text "todo ensembel yay :) "
-
 
 fromScope : State -> ScopeEditor.Model -> ScopeEditor.State -> State
 fromScope (prev, ensemble) mod next =
@@ -133,12 +113,42 @@ initModel combos index =
   Overview <| Tools.getOr index combos Data.emptyCombo
 
 
+thumbEdit : Model -> (Model -> msg) -> Combo -> (Combo -> msg) -> Html msg
+thumbEdit model forward ((scope, ensemble) as s) up =
+  case Debug.log "model combo:"  model of 
+    Overview state -> 
+     let
+        pickScope = forward <| update (PickScope (Debug.log "picked scope:"  scope)) state
+     in
+      Components.cols <| 
+        [ text "thumbEdit.Overview"
+        , Components.col [Attr.class "is-half", onClick pickScope ] <| List.singleton <| ScopeEditor.brief scope
+        , Components.colHalf <| EnsembleEditor.thumb ensemble
+        ]
+   
+    Scope state mod ->
+     let
+        continue = (\m -> forward <| Scope (Debug.log "Found thumbEdit.Scope state:" state) m)
+        keep = (\combo -> forward <| update (Save (fromScope state mod combo)) state)
+        done = (\_ -> forward <| Overview state)
+     in
+      div [] 
+        [ text "scoping the edit scope: " 
+        , ScopeEditor.viewNew mod continue keep done
+        ] 
+
+    Ensemble _ _ ->
+      text "todo ensembel yay :) "
+
+
+
 view : Model -> (Model -> msg) -> (State -> msg) -> msg -> Html msg
 view model forward save close  =
   case model of 
     Overview ((scope, ensemble) as state)->
       Components.colsMulti
-          [ Components.col [Attr.class "columns is-full"]
+          [ text "ComboEditor . view " 
+          , Components.col [Attr.class "columns is-full"]
               [ Components.col [] [ Components.button close [Attr.class "is-primary"] "Checkmark" ]   ] 
               , Components.cols <| 
                   [ Components.col [Attr.class "is-half", onClick (forward <| (update <| SaveScope scope)  state)] [ ScopeEditor.brief scope ]
@@ -146,7 +156,7 @@ view model forward save close  =
                          -- let  
                            -- voice = Tools.getOr i ensemble Data.emptyVoice
                          -- in
-                         -- router <| EEnsemble ensemble i voice)
+                         -- edit <| EEnsemble ensemble i voice)
                   ]
 
           ]
@@ -155,9 +165,9 @@ view model forward save close  =
      text "wip"
 
     -- Scope state editor ->
-    --   ScopeEditor.view (forward << fromScope state editor)  editor (\msg -> toMsg <| router (EScope state msg)) (toMsg <| Save state) 
+    --   ScopeEditor.view (forward << fromScope state editor)  editor (\msg -> toMsg <| edit (EScope state msg)) (toMsg <| Save state) 
 
     -- -- Ensemble state editor ->
-    -- EnsembleEditor.view (forward << fromEnsemble state editor) editor (\msg -> toMsg <| router (EEnsemble state msg)) (toMsg <| Save state)
+    -- EnsembleEditor.view (forward << fromEnsemble state editor) editor (\msg -> toMsg <| edit (EEnsemble state msg)) (toMsg <| Save state)
 
 main = text ""
