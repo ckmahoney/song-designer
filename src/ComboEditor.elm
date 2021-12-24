@@ -22,6 +22,7 @@ type alias State = Combo
 type Msg 
   = Save State
   | PickScope Scope
+  | PickEnsemble Ensemble
   | UpdateScope Scope
   | SaveScope Scope
   | SaveEnsemble Ensemble Int Voice
@@ -58,6 +59,9 @@ update msg ((s, e) as state) =
 
     PickScope next ->
       Scope state <| ScopeEditor.Editing next
+
+    PickEnsemble next ->
+      Ensemble state <| EnsembleEditor.Overview next
 
     SaveEnsemble ensemble int v ->
       Ensemble (s, ensemble) <| EnsembleEditor.Editing ensemble int v
@@ -97,11 +101,14 @@ thumbEdit model forward up =
     Overview ((scope, ensemble) as state) -> 
      let
         pickScope = forward <| update (PickScope scope) state
+        pickEnsemble = forward <| update (PickEnsemble ensemble) state
      in
       Components.cols <| 
         [ text "thumbEdit.Overview"
-        , Components.col [Attr.class "is-half", onClick pickScope ] <| List.singleton <| ScopeEditor.brief scope
-        , Components.colHalf <| EnsembleEditor.thumb ensemble
+        , Components.col [Attr.class "is-half", onClick pickScope ] <| List.singleton <| 
+              ScopeEditor.brief scope
+        , Components.col [Attr.class "is-half", onClick pickEnsemble ] <| List.singleton <| 
+              EnsembleEditor.thumb ensemble
         ]
    
     Scope ((scope, ensemble) as state) mod ->
@@ -115,7 +122,16 @@ thumbEdit model forward up =
         , ScopeEditor.view  mod continue keep done
         ] 
 
-    Ensemble _ _ ->
-      text "todo ensembel yay :) "
+    Ensemble ((scope, ensemble) as state) mod ->
+     let
+        continue = (\m -> forward <| Ensemble state m)
+        keep =  (\e -> up (scope, e))
+        done = (\_ -> forward <| Overview state)
+     in
+      div [] 
+        [ text "scoping the edit scope: " 
+        , EnsembleEditor.viewNew  mod continue keep done
+        ] 
+
 
 main = text ""

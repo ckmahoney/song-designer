@@ -16,7 +16,8 @@ import Components
 import VoiceEditor
 
 
-type alias State = List Voice
+type alias Child = Voice
+type alias State = List Child
 
 
 type Msg
@@ -29,7 +30,7 @@ type Msg
 
 type Model 
   = Overview State
-  | Editing State Int Voice
+  | Editing State Int Child
 
 
 update : Msg -> State -> Model
@@ -158,6 +159,23 @@ view changer model toMsg close =
     [ Components.button close [] "Save Ensemble"
     , display model toMsg
     ] 
+
+
+viewNew : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
+viewNew model forward save close =
+ case model of 
+  Overview state ->
+    Components.box <|
+       [ Components.button (close state) [] "Save Ensemble"
+      , display model (\msg -> (forward <| update msg state))
+      ] 
+
+  Editing state index voice ->
+    Components.box <| 
+      [   text "editing ensemble nigga"
+      , Components.button (close state) [] "Save Ensemble"
+      , display model (\msg -> (forward <| update msg state))
+      ] 
 
 
 main = text ""
