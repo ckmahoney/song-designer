@@ -97,17 +97,17 @@ initModel combos index =
 
 thumbEdit : Model -> (Model -> msg) -> (Combo -> msg) -> Html msg
 thumbEdit model forward up =
-  case Debug.log "model combo:"  model of 
+  case model of 
     Overview ((scope, ensemble) as state) -> 
      let
         pickScope = forward <| update (PickScope scope) state
         pickEnsemble = forward <| update (PickEnsemble ensemble) state
      in
       Components.cols <| 
-        [ Components.col [Attr.class "is-half", onClick pickScope ] <| List.singleton <| 
+        [ Components.col [Attr.class "is-clickable is-half", onClick pickScope ] <| List.singleton <| 
               ScopeEditor.brief scope
-        , Components.col [Attr.class "is-half", onClick pickEnsemble ] <| List.singleton <| 
-              View.ensembleThumb ensemble
+        , Components.col [Attr.class "is-clickable is-half", onClick pickEnsemble ] <| List.singleton <| 
+              Components.box  <| [ View.ensembleThumb ensemble]
         ]
    
     Scope ((scope, ensemble) as state) mod ->
@@ -117,8 +117,7 @@ thumbEdit model forward up =
         done = (\_ -> forward <| Overview state)
      in
       div [] 
-        [ text "scoping the edit scope: " 
-        , ScopeEditor.view  mod continue keep done
+        [ ScopeEditor.view  mod continue keep done
         ] 
 
     Ensemble ((scope, ensemble) as state) mod ->
@@ -128,8 +127,7 @@ thumbEdit model forward up =
         done = (\_ -> forward <| Overview state)
      in
       div [] 
-        [ text "scoping the edit scope: " 
-        , EnsembleEditor.view mod continue keep done
+        [ EnsembleEditor.view mod continue keep done
         ] 
 
 

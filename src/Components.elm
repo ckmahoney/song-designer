@@ -101,7 +101,7 @@ svg name =
 
 svgButton : String -> msg -> Html msg
 svgButton name click =
-  div [onClick click] [svg name]
+  div [class "is-clickable", onClick click] [svg name]
 
 svgSquare : String -> Int -> Html msg
 svgSquare name x = 

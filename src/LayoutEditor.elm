@@ -214,7 +214,7 @@ view model forward save close  =
         keep =  (\combo -> forward <| (update (Save <| swap combo) state))
       in 
       Components.box <|
-        [ Components.button (close state)  [] "Done!!"
+        [ Components.button (close state)  [] "Save Combo"
         , ComboEditor.thumbEdit mod continue keep
         ] 
 

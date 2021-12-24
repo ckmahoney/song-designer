@@ -16,6 +16,19 @@ import Tools
 
 useSharps = False
 
+
+scopePeek : T.Scope -> Html msg
+scopePeek state =
+  div [] 
+    [ div [Components.centerText] [ Components.label state.label ]
+    , Components.colsWith [Components.centerText]  <|
+       [ Components.colHalf <| text <| scopeTimeString state
+       , Components.colHalf <| text <| Components.keyMessage True state.root
+       ]
+    ] 
+
+
+
 ensemblePeek : T.Ensemble -> Html msg
 ensemblePeek state =
    Components.colsWith [Attr.class "is-multiline"]
@@ -26,7 +39,7 @@ ensemblePeek state =
 
 ensembleThumb : T.Ensemble -> Html msg
 ensembleThumb state =
-   Components.box <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-mobile"]
+   div []   <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-mobile"]
      <| if List.length state == 0 then 
        [ text "No voices in this ensemble." ] else 
        List.map (\{role} -> Components.colSize "is-one-quarter" <| Components.svg  (Tuple.first <| D.roleLabel role)) state
@@ -793,12 +806,12 @@ viewCombo  (({cpc,cps,size} as scope), ensemble)  =
  let
   nVoices = List.length ensemble
  in 
-  Components.box
-    [ Components.svg "scope"
-    , label [ class "label" ] [ text scope.label ]
-    , if nVoices == 0 then text "No voices"  else 
-        ensemblePeek ensemble 
-    , p [] [ text <| timeString <| duration cpc cps size ]
+  Components.box <| List.singleton <| Components.cols <|
+    [ Components.colHalf <| scopePeek scope 
+
+    , Components.colHalf <| if nVoices == 0 then text "No voices"  else 
+        ensembleThumb ensemble 
+
     ]
        
 

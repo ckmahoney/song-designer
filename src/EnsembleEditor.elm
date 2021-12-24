@@ -98,7 +98,7 @@ voiceGrid state toMsg =
   Components.box <|
    List.append [ (Components.label "Ensemble") ]
    <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-vcentered has-text-centered"] <|
-    Components.button createVoice [ Attr.class "column is-one-quarter"] "+" 
+    Components.button createVoice [ Attr.class "column is-primary"] "Add Another Voice" 
     :: List.indexedMap (\index {role} -> 
          div [Attr.class "column is-one-quarter", onClick <| toMsg <| Select index] [View.roleIcon role]) state 
 

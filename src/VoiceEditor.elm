@@ -62,9 +62,9 @@ updateComplexity model update complexity =
 
 
 numberPickers model update =
-  Components.box <| List.singleton <|
-  Components.cols <|  [ Components.colHalf <| Components.editInt "Density" (View.densityMessage model) Data.rangeDensity model.density (updateDensity model update)
-     , Components.colHalf <| Components.editInt "Complexity" (View.complexityMessage model) Data.rangeComplexity model.complexity (updateComplexity model update)
+  Components.cols <| 
+    [ Components.colHalf <| Components.box <| List.singleton <| Components.editInt "Density" (View.densityMessage model) Data.rangeDensity model.density (updateDensity model update)
+     , Components.colHalf <|Components.box <| List.singleton <|  Components.editInt "Complexity" (View.complexityMessage model) Data.rangeComplexity model.complexity (updateComplexity model update)
     ]
 
 
@@ -121,11 +121,10 @@ edit model update save kill =
     , Components.desktop [ Attr.class "columns is-multiline is-flex is-justify-content-space-between" ] 
         [ Components.colHalf <| View.viewVoice model
         , Components.colHalf <| Components.colsMulti
-            [ Components.editText "Label" (text "Name") model.label (updateLabel model update)
-            , Components.editSelection model.role "" (text "Role") options model.role (updateRole model update) 
-          , numberPickers model update   
+            [ Components.colFull <| Components.editText "Label" (text "Name") model.label (updateLabel model update)
+            , Components.colFull <|Components.editSelection model.role "" (text "Role") options model.role (updateRole model update) 
             ]
-
+           , div [Attr.class "mb-3 p-3"] [  numberPickers model update   ]
         ]
     ]
 
