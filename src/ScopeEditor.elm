@@ -233,7 +233,7 @@ editorMobile toMsg state  =
     , cpsPicker state.cps toMsg
     , cpcPicker state.cpc toMsg
     , keyPicker state.root toMsg
-    , Components.button (toMsg <| Save state) [] "Save Scope" 
+    -- , Components.button (toMsg <| Save state) [] "Save Scope" 
     ]
 
 
@@ -253,42 +253,35 @@ editorDesktop toMsg state  =
 editor : State -> (Msg -> msg) -> Html msg
 editor state toMsg =
   div []
-   [ Components.button (toMsg <| Save state) [] "Save Scope"
-   , editorDesktop toMsg state
+   [ editorDesktop toMsg state
    -- , Components.mobileOnly <| editorMobile toMsg state
    , Components.tabletOnly <| editorMobile toMsg state
    , Components.desktopOnly <| editorDesktop toMsg state 
    ]
-
-
-view : (State -> msg) -> Model -> (Msg -> msg) -> msg -> Html msg
-view changing model toMsg close =
-  case model of 
-     Overview state ->
-      div [onClick <| toMsg <| Edit state] [ thumb state ]
-
-     Editing state ->
-        editor state toMsg
 
 initFrom : State -> Model
 initFrom state =
   Overview state
 
 
-viewNew : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
-viewNew model forward save close =
+view : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
+view model forward save close =
   case model of 
     Overview state ->
      div []
-      [ text "editing scope beyotch"
+      [ text "peeking a scope readonly"
       , thumb state
       ]
 
     Editing state ->
-     div []
-      [ text "editing scope beyotch"
-      , thumb state
-      ]
+     let
+       toMsg = (\msg -> forward <| update msg state)
+     in
+      div []
+       [ text "editing scope beyotch"
+       , Components.button (save state) [Attr.class "is-primary"] "Done with Scope"
+       , editor state toMsg
+       ]
 
 main = 
   Html.text ""

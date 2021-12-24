@@ -320,14 +320,8 @@ update msg model =
     UpdateEditor editor ->
       ({ model | layoutEditor = editor  } , Cmd.none)
 
-    -- UpdateEditor (Nothing) -> 
-    --   ({ model | layoutEditor = Nothing  } , Cmd.none)
-
-    -- UpdateEditor (Just next index) ->
-    --   ({ model | layoutEditor = Just <| LayoutEditor.Editing next index } , Cmd.none)
-
     SaveLayout layout ->
-      ({ model | layout = layout }, Cmd.none)
+      ({ model | layout = Debug.log "New layout in model:" layout }, Cmd.none)
 
     LoadTrack track -> 
       ( model, setSource track.filepath )

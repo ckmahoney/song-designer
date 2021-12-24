@@ -67,25 +67,18 @@ curr state index =
 
 edit : State -> Internal -> ComboEditor.Model -> Model
 edit state msg mod =
- let
-  next = apply state  msg
-
- in 
   case msg of 
    Select index ->
      Editing state index <| ComboEditor.Overview (curr state index)
 
    Create -> 
     let
-      v = Data.emptyCombo
-      n = List.append state [ v ]
-      index = List.length n
-    in 
+      next = apply state msg
+    in
     Overview  next
 
    Kill index ->
     Overview <| Tools.removeAt index state
-
 
    Edit index combo ->
      Editing state index  mod
@@ -201,7 +194,7 @@ fromCombo state index combo =
 
 view : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
 view model forward save close  =
-  case Debug.log "has model:" model of 
+  case model of 
     Overview state ->
      let 
       kill = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
@@ -221,8 +214,9 @@ view model forward save close  =
         swap = (\c ->  Tools.replaceAt index c state)
         keep =  (\combo -> forward <| (update (Update index combo) state))
       in 
-      div [] [ Components.button (forward <| update (Save state) state)  [] "Done"
-        , ComboEditor.thumbEdit mod continue (curr state index) keep
+      Components.box <|
+        [ Components.button (close state)  [] "Done!!"
+        , ComboEditor.thumbEdit mod continue keep
         ] 
 
 
