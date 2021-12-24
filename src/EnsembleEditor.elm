@@ -59,13 +59,6 @@ update msg state =
       Overview <| Tools.removeAt index state
 
 
-thumb : State -> Html msg
-thumb state =
-   Components.box <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-mobile"]
-     <| if List.length state == 0 then 
-       [ text "No voices in this ensemble." ] else 
-       List.map (\{role} -> Components.colSize "is-one-quarter" <| Components.svg  (Tuple.first <| Data.roleLabel role)) state
-
 picker : State -> (Int -> msg) -> Html msg
 picker state click =
    Components.box <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-mobile"]

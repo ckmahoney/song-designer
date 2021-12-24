@@ -16,6 +16,20 @@ import Tools
 
 useSharps = False
 
+ensemblePeek : T.Ensemble -> Html msg
+ensemblePeek state =
+   Components.colsWith [Attr.class "is-multiline"]
+     <| if List.length state == 0 then 
+       [ text "No voices in this ensemble." ] else 
+       List.map (\{role} -> Components.col [] <| [ Components.svg  (Tuple.first <| D.roleLabel role)]) state
+
+
+ensembleThumb : T.Ensemble -> Html msg
+ensembleThumb state =
+   Components.box <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-mobile"]
+     <| if List.length state == 0 then 
+       [ text "No voices in this ensemble." ] else 
+       List.map (\{role} -> Components.colSize "is-one-quarter" <| Components.svg  (Tuple.first <| D.roleLabel role)) state
 
 keyNames =
   if useSharps then D.sharps else D.flats
@@ -783,7 +797,7 @@ viewCombo  (({cpc,cps,size} as scope), ensemble)  =
     [ Components.svg "scope"
     , label [ class "label" ] [ text scope.label ]
     , if nVoices == 0 then text "No voices"  else 
-        label [ class "label" ] [ text <| (String.fromInt nVoices) ++ (if nVoices == 1 then " voice" else " voices")] 
+        ensemblePeek ensemble 
     , p [] [ text <| timeString <| duration cpc cps size ]
     ]
        

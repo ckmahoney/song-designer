@@ -76,7 +76,7 @@ thumb : Combo -> Html msg
 thumb (scope, ensemble) =
   Components.cols <| 
     [ Components.colHalf <| ScopeEditor.brief scope
-    , Components.colHalf <| EnsembleEditor.thumb ensemble
+    , Components.colHalf <| View.ensembleThumb ensemble
     ]
 
 
@@ -107,7 +107,7 @@ thumbEdit model forward up =
         [ Components.col [Attr.class "is-half", onClick pickScope ] <| List.singleton <| 
               ScopeEditor.brief scope
         , Components.col [Attr.class "is-half", onClick pickEnsemble ] <| List.singleton <| 
-              EnsembleEditor.thumb ensemble
+              View.ensemblePeek ensemble
         ]
    
     Scope ((scope, ensemble) as state) mod ->
