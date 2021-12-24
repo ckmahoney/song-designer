@@ -130,7 +130,7 @@ thumbEdit model forward up =
      in
       div [] 
         [ text "scoping the edit scope: " 
-        , EnsembleEditor.viewNew  mod continue keep done
+        , EnsembleEditor.view mod continue keep done
         ] 
 
 

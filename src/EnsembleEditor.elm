@@ -49,14 +49,14 @@ update msg state =
     Select voiceIndex -> 
       Editing state voiceIndex <| Tools.getOr voiceIndex state VoiceEditor.newVoice
 
-    Update voiceIndex updated -> 
+    Update index voice -> 
      let 
-       next = Tools.replaceAt voiceIndex updated state
+       next = Tools.replaceAt index voice state
       in
-      Editing next voiceIndex updated
+      Editing next index voice
 
-    Kill voiceIndex  -> 
-      Overview <| Tools.removeAt voiceIndex state
+    Kill index  -> 
+      Overview <| Tools.removeAt index state
 
 
 thumb : State -> Html msg
@@ -66,12 +66,6 @@ thumb state =
        [ text "No voices in this ensemble." ] else 
        List.map (\{role} -> Components.colSize "is-one-quarter" <| Components.svg  (Tuple.first <| Data.roleLabel role)) state
 
-picker : State -> (Int -> msg) -> Html msg
-picker state click =
-   Components.box <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-mobile"]
-     <| if List.length state == 0 then 
-       [ text "No voices in this ensemble." ] else 
-       List.indexedMap (\i {role} -> Components.col [onClick (click i), Attr.class "is-one-quarter"] <| List.singleton <| Components.svg  (Tuple.first <| Data.roleLabel role)) state
 
 
 brief : State -> Html msg
@@ -125,14 +119,17 @@ showNoVoices state toMsg =
   Components.button (toMsg <| Create) [] "Create the First Voice"  
 
 
+
 listVoices : State -> (Msg -> msg) -> Html msg
 listVoices state toMsg =
   div [Attr.class "is-full has-text-centered"] <|
    List.indexedMap (\i voice -> 
       div [Attr.class "my-3", Attr.style "border" "1px solid lightgrey",  Attr.style "border-radius" "5px" ] 
        [ Components.colsWith [Attr.class "is-flex"] 
-          [ Components.col [Attr.style "width" "50%"] <| List.singleton <| Components.button (toMsg <| Select  i) [Attr.class "has-background-primary is-fullwidth has-text-light has-text-weight-bold" ] ("Edit " ++ voice.label) 
-          , Components.col [Attr.style "width" "50%"] <| List.singleton <|Components.deleteButton (toMsg <| Kill  i)]
+          [ Components.col [Attr.style "width" "50%"] <| List.singleton <| 
+                Components.button (toMsg <| Select  i) [Attr.class "has-background-primary is-fullwidth has-text-light has-text-weight-bold" ] ("Edit " ++ voice.label) 
+          , Components.col [Attr.style "width" "50%"] <| List.singleton <|
+                Components.deleteButton (toMsg <| Kill  i)]
        , VoiceEditor.view voice
        ]) state 
 
@@ -153,28 +150,21 @@ display model toMsg =
     editor toMsg state index mod
 
 
-view : (State -> msg) -> Model -> (Msg -> msg) -> msg -> Html msg
-view changer model toMsg close = 
-  Components.box 
-    [ Components.button close [] "Save Ensemble"
-    , display model toMsg
-    ] 
-
-
-viewNew : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
-viewNew model forward save close =
+view : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
+view model forward save close =
  case model of 
   Overview state ->
     Components.box <|
-       [ Components.button (close state) [] "Save Ensemble"
-      , display model (\msg -> (forward <| update msg state))
+       [ text "viewing look" 
+       ,  Components.button (save state) [] "Save Ensemble"
+       , display model (\msg -> (forward <| update msg state))
       ] 
 
   Editing state index voice ->
     Components.box <| 
       [   text "editing ensemble nigga"
-      , Components.button (close state) [] "Save Ensemble"
-      , display model (\msg -> (forward <| update msg state))
+      , Components.button (save state) [] "Save Ensemble"
+      , editorNew state index voice (\msg -> (forward <| update msg state))
       ] 
 
 
