@@ -146,9 +146,9 @@ picker things icon select kill  =
            , Html.br [] []
            , text "Click on a scope to change the details and voices." ] 
            , Html.br [] []]
-   , div [ Attr.class "columns is-multiline level is-vcentered" ] <|
+   , div [ Attr.class "columns is-multiline level is-vcentered  is-flex-direction-column" ] <|
      (List.indexedMap (\i thing ->
-       div [ Attr.class "is-clickable column is-flex is-flex-direction-column" ]
+       div [ Attr.class "is-clickable column is-flex is-flex-direction-column is-half" ]
          [ Components.col [ Attr.class "is-full has-text-centered", onClick (select i) ] [(icon thing)]
          , Components.col [ Attr.class "is-full has-text-centered" ] [(Components.deleteIcon (kill i))] 
          ] ) things)
