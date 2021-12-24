@@ -106,8 +106,8 @@ thumbEdit model forward up =
    
     Scope ((scope, ensemble) as state) mod ->
      let
-        continue = (\m -> forward <| Scope (Debug.log "Found thumbEdit.Scope state:" state) m)
-        keep =  (\s -> forward <| update (SaveScope s) state)
+        continue = (\m -> forward <| Scope state m)
+        keep =  (\s -> up (s, ensemble))
         done = (\_ -> forward <| Overview state)
      in
       div [] 

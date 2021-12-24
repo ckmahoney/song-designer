@@ -312,7 +312,7 @@ update msg model =
       ({ model | title = title }, Cmd.none)
 
     CloseLayoutEditor layout ->
-      ({ model | layout = layout, layoutEditor = Nothing }, Cmd.none)
+      ({ model | layout = Debug.log "Keeping these changes for goodsies:" layout, layoutEditor = Nothing }, Cmd.none)
 
     OpenLayoutEditor layout ->
       ({ model | layoutEditor = Just <| LayoutEditor.Overview layout } , Cmd.none)

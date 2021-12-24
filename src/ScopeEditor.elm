@@ -253,9 +253,8 @@ editorDesktop toMsg state  =
 editor : State -> (Msg -> msg) -> Html msg
 editor state toMsg =
   div []
-   [ editorDesktop toMsg state
-   -- , Components.mobileOnly <| editorMobile toMsg state
-   , Components.tabletOnly <| editorMobile toMsg state
+   [ Components.mobileOnly <| editorMobile toMsg state
+   , Components.tabletOnly <| editorDesktop toMsg state
    , Components.desktopOnly <| editorDesktop toMsg state 
    ]
 
@@ -278,8 +277,7 @@ view model forward save close =
        toMsg = (\msg -> forward <| update msg state)
      in
       div []
-       [ text "editing scope beyotch"
-       , Components.button (save state) [Attr.class "is-primary"] "Done with Scope"
+       [ Components.button (save state) [Attr.class "is-primary"] "Done with Scope"
        , editor state toMsg
        ]
 

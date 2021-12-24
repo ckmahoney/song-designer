@@ -90,7 +90,6 @@ update msg state =
    Save next->
     Overview next
 
-
    Update index combo ->
      let
       next = Tools.replaceAt index combo state
@@ -210,9 +209,9 @@ view model forward save close  =
 
     Editing state index mod ->
       let 
-        continue = (\cModel -> forward <| edit state (Edit index (curr state index)) cModel)
+        continue = forward << edit state (Edit index (curr state index))
         swap = (\c ->  Tools.replaceAt index c state)
-        keep =  (\combo -> forward <| (update (Update index combo) state))
+        keep =  (\combo -> forward <| (update (Save <| swap combo) state))
       in 
       Components.box <|
         [ Components.button (close state)  [] "Done!!"
