@@ -138,7 +138,7 @@ controls toMsg i voice =
 
 voiceCard : (Msg -> msg) -> Int -> Voice -> Html msg
 voiceCard toMsg i voice =
-  div [ Attr.class "box columns is-flex my-3", Attr.style "border" "1px solid lightgrey",  Attr.style "border-radius" "5px" ]  
+  div [ Attr.class "columns is-flex my-3", Attr.style "border" "1px solid lightgrey",  Attr.style "border-radius" "5px" ]  
      [ Components.col1 <| VoiceEditor.view voice
      ,  controls toMsg i voice
      ]

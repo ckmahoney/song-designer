@@ -62,7 +62,8 @@ updateComplexity model update complexity =
 
 
 numberPickers model update =
-    [ Components.colHalf <| Components.editInt "Density" (View.densityMessage model) Data.rangeDensity model.density (updateDensity model update)
+  Components.box <| List.singleton <|
+  Components.cols <|  [ Components.colHalf <| Components.editInt "Density" (View.densityMessage model) Data.rangeDensity model.density (updateDensity model update)
      , Components.colHalf <| Components.editInt "Complexity" (View.complexityMessage model) Data.rangeComplexity model.complexity (updateComplexity model update)
     ]
 
@@ -85,6 +86,7 @@ controls model save kill =
        [ Components.col1 <| Components.svgButton "checkmark" (save model)
        , div [Attr.class "column is-half has-text-right"] [Components.svgButton "trash" kill]
        ]
+
   ]
 
 
@@ -95,31 +97,36 @@ edit model update save kill =
  in 
   div [ Attr.class "container" ]
     [ controls model save kill
-    , Components.mobile [ Attr.class "is-mobile is-flex is-flex-wrap-wrap columns" ] <|
-        List.append 
-          [ Components.colFull <| Components.editText "Label" (text "") model.label (updateLabel model update)
-          , Components.editSelection model.role "" (text "") options model.role (updateRole model update)             
-          ] 
-          (numberPickers model update) 
 
-    , Components.tablet [ Attr.class "is-flex is-justify-content-space-between columns is-multiline" ] <|
-       List.append  
+    , Components.mobile [ Attr.class "is-mobile is-flex is-flex-wrap-wrap columns is-multiline" ] <|
+          [ Components.colFull <| Components.editText "Label" (text "Name") model.label (updateLabel model update)
+          , Components.colFull <| div [Attr.class "has-text-centered"] [ View.viewVoice model]
+          , Components.colFull <| Components.cols <|
+              [ Components.colHalf <| Components.editSelection model.role "" (text "Role") options model.role (updateRole model update)             
+              , Components.colHalf <| numberPickers model update   
+              ]
+          ]
+
+    , Components.tablet [ Attr.class "is-flex is-justify-content-space-between columns is-multilinbe" ] 
+
         [ Components.colHalf <| View.viewVoice model
         , Components.colHalf <| Components.colsMulti
-            [ Components.editText "Label" (text "") model.label (updateLabel model update)
-            , Components.editSelection model.role "" (text "") options model.role (updateRole model update)    
-            ] ]
-        (numberPickers model update) 
-
-    , Components.desktop [ Attr.class "columns is-multiline is-flex is-justify-content-space-between" ] <|
-       List.append
-        [ Components.colHalf <| View.viewVoice model
-        , Components.colHalf <| Components.colsMulti
-            [ Components.editText "Label" (text "") model.label (updateLabel model update)
-            , Components.editSelection model.role "" (text "") options model.role (updateRole model update) 
+            [ Components.editText "Label" (text "Name") model.label (updateLabel model update)
+            , Components.editSelection model.role "" (text "Role") options model.role (updateRole model update)    
+          , numberPickers model update   
             ]
         ]
-        (numberPickers model update)
+
+
+    , Components.desktop [ Attr.class "columns is-multiline is-flex is-justify-content-space-between" ] 
+        [ Components.colHalf <| View.viewVoice model
+        , Components.colHalf <| Components.colsMulti
+            [ Components.editText "Label" (text "Name") model.label (updateLabel model update)
+            , Components.editSelection model.role "" (text "Role") options model.role (updateRole model update) 
+          , numberPickers model update   
+            ]
+
+        ]
     ]
 
 

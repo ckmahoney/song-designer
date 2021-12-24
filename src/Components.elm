@@ -208,7 +208,7 @@ editInt title html (min, max) val toMsg =
     more = if max == num then noClickButton else 
              button (toMsg <| num + 1) [class "image button is-48x48" ] "+ "
   in 
-  div [ class "box"]
+  div []
     [ div [ class "columns is-multiline"]
       [ div [ class "columns is-multiline column is-full"] 
             [ Html.h5 [ class "column is-half subtitle"] [ text title ]
@@ -254,7 +254,8 @@ editTextDesktop title html val toMsg =
 editText : String -> Html msg -> String -> ( String -> msg ) -> Html msg
 editText title html val toMsg =
   div [class "box"]
-    [ tabletOnly <| editTextMobile title html val toMsg 
+    [ mobileOnly <| editTextMobile title html val toMsg 
+    , tabletOnly <| editTextDesktop title html val toMsg 
     , desktopOnly <| editTextDesktop title html val toMsg 
     ] 
 
