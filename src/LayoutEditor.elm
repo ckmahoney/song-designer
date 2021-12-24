@@ -199,11 +199,11 @@ view model forward save close  =
   case Debug.log "has model:" model of 
     Overview state ->
      let 
-      k = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
+      kill = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
      in 
       Components.box <|
         [ Components.button (close state) [] "Close" 
-        , picker state View.viewCombo (\i -> (forward <| edit state  (Select i) <| ComboEditor.initModel state i)) k
+        , picker state View.viewCombo (\i -> (forward <| edit state (Select i) <| ComboEditor.initModel state i)) kill
         , if 4 > List.length state then 
             Components.plusButton (forward <| update (Save (apply state Create)) state)
             else text ""
@@ -212,12 +212,12 @@ view model forward save close  =
     Editing state index mod ->
       let 
         curr = Tools.getOr index state Data.emptyCombo 
-        continue = (\cModel -> Local cModel <| Edit index curr)
+        continue = (\cModel -> forward <| edit state (Edit index curr) cModel)
         swap = (\c ->  Tools.replaceAt index c state)
         keep =  (\combo -> forward <| (update (Update index combo) state))
       in 
       div [] [ Components.button (forward <| update (Save state) state)  [] "Done"
-        , ComboEditor.thumbEdit curr keep
+        , ComboEditor.thumbEdit mod continue curr keep
         ] 
 
 

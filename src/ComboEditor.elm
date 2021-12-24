@@ -100,9 +100,22 @@ thumb (scope, ensemble) =
     , Components.colHalf <| EnsembleEditor.thumb ensemble
     ]
 
-thumbEdit : Combo -> (Combo -> msg) -> Html msg
-thumbEdit combo up =
-  text "updating"
+thumbEdit : Model -> (Model -> msg) -> Combo -> (Combo -> msg) -> Html msg
+thumbEdit model forward ((scope, ensemble) as s) up =
+  case model of 
+    Overview state -> 
+      thumb state
+   
+    Scope state mod ->
+     let
+        continue = (\m -> forward <| Scope state m)
+        keep = (\combo -> forward <| update (Save (fromScope state mod combo)) state)
+        done = (\_ -> forward <| Overview state)
+     in
+      ScopeEditor.viewNew mod continue keep done
+
+    Ensemble _ _ ->
+      text "todo ensembel yay :) "
 
 
 fromScope : State -> ScopeEditor.Model -> ScopeEditor.State -> State

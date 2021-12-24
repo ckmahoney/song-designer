@@ -270,6 +270,25 @@ view changing model toMsg close =
      Editing state ->
         editor state toMsg
 
+initFrom : State -> Model
+initFrom state =
+  Overview state
+
+
+viewNew : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
+viewNew model forward save close =
+  case model of 
+    Overview state ->
+     div []
+      [ text "editing scope beyotch"
+      , thumb state
+      ]
+
+    Editing state ->
+     div []
+      [ text "editing scope beyotch"
+      , thumb state
+      ]
 
 main = 
   Html.text ""
