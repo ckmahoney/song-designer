@@ -18,10 +18,19 @@ mobileOnly child =
   div [ class "is-hidden-tablet" ] [ child ]
 
 tabletOnly child =
-  div [ class "is-hidden-desktop" ] [ child ]
+  div [ class "is-hidden-mobile is-hidden-desktop" ] [ child ]
 
 desktopOnly child =
   div [ class "is-hidden-touch" ] [ child ]
+
+mobile attrs  =
+  div (attrs ++ [ class "is-hidden-tablet" ])
+
+tablet  attrs =
+  div (attrs ++[ class "is-hidden-desktop is-hidden-mobile" ])
+
+desktop attrs =
+  div (attrs ++ [ class "is-hidden-touch" ])
 
 
 invertColor : Html msg -> Html msg
@@ -90,6 +99,10 @@ svg name =
       , src <| "/assets/svg/" ++ name ++ ".svg"] []
 
 
+svgButton : String -> msg -> Html msg
+svgButton name click =
+  div [onClick click] [svg name]
+
 svgSquare : String -> Int -> Html msg
 svgSquare name x = 
   Html.img [ width x
@@ -157,7 +170,7 @@ viewList xs icon =
 
 noClickButton : Html msg
 noClickButton =
-  svg "empty"
+  svg "square"
 
 
 strvalToFloat : Float -> Float ->  String -> Float
@@ -199,12 +212,16 @@ editInt title html (min, max) val toMsg =
     [ div [ class "columns is-multiline"]
       [ div [ class "columns is-multiline column is-full"] 
             [ Html.h5 [ class "column is-half subtitle"] [ text title ]
-            , div [ class "is-block-tablet column is-half is-flex is-flex-direction-column level"] 
+            , mobile [ class "column is-half is-flex is-flex-direction-column level"] 
                      [ less
                      , Html.b [] [" " ++ String.fromInt val |> text ]
                      , more ] 
-            , div [ class "is-hidden-mobile column is-half is-flex level"] 
+            , tablet [ class "column is-half is-flex level"] 
                      [ less
+                     , Html.b [] [" " ++ String.fromInt val |> text ]
+                     , more ]
+            , desktop [ class "column is-half is-flex level"]
+                      [ less
                      , Html.b [] [" " ++ String.fromInt val |> text ]
                      , more ] ] 
       , div [ class "column box has-text-light has-background-info is-full"] [ html ] ] ]
@@ -247,12 +264,13 @@ editSelection curr name info options current select =
   div [ class "box" ]
     [ Html.h5 [ class "subtitle" ] [ Html.label [] [ text name ] ]
     , info
-    , div [ class "columns" ] <|
+    , colsMulti <|
       List.map (\(val, html) -> 
         let 
           fx = if (val == curr) then invertColor  else wrap
+          classes = if (val == curr) then "chosen" else ""
         in 
-        div [ class "class column",  onClick (select val) ] [ fx <| div [ class "has-text-centered has-background-white" ] [ html ] ]  ) options ]
+        div [ class "class column is-one-quarter",  onClick (select val) ] [ fx <| div [ class "has-text-centered has-background-white", class classes ] [ html ] ]  ) options ]
 
 
 card : String -> Html msg-> Html msg

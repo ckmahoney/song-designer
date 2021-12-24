@@ -61,27 +61,65 @@ updateComplexity model update complexity =
   update { model | complexity = complexity }
 
 
+numberPickers model update =
+    [ Components.colHalf <| Components.editInt "Density" (View.densityMessage model) Data.rangeDensity model.density (updateDensity model update)
+     , Components.colHalf <| Components.editInt "Complexity" (View.complexityMessage model) Data.rangeComplexity model.complexity (updateComplexity model update)
+    ]
+
+
+controls model save kill = 
+ div [] 
+  [ Components.mobile [] <| List.singleton <|
+     div [Attr.class "columns is-mobile"]
+       [ div [Attr.class "column"] [ Components.svgButton "checkmark" (save model) ]
+       , div [Attr.class "column has-text-right"] [Components.svgButton "trash" kill]
+       ]
+  , Components.tablet [] <| List.singleton <|
+     div [Attr.class "columns px-1"] <|
+       [ Components.col1 <| Components.svgButton "checkmark" (save model)
+       , div [Attr.class "column is-half has-text-right"] [Components.svgButton "trash" kill]
+       ]
+
+  , Components.desktop [] <| List.singleton <|
+     div [Attr.class "columns px-1"] <|
+       [ Components.col1 <| Components.svgButton "checkmark" (save model)
+       , div [Attr.class "column is-half has-text-right"] [Components.svgButton "trash" kill]
+       ]
+  ]
+
+
 edit : Model -> (Model -> msg) -> (Model -> msg) -> msg -> Html msg
 edit model update save kill =
  let
    options = List.map (\r -> (r, View.roleIcon r)) Data.roles
  in 
   div [ Attr.class "container" ]
-    [ Components.cols <| [ Components.colHalf <| Components.button (save model) [] "Save"
-     , Components.col [Attr.class "is-flex is-justify-content-flex-end has-background-danger"] <|[Components.button kill [] "Delete"]] 
-    , Components.colsWith [ Attr.class "is-hidden-tablet is-mobile is-flex is-flex-wrap-wrap" ] 
-        [ Components.colFull <| Components.editText "Label" (text "") model.label (updateLabel model update)
-        , Components.col [Attr.class "is-full has-text-centered"] [View.viewVoice model]
-        ]  
-    , Components.colsWith [ Attr.class "is-hidden-mobile is-tablet is-flex is-justify-content-space-between" ] 
-        [ Components.colHalf <| View.viewVoice model
-        , Components.colHalf <| Components.editText "Label" (text "") model.label (updateLabel model update)
-        ]  
-    , Components.editSelection model.role "Role" (text "") options model.role (updateRole model update)
-    , Components.colsWith [ Attr.class "is-mobile is-flex is-justify-content-space-between" ] 
-       [ Components.colHalf <| Components.editInt "Density" (View.densityMessage model) Data.rangeDensity model.density (updateDensity model update)
-       , Components.colHalf <| Components.editInt "Complexity" (View.complexityMessage model) Data.rangeComplexity model.complexity (updateComplexity model update) ]
+    [ controls model save kill
+    , Components.mobile [ Attr.class "is-mobile is-flex is-flex-wrap-wrap columns" ] <|
+        List.append 
+          [ Components.colFull <| Components.editText "Label" (text "") model.label (updateLabel model update)
+          , Components.editSelection model.role "" (text "") options model.role (updateRole model update)             
+          ] 
+          (numberPickers model update) 
 
+    , Components.tablet [ Attr.class "is-flex is-justify-content-space-between columns is-multiline" ] <|
+       List.append  
+        [ Components.colHalf <| View.viewVoice model
+        , Components.colHalf <| Components.colsMulti
+            [ Components.editText "Label" (text "") model.label (updateLabel model update)
+            , Components.editSelection model.role "" (text "") options model.role (updateRole model update)    
+            ] ]
+        (numberPickers model update) 
+
+    , Components.desktop [ Attr.class "columns is-multiline is-flex is-justify-content-space-between" ] <|
+       List.append
+        [ Components.colHalf <| View.viewVoice model
+        , Components.colHalf <| Components.colsMulti
+            [ Components.editText "Label" (text "") model.label (updateLabel model update)
+            , Components.editSelection model.role "" (text "") options model.role (updateRole model update) 
+            ]
+        ]
+        (numberPickers model update)
     ]
 
 

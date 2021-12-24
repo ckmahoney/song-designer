@@ -104,8 +104,7 @@ thumbEdit model forward up =
         pickEnsemble = forward <| update (PickEnsemble ensemble) state
      in
       Components.cols <| 
-        [ text "thumbEdit.Overview"
-        , Components.col [Attr.class "is-half", onClick pickScope ] <| List.singleton <| 
+        [ Components.col [Attr.class "is-half", onClick pickScope ] <| List.singleton <| 
               ScopeEditor.brief scope
         , Components.col [Attr.class "is-half", onClick pickEnsemble ] <| List.singleton <| 
               EnsembleEditor.thumb ensemble

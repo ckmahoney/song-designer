@@ -109,6 +109,10 @@ cpcOptions =
   [ 3, 4, 6, 8
   ]
 
+sizeOptions : List Int
+sizeOptions =
+  List.range 1 8
+
 
 initScope = Scope 0 "Teaser" 1.25 4 5 (44//10)
 
@@ -167,6 +171,13 @@ cpcPicker current msg =
    <| [ label [Attr.class "mr-3"] [ text "Phrase Length"]
     , div [Attr.class flexStyles] <| List.map (\cpc ->
     Components.button (msg (Update <| CPC cpc)) [Attr.class <| if current == cpc then "is-success is-selected" else ""] (String.fromInt cpc)) cpcOptions ]
+
+sizePicker : Int -> (Msg -> msg) -> Html msg
+sizePicker current msg =
+  Components.boxAttrs border
+   <| [ label [Attr.class "mr-3"] [ text "Size"]
+    , div [Attr.class flexStyles] <| List.map (\size ->
+    Components.button (msg (Update <| Size size)) [Attr.class <| if current == size then "is-success is-selected" else ""] (String.fromInt size)) sizeOptions ]
 
 
 icon : Model -> Html msg
@@ -230,9 +241,10 @@ editorMobile toMsg state  =
     , Components.card "Scope label" <| div border
       [ p [] [text "Something like 'verse' or 'chorus' to help you what this part is doing."]
       , input [Attr.class "view0 input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> toMsg (Update <| Title  str))] [] ]
+    , keyPicker state.root toMsg
     , cpsPicker state.cps toMsg
     , cpcPicker state.cpc toMsg
-    , keyPicker state.root toMsg
+    , sizePicker state.size toMsg
     -- , Components.button (toMsg <| Save state) [] "Save Scope" 
     ]
 
@@ -244,9 +256,10 @@ editorDesktop toMsg state  =
         , Components.card "Scope label" <| div []
         [ p [] [text "Something like 'verse' or 'chorus' to help you what this part is doing."]
         , input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> toMsg (Update <| Title  str))] [] ]
+     , keyPicker state.root toMsg
      , cpsPicker state.cps toMsg
      , cpcPicker state.cpc toMsg
-     , keyPicker state.root toMsg
+     , sizePicker state.size toMsg
      ]
 
 

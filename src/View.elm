@@ -452,14 +452,13 @@ sizeMessage : Int -> Int -> Html msg
 sizeMessage cpc size =
   div [] 
     [ p [] [ text <| 
-   case size of 
-     1 -> 
+   if size < 3 then
       "This is a short part, "
-     2 -> "This part is medium length, "
-   
-     3 -> "This part is large, "
-     _ -> "Woah, you made it even larger!"
-    , p [] [ text <| "and the phrases will feel like they are about " ++ String.fromInt cpc ++ " beats long." ] ] ]
+   else if size < 7 then
+     "This part is medium length, "
+   else
+      "This part is large, "
+   , p [] [ text <| "and the phrases will feel like they are about " ++ String.fromInt cpc ++ " beats long." ] ] ]
 
 
 totalLength : List T.Scope -> Float

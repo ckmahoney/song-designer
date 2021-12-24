@@ -66,6 +66,12 @@ thumb state =
        [ text "No voices in this ensemble." ] else 
        List.map (\{role} -> Components.colSize "is-one-quarter" <| Components.svg  (Tuple.first <| Data.roleLabel role)) state
 
+picker : State -> (Int -> msg) -> Html msg
+picker state click =
+   Components.box <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-mobile"]
+     <| if List.length state == 0 then 
+       [ text "No voices in this ensemble." ] else 
+       List.indexedMap (\i {role} -> Components.col [onClick (click i), Attr.class "is-one-quarter"] <| List.singleton <| Components.svg  (Tuple.first <| Data.roleLabel role)) state
 
 
 brief : State -> Html msg
@@ -96,7 +102,9 @@ voiceGrid state toMsg =
     i = List.length next
     createVoice =  toMsg <| Select i
   in 
-  div [] <|
+  Components.box <|
+   List.append [ (Components.label "Ensemble") ]
+   <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-vcentered has-text-centered"] <|
     Components.button createVoice [ Attr.class "column is-one-quarter"] "+" 
     :: List.indexedMap (\index {role} -> 
          div [Attr.class "column is-one-quarter", onClick <| toMsg <| Select index] [View.roleIcon role]) state 
@@ -119,19 +127,28 @@ showNoVoices state toMsg =
   Components.button (toMsg <| Create) [] "Create the First Voice"  
 
 
+controls : (Msg -> msg) -> Int -> Voice -> Html msg
+controls toMsg i voice =
+  div [Attr.class "column is-flex is-flex-direction-column is-one-quarter"] 
+    [ div [ Attr.class "column is-flex is-align-items-flex-start is-justify-content-center" ] <|
+        [ Components.svgButton "settings" (toMsg <| Select  i) ]
+    , div [ Attr.class "column is-flex is-align-items-flex-end is-justify-content-center" ] <|
+        [Components.svgButton "trash" (toMsg <| Kill  i)]
+    ]
+
+voiceCard : (Msg -> msg) -> Int -> Voice -> Html msg
+voiceCard toMsg i voice =
+  div [ Attr.class "box columns is-flex my-3", Attr.style "border" "1px solid lightgrey",  Attr.style "border-radius" "5px" ]  
+     [ Components.col1 <| VoiceEditor.view voice
+     ,  controls toMsg i voice
+     ]
+ 
+
 
 listVoices : State -> (Msg -> msg) -> Html msg
 listVoices state toMsg =
   div [Attr.class "is-full has-text-centered"] <|
-   List.indexedMap (\i voice -> 
-      div [Attr.class "my-3", Attr.style "border" "1px solid lightgrey",  Attr.style "border-radius" "5px" ] 
-       [ Components.colsWith [Attr.class "is-flex"] 
-          [ Components.col [Attr.style "width" "50%"] <| List.singleton <| 
-                Components.button (toMsg <| Select  i) [Attr.class "has-background-primary is-fullwidth has-text-light has-text-weight-bold" ] ("Edit " ++ voice.label) 
-          , Components.col [Attr.style "width" "50%"] <| List.singleton <|
-                Components.deleteButton (toMsg <| Kill  i)]
-       , VoiceEditor.view voice
-       ]) state 
+   List.indexedMap (voiceCard toMsg) state 
 
 
 display : Model -> (Msg -> msg) -> Html msg
@@ -141,9 +158,11 @@ display model toMsg =
     if 0 == List.length state then 
       showNoVoices state toMsg
     else
-      div [ Attr.class "is-flex is-flex-direction-column align-items-flex-start" ] <|
-        [ (Components.addButton (toMsg <| Create ) "Add a Voice")
-        , listVoices state toMsg 
+      Components.box <|
+        [ Components.plusButton (toMsg <| Create ) 
+        , div [ Attr.class "is-flex is-flex-direction-column align-items-flex-start" ] <|
+         [ listVoices state toMsg 
+         ]
         ]
 
   Editing state index mod ->
@@ -155,16 +174,13 @@ view model forward save close =
  case model of 
   Overview state ->
     Components.box <|
-       [ text "viewing look" 
-       ,  Components.button (save state) [] "Save Ensemble"
+       [ Components.button (save state) [] "Save Ensemble"
        , display model (\msg -> (forward <| update msg state))
       ] 
 
   Editing state index voice ->
     Components.box <| 
-      [   text "editing ensemble nigga"
-      , Components.button (save state) [] "Save Ensemble"
-      , editorNew state index voice (\msg -> (forward <| update msg state))
+      [ editorNew state index voice (\msg -> (forward <| update msg state))
       ] 
 
 
