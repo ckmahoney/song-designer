@@ -3,25 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <link rel="stylesheet" href="node_modules/bulma/css/bulma.min.css">
+  <link rel="stylesheet" href="style.css">
+
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+French+Canon:ital@1&display=swap" rel="stylesheet"> 
   <title>Instrument</title>
-  <style>body { padding: 0; margin: 0; }</style>
+  <style>body { padding: 0; margin: 0; } .font-expression { font-family: "IM Fell French Canon", cursive; }
+
+/* body { background : #e290ff }  */
+/* body { background : #fd5800 } */
+/* body { background : #00ff00 } */
+/* body { background : #89cff0} */
+ </style>
 </head>
 
 
-<body>
+<body class="with-bulma">
 
-<div id="main-root"></div>
+<div class="section">
+  <div  id="main-root"></div>
+</div>
+
 <div id="instrument-root"></div>
-<div id="color-picker-root"></div>
+<audio id="audio-player"></audio>
+
+<div id="demo-combo-intro"></div>
+<div id="demo-combo-verse"></div>
+<div id="demo-combo-chorus"></div>
+<div id="demo-combo-outro"></div>
+<div id="demo-layout"></div>
+
 <pre id="elm"></pre>
 
 
 <script src="elm-out.js"></script>
 <script>
-[ Elm.Main.init({ flags: 0, node: document.getElementById("main-root") })
-// , Elm.Instrument.init({ node: document.getElementById("instrument-root") })
-// , Elm.ColorPicker.init({ node: document.getElementById("color-picker-root") })
-]
+
+var songDesigner = Elm.Main.init( { flags: null, node: document.getElementById("main-root") });
+
+
+function initDemos () {
+   Elm.Demos.init( { flags: {type_: "combo", detail: "intro"}, node: document.querySelector("#demo-combo-intro")} );
+
+   Elm.Demos.init( { flags: {type_: "combo", detail: "verse"}, node: document.querySelector("#demo-combo-verse")} );
+
+   Elm.Demos.init( { flags: {type_: "combo", detail: "chorus"}, node: document.querySelector("#demo-combo-chorus")} );
+
+   Elm.Demos.init( { flags: {type_: "combo", detail: "outro"}, node: document.querySelector("#demo-combo-outro")} );
+
+
+   Elm.Demos.init( { flags: {type_: "layout", detail: ""}, node: document.querySelector("#demo-layout")} );
+}
+
+// initDemos();
+
+// document.getElementById("audio-player").volume = 0.1;
+
+function playMusic() {
+    document.getElementById("audio-player").play();
+}
+
+function stopMusic() {
+    document.getElementById("audio-player").pause();
+    document.getElementById("audio-player").currentTime = 0;
+}
+
+function pauseMusic() {
+    document.getElementById("audio-player").pause();
+}
+
+function setSource(source) {
+    document.getElementById("audio-player").pause();
+    document.getElementById("audio-player").setAttribute("src", source);
+    document.getElementById("audio-player").play();
+}
+
+songDesigner.ports.playMusic.subscribe(playMusic);
+
+songDesigner.ports.stopMusic.subscribe(stopMusic);
+
+songDesigner.ports.pauseMusic.subscribe(pauseMusic);
+
+songDesigner.ports.setSource.subscribe(setSource);
+
+
+
 
 </script>
 </body>
