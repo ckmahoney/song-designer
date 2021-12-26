@@ -519,3 +519,9 @@ update msg model =
           ({ model 
            | templates = Tools.replaceAt model.index template model.templates 
            , view = templateDash }, Cmd.none)
+
+view model =
+  div [ menu model.view
+      , display model Select 
+      , text model.response
+      ]
