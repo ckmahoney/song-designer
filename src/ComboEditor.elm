@@ -49,10 +49,10 @@ update : Msg -> State -> Model
 update msg ((s, e) as state) =
   case msg of
     Save next ->
-      Overview (Debug.log "Saving this new state::" next)
+      Overview next
 
     SaveScope next ->
-     Overview (Debug.log "completed save for new scope in combo:"  (next,e))
+     Overview  (next,e)
 
     UpdateScope next ->
       Scope state <| ScopeEditor.Editing next
@@ -71,18 +71,23 @@ initState =
   Data.emptyCombo
 
 
+border pos =
+  [ Attr.style ("border-" ++ pos) "1px solid rgba(0,0,0,0.5)"
+  , Attr.style "border-radius" "5px"
+  ]
+
 
 thumb : Combo -> Html msg
 thumb (scope, ensemble) =
   Components.cols <| 
-    [ Components.colHalf <| ScopeEditor.brief scope
-    , Components.colHalf <| View.ensemblePeek ensemble
+    [ Components.col (Attr.class "is-half" :: border "right") [ScopeEditor.brief scope]
+    , Components.col (Attr.class "is-half" :: border "right") [View.ensemblePeek ensemble]
     ]
 
 
 fromScope : State -> ScopeEditor.Model -> ScopeEditor.State -> State
 fromScope (prev, ensemble) mod next =
-  (Debug.log "fromScope.next:" next, ensemble)
+  (next, ensemble)
 
 fromEnsemble : State ->  EnsembleEditor.Model -> EnsembleEditor.State ->State
 fromEnsemble (scope, prev) mod next =

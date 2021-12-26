@@ -17,6 +17,13 @@ import Tools
 useSharps = False
 
 
+border pos =
+  [ Attr.style ("border-" ++ pos) "1px solid rgba(0,0,0,0.1)"
+  , Attr.style "border-radius" "5px"
+  ]
+
+
+
 scopePeek : T.Scope -> Html msg
 scopePeek state =
   div [] 
@@ -806,11 +813,11 @@ viewCombo  (({cpc,cps,size} as scope), ensemble)  =
  let
   nVoices = List.length ensemble
  in 
-  Components.box <| List.singleton <| Components.cols <|
-    [ Components.colHalf <| scopePeek scope 
+  Components.colsWith [Attr.class "peek-combo"]
+    [ Components.col ((Attr.class "is-half" :: (border "right"))++  (border "left")) [ scopePeek scope ]
 
-    , Components.colHalf <| if nVoices == 0 then text "No voices"  else 
-        ensembleThumb ensemble 
+    , Components.col ((Attr.class "is-half" :: (border "left"))  ++ (border "right")) [ if nVoices == 0 then text "No voices"  else 
+        ensembleThumb ensemble ]
 
     ]
        

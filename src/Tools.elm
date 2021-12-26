@@ -133,4 +133,12 @@ replaceAt index el els =
   |> Array.toList
 
 
+insertAt : Int -> a -> List a -> List a
+insertAt index el els =
+  List.concat
+   [ List.take index els
+   , List.singleton el
+   , List.drop index els
+   ] 
+
 main = Html.text ""

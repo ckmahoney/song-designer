@@ -143,7 +143,7 @@ initFrom v s l t m =
 
 initTest : Model
 initTest = 
-  initFrom [Data.p1, Data.p2] [] [] []  Nothing
+  initFrom [Data.p1, Data.p2] [] [] [] (Just Data.testMember)
 
 
 initEmpty : Model
@@ -163,7 +163,11 @@ init : Maybe GhostMember -> (Model, Cmd Msg)
 init flags =
   case flags of 
     Nothing -> 
-      (initEmpty, Cmd.none)
+     let
+       member = Data.testMember
+     in
+      (initFromMember member, getSongs member.email member.uuid)
+      -- (initEmpty, Cmd.none)
     
     Just member ->
       (initFromMember member, getSongs member.email member.uuid)
@@ -172,8 +176,8 @@ init flags =
 
 
 hostname = 
-  -- "http://localhost:3000/"
-  "https://synthony.app"
+  "http://localhost:3000"
+  -- "https://synthony.app"
 
 
 apiUrl : String -> String 
@@ -312,7 +316,7 @@ update msg model =
       ({ model | title = title }, Cmd.none)
 
     CloseLayoutEditor layout ->
-      ({ model | layout = Debug.log "Keeping these changes for goodsies:" layout, layoutEditor = Nothing }, Cmd.none)
+      ({ model | layout =  layout, layoutEditor = Nothing }, Cmd.none)
 
     OpenLayoutEditor layout ->
       ({ model | layoutEditor = Just <| LayoutEditor.Overview layout } , Cmd.none)
@@ -321,7 +325,7 @@ update msg model =
       ({ model | layoutEditor = editor  } , Cmd.none)
 
     SaveLayout layout ->
-      ({ model | layout = Debug.log "New layout in model:" layout }, Cmd.none)
+      ({ model | layout = layout }, Cmd.none)
 
     LoadTrack track -> 
       ( model, setSource track.filepath )

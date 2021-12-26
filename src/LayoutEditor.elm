@@ -3,7 +3,7 @@ module LayoutEditor exposing (..)
 import Browser
 import Html exposing (Html, button, div, text, label, p, input)
 import Html.Attributes as Attr
-import Html.Events exposing (onClick, onInput)
+import Html.Events as Events exposing (onClick, onInput)
 
 
 import Types exposing (..)
@@ -17,6 +17,8 @@ import ScopeEditor
 import EnsembleEditor
 import VoiceEditor
 
+import Json.Decode as Decode
+
 
 type alias State = List Combo
 
@@ -25,6 +27,7 @@ type Msg
   = Update Int Combo
   | Save State
   | Local ComboEditor.Model Internal
+  | Cloning Int 
 
 
 type Internal 
@@ -37,6 +40,127 @@ type Internal
 type Model 
   = Overview State
   | Editing State Int ComboEditor.Model
+  | PlacingClone State Combo
+
+type alias DragItem = String
+
+
+type alias DragModel =
+    { beingDragged : Maybe DragItem
+    , draggableItems : List DragItem
+    , items : List DragItem
+    }
+
+
+initialModel : DragModel
+initialModel =
+    { beingDragged = Nothing
+    , draggableItems =
+        List.range 1 5
+            |> List.map Debug.toString
+    , items = []
+    }
+
+
+type DragMsg
+    = Drag DragItem
+    | DragEnd
+    | DragOver
+    | Drop
+
+
+updateDrag : DragMsg -> DragModel -> DragModel
+updateDrag msg model =
+    case msg of
+        Drag item ->
+            { model | beingDragged = Just item }
+
+        DragEnd ->
+            { model | beingDragged = Nothing }
+
+        DragOver ->
+            model
+
+        Drop ->
+            case model.beingDragged of
+                Nothing ->
+                    model
+
+                Just item ->
+                    { model
+                        | beingDragged = Nothing
+                        , items = item :: model.items
+                    }
+
+
+draggableItemView : String -> Html DragMsg
+draggableItemView item =
+    Html.div
+        [ Attr.class "card fluid warning"
+        , Attr.draggable "true"
+        , onDragStart <| Drag item
+        , onDragEnd DragEnd
+        ]
+        [ Html.div
+            [ Attr.class "section" ]
+            [ Html.text item ]
+        ]
+
+
+itemView : String -> Html DragMsg
+itemView item =
+    Html.div
+        [ Attr.class "card fluid error" ]
+        [ Html.div
+            [ Attr.class "section" ]
+            [ Html.text item ]
+        ]
+
+
+viewDragger : DragModel -> Html DragMsg
+viewDragger model =
+    Html.div
+        [ Attr.class "container" ]
+        [ Html.div
+            [ Attr.class "row" ]
+            [ Html.div
+                [ Attr.class "col-sm-6" ]
+              <|
+                (List.map draggableItemView model.draggableItems
+                    |> (::) (Html.h4 [] [ Html.text "Draggable" ])
+                )
+            , Html.div
+                [ Attr.class "col-sm-6"
+                , onDragOver DragOver
+                , onDrop Drop
+                ]
+              <|
+                (List.map itemView model.items
+                    |> (::) (Html.h4 [] [ Html.text "Drop Zone" ])
+                )
+            ]
+        ]
+
+
+onDragStart msg =
+    Events.on "dragstart" <|
+        Decode.succeed msg
+
+
+onDragEnd msg =
+    Events.on "dragend" <|
+        Decode.succeed msg
+
+
+onDragOver msg =
+    Events.preventDefaultOn "dragover" <|
+        Decode.succeed ( msg, True )
+
+
+onDrop msg =
+    Events.preventDefaultOn "drop" <|
+        Decode.succeed ( msg, True )
+
 
 
 apply : State -> Internal -> State
@@ -99,7 +223,8 @@ update msg state =
    Local mod internal ->
      edit state internal mod
 
-  
+   Cloning index ->
+    PlacingClone state (curr state index)
 
 initState = 
   [ Data.combo1, Data.combo2 ]
@@ -136,23 +261,38 @@ lookOld things icon =
    ]
 
 
-picker things icon select kill  = 
+picker things icon select kill clone add = 
   Components.box
    [ Html.h2 [ Attr.class "subtitle" ] [text "Layout"]
-   , div [ Attr.class "columns is-multiline level is-vcentered" ]
-       [ p [ Attr.class "content"] 
-           [ text "Organize the parts of your sound. "    
-           , Html.br [] []
-           , Html.br [] []
-           , text "Click on a scope to change the details and voices." ] 
-           , Html.br [] []]
+   , div [ Attr.class "columns is-multiline level is-vcentered  is-flex-direction-column" ] <|
+    List.append 
+     (List.indexedMap (\i thing ->
+       div [ Attr.class "columns column is-flex is-flex-direction-column is-half my-3" ]
+         [ Components.colFull <| div [ Attr.class "is-full has-text-centered"] [icon thing]
+          , div [Attr.class "column columns picker-icons"]
+
+           [ Components.col [ Attr.class "has-text-centered is-clickable " ] [Components.svgButton "settings" (select i)]
+           , Components.col [ Attr.class "has-text-centered" ] [Components.svgButton "clone" (clone i)]
+           , Components.col [ Attr.class "has-text-centered is-clickable " ] [Components.svgButton "trash" (kill i)] 
+           ]
+
+         ] ) things)
+  
+      [ if 4 > List.length things then 
+          Components.col1 <| Components.plusButton add
+        else text ""
+      ]
+   ]
+
+placer things icon place = 
+  Components.box
+   [ Html.h2 [ Attr.class "subtitle" ] [text "Layout"]
    , div [ Attr.class "columns is-multiline level is-vcentered  is-flex-direction-column" ] <|
      (List.indexedMap (\i thing ->
-       div [ Attr.class "is-clickable column is-flex is-flex-direction-column is-half" ]
-         [ Components.col [ Attr.class "is-full has-text-centered", onClick (select i) ] [(icon thing)]
-         , Components.col [ Attr.class "is-full has-text-centered" ] [(Components.deleteIcon (kill i))] 
-         ] ) things)
+       div [ Attr.class "columns column is-flex is-flex-direction-column is-half my-3" ]
+         [ Components.colFull <| div [ Attr.class "is-full has-text-centered", onClick (place i)] [icon thing]
 
+         ] ) things)
    ]
 
 
@@ -198,13 +338,37 @@ view model forward save close  =
      let 
       kill = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
       select = (\i -> (forward <| edit state (Select i) <| ComboEditor.initModel state i))
+      -- clone = (\i -> forward <| update (Save <| List.append state [curr state i]) state)
+      clone = (\i -> forward <| update (Cloning i) state)
+      add = (forward <| update (Save (apply state Create)) state)
      in 
       Components.box <|
-        [ Components.button (close state) [] "Close" 
-        , picker state View.viewCombo select kill
-        , if 4 > List.length state then 
-            Components.plusButton (forward <| update (Save (apply state Create)) state)
-            else text ""
+        [ div [ Attr.class "columns is-multiline level is-vcentered" ]
+          [ p [ Attr.class "content"] 
+              [ text "Organize the parts of your sound. "    
+              , Html.br [] []
+              , Html.br [] []
+              , text "Click on a scope to change the details and voices." ] 
+              , Html.br [] [] ]
+        , picker state View.viewCombo select kill clone add
+
+        , Components.button (close state) [] "Close" 
+        ]
+
+    PlacingClone state combo  ->
+     let 
+      place = (\i -> (forward <| update (Save <| Tools.insertAt i combo state) state))
+     in 
+      Components.box <|
+        [ div [ Attr.class "columns is-multiline level is-vcentered" ]
+          [ p [ Attr.class "content"] 
+              [ text "You are making a clone of one of your combos."    
+              , Html.br [] []
+              , Html.br [] []
+              , text "Select the combo to put it before." ] 
+              , Html.br [] [] ]
+        , placer state View.viewCombo (place)
+        , Components.button (close state) [] "Close" 
         ]
 
     Editing state index mod ->
