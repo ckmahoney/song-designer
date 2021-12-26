@@ -107,14 +107,15 @@ edit model update save kill =
               ]
           ]
 
-    , Components.tablet [ Attr.class "is-flex is-justify-content-space-between columns is-multilinbe" ] 
+    , Components.tablet [ Attr.class "is-flex is-justify-content-space-between columns is-multiline" ] 
 
         [ Components.colHalf <| View.viewVoice model
         , Components.colHalf <| Components.colsMulti
             [ Components.editText "Label" (text "Name") model.label (updateLabel model update)
             , Components.editSelection model.role "" (text "Role") options model.role (updateRole model update)    
-          , numberPickers model update   
+
             ]
+        , Components.colFull <| numberPickers model update   
         ]
 
 
@@ -124,8 +125,9 @@ edit model update save kill =
             [ Components.colFull <| Components.editText "Label" (text "Name") model.label (updateLabel model update)
             , Components.colFull <|Components.editSelection model.role "" (text "Role") options model.role (updateRole model update) 
             ]
-           , div [Attr.class "mb-3 p-3"] [  numberPickers model update   ]
+
         ]
+        , numberPickers model update 
     ]
 
 
