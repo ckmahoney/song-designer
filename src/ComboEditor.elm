@@ -80,7 +80,8 @@ border pos =
 thumb : Combo -> Html msg
 thumb (scope, ensemble) =
   Components.cols <| 
-    [ Components.col (Attr.class "is-half" :: border "right") [ScopeEditor.brief scope]
+    [ --Components.col (Attr.class "is-half" :: border "right") [ScopeEditor.brief scope]
+      Components.col (Attr.class "is-half" :: border "right") [ScopeEditor.thumb scope]
     , Components.col (Attr.class "is-half" :: border "right") [View.ensemblePeek ensemble]
     ]
 
@@ -109,10 +110,10 @@ thumbEdit model forward up =
         pickEnsemble = forward <| update (PickEnsemble ensemble) state
      in
       Components.cols <| 
-        [ Components.col [Attr.class "is-clickable is-half", onClick pickScope ] <| List.singleton <| 
-              ScopeEditor.brief scope
-        , Components.col [Attr.class "is-clickable is-half", onClick pickEnsemble ] <| List.singleton <| 
-              Components.box  <| [ View.ensembleThumb ensemble]
+        [ Components.colHalf <|
+              ScopeEditor.brief scope pickScope
+        , Components.colHalf <|
+              EnsembleEditor.brief ensemble pickEnsemble
         ]
    
     Scope ((scope, ensemble) as state) mod ->

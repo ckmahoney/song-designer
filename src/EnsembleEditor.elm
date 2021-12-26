@@ -67,11 +67,16 @@ picker state click =
        List.indexedMap (\i {role} -> Components.col [onClick (click i), Attr.class "is-one-quarter"] <| List.singleton <| Components.svg  (Tuple.first <| Data.roleLabel role)) state
 
 
-brief : State -> Html msg
-brief state =
+brief : State -> msg -> Html msg
+brief state open =
   Components.box <| if List.length state == 0 then 
     [ text "No voices in this ensemble." ] else 
-    List.map (\{role} -> View.roleIcon role) state
+    List.singleton <| Components.cols <|
+      [ Components.col [Attr.class "is-multiline columns is-three-quarters"] <| 
+          List.map (\{role} -> Components.colSize "is-one-third" <| View.roleIcon role) state
+        , Components.colSize "is-one-quarter" <| Components.svgButton "settings" open
+      ]
+
 
 
 initModel : Model

@@ -99,9 +99,13 @@ svg name =
       , src <| "/assets/svg/" ++ name ++ ".svg"] []
 
 
+svgClick : String -> msg -> Html msg
+svgClick name click =
+  div [class "is-clickable", onClick click] [svg name]
+
 svgButton : String -> msg -> Html msg
 svgButton name click =
-  div [class "is-clickable", onClick click] [svg name]
+  Html.button [class "is-clickable", onClick click] [svg name]
 
 svgSquare : String -> Int -> Html msg
 svgSquare name x = 
@@ -173,6 +177,11 @@ noClickButton =
   svg "square"
 
 
+buttonDisabled :  (List (Html.Attribute msg)) -> String -> Html msg
+buttonDisabled attrs content =
+  Html.button ([disabled True, class "button"] ++ attrs) [ text content ]  
+
+
 strvalToFloat : Float -> Float ->  String -> Float
 strvalToFloat min max str = 
   let 
@@ -203,27 +212,36 @@ editInt : String -> Html msg -> (Int,  Int) -> Int -> (Int -> msg) -> Html msg
 editInt title html (min, max) val toMsg =
   let 
     num = if val < min then min else if val > max then max else val
-    less = if min == num then noClickButton else
-             button (toMsg <| num - 1) [class "image button is-48x48"] "-"
-    more = if max == num then noClickButton else 
-             button (toMsg <| num + 1) [class "image button is-48x48" ] "+ "
+    less = if min == num then buttonDisabled [] "-" else
+             button (toMsg <| num - 1) [] "-"
+    curr = button (toMsg <| num) [] (String.fromInt num)
+    more = if max == num then buttonDisabled [] "+" else 
+             button (toMsg <| num + 1) [] "+" 
   in 
   div []
-    [ div [ class "columns is-multiline"]
+    [ div [ class ""]
       [ div [ class "columns is-multiline column is-full"] 
-            [ Html.h5 [ class "column is-half subtitle"] [ text title ]
-            , mobile [ class "column is-half is-flex is-flex-direction-column level"] 
-                     [ less
-                     , Html.b [] [" " ++ String.fromInt val |> text ]
-                     , more ] 
-            , tablet [ class "column is-half is-flex level"] 
-                     [ less
-                     , Html.b [] [" " ++ String.fromInt val |> text ]
-                     , more ]
-            , desktop [ class "column is-half is-flex level"]
-                      [ less
-                     , Html.b [] [" " ++ String.fromInt val |> text ]
-                     , more ] ] 
+            [ 
+            mobile []  
+              [  Html.h5 [ class "column is-half subtitle"] [ text title ]
+              ,  div  [ class "column is-half is-flex  level"] 
+                    [ less
+                    , curr
+                    , more ]
+                ] 
+            , tablet [] 
+                [ Html.h5 [ class "column  subtitle"] [ text title ]
+                , div  [ class "column is-level"] 
+                    [ less
+                    , curr
+                    , more ] 
+                ]
+            , desktop [ class "columns" ] 
+                [ Html.h5 [ class "column is-half subtitle"] [ text title ]
+                , div [class "column is-half is-flex level"]
+                  [ less
+                  , curr
+                  , more ] ] ]
       , div [ class "column box has-text-light has-background-info is-full"] [ html ] ] ]
 
 
@@ -323,8 +341,8 @@ boxAttrs attrs  =
 
 
 button : msg -> List (Html.Attribute msg) -> String -> Html.Html msg
-button toMsg attrs content =
-  Html.button ([class "button", onClick toMsg] ++ attrs) [ text content ]
+button click attrs content =
+  Html.button ([class "button", onClick click] ++ attrs) [ text content ]
 
 
 plusButton : msg -> Html msg
