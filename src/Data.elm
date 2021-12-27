@@ -365,9 +365,9 @@ emptyTemplate =
   (emptyScoreMeta, emptyLayout)
 
 
-someTemplate : Template
-someTemplate = 
-  (meta1, someLayout)
+-- someTemplate : Template
+-- someTemplate = 
+  -- (meta1, someLayout)
 
 
 -- coreTemplates : List TemplateP
@@ -556,12 +556,7 @@ c2 =
 
 emptyLayout : Layout
 emptyLayout = 
-  ("", [])
-
-
-someLayout : Layout
-someLayout =
-  ("A sequence of music", [combo1, combo2, combo3])
+  []
 
 
 dCPS = 1.5
@@ -603,7 +598,14 @@ demoChorus =
 
 demoLayout : Layout
 demoLayout =
-  ("Verse-Chorus song with intro and outro", [demoIntro, demoVerse, demoChorus, demoVerse, demoChorus, demoChorus, demoOutro])
+  [demoIntro, demoVerse, demoChorus, demoVerse, demoChorus, demoChorus, demoOutro]
+
+demoTemplate : Template
+demoTemplate =
+ let
+  m = scoreMetaFast
+ in
+  ({ m | title = "Verse-Chorus song with intro and outro" }, demoLayout)
 
 emptyCombo : Combo
 emptyCombo = 
@@ -670,7 +672,7 @@ kitVC2 =
   ]
 
 
-scoreVerseChorus : List (Scope, Ensemble)
+scoreVerseChorus : List Combo
 scoreVerseChorus =
   [ (v1, kitVC1)
   , (c1, kitVC1)
@@ -679,6 +681,11 @@ scoreVerseChorus =
   , (v1, kitVC2)
   , (c1, kitVC2)
   ]
+
+
+templateVerseChorus : Template
+templateVerseChorus =
+  (scoreMetaFast, scoreVerseChorus)
 
 
 ens1 =
@@ -700,7 +707,6 @@ coreEnsembles =
 
 combo1 =
   (v1, kitAll)
-  -- (v1, kitSynth)
 
 
 combo2 =
@@ -724,6 +730,19 @@ emptyScore =
 
 emptyScoreMeta =
   ScoreMeta "" 1 1 1
+
+
+someLayout : Layout
+someLayout =
+   [combo1, combo2, combo3]
+
+someTemplate : Template
+someTemplate =
+  ({ scoreMetaLudacris| title ="A sequence of music"}, [combo1, combo2, combo3])
+
+
+-- verseChorusLayout : Layout
+-- verseChorusLayout =
   
 
 coreScores : List Score
@@ -763,6 +782,28 @@ coreScores =
 scoreMetaT0 : ScoreMeta
 scoreMetaT0 =
   ScoreMeta "Fresh <rivers>?!?!" 4 1 32
+
+
+scoreMetaSlow : ScoreMeta
+scoreMetaSlow =
+  ScoreMeta "Ballad for " (3/4) 5 8
+
+
+scoreMetaMed : ScoreMeta
+scoreMetaMed =
+  ScoreMeta "Walking for " 1.5 7 4
+
+scoreMetaFast : ScoreMeta
+scoreMetaFast =
+  ScoreMeta "Fast for " 2.5 0 8
+
+scoreMetaLudacris : ScoreMeta
+scoreMetaLudacris =
+  ScoreMeta "Speed up tiger" 5 1 16
+
+scoreMetaRipley : ScoreMeta
+scoreMetaRipley =
+  ScoreMeta "believe it or not " 82 11 32
 
 
 roleName : SynthRole -> String

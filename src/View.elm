@@ -295,7 +295,7 @@ editMeta meta toMsg =
 
 
 editTemplateCombos : List T.Voice -> List T.Scope -> T.Layout ->  (( T.Layout) -> msg) -> Html msg -> Html  msg -> Html msg
-editTemplateCombos voices scopes ((label, combos) as layout) toMsg buttSave buttDelete =
+editTemplateCombos voices scopes ( combos as layout) toMsg buttSave buttDelete =
   Components.box <|
     List.map comboIcon combos
     -- [
@@ -450,7 +450,7 @@ sizeToCycles cpc size =
 
 duration : Int -> Float -> Int -> Float
 duration cpc cps size  =
-  (1/cps) * (toFloat (sizeToCycles cpc size))
+  (1/cps) * (toFloat (sizeToCycles cpc <| Debug.log "has size : " size))
 
 durString : Int -> Float -> Int -> String
 durString cpc cps size  =
@@ -561,7 +561,7 @@ designEnsemble options current update =
 
 
 viewLayoutWithRemover : T.Layout -> (T.Combo -> msg) -> Html msg
-viewLayoutWithRemover ((scope, combos) as layout) remove =
+viewLayoutWithRemover combos remove =
   Components.box <|
     [ p [ class "mb-3"] [ text "Remove combos from this layout." ]
     , div [ class "columns is-mobile is-multiline" ] <| 
@@ -646,9 +646,9 @@ voiceIcon voice =
 
 
 layoutIcon : T.Layout -> Html msg
-layoutIcon (name, scopes) = 
+layoutIcon  scopes = 
   div [ class "box" ] 
-    [ label [ class "label" ] [ text name ]
+    [ label [ class "label" ] [ text "Ensemble" ]
     , Components.svg "layout"
     , p [ class "content" ] [ text <| (String.fromInt <| List.length scopes) ++ " combos" ]
     ] 
@@ -674,14 +674,14 @@ comboPreview ((scope, ensemble) as combo) =
 
 
 viewLayout : T.Layout -> Html msg
-viewLayout (name, combos)  =
+viewLayout  combos  =
     Components.box  <| 
-      [ label [ class "label mb-3" ] [text name]  ]
+      [ label [ class "label mb-3" ] [text "Ensemble"]  ]
       ++ (List.map comboPreview combos)
 
 
 editLayout : T.Layout -> (T.ComboP -> msg) -> (T.Combo -> msg ) -> (Int -> msg ) -> Html msg
-editLayout ((name, combos) as layout) edit create delete =
+editLayout combos edit create delete =
   if 0 == List.length combos then 
     Components.wrap <| Components.button (edit (Nothing, Nothing)) [] "Make the first Combo"
   else 
@@ -695,15 +695,14 @@ editLayout ((name, combos) as layout) edit create delete =
 
 
 designLayout : T.Layout -> List T.Scope -> List T.Voice -> ( T.Layout -> msg) -> (T.ComboP -> msg) -> (List T.Combo -> msg) -> Html msg -> Html msg -> Html msg
-designLayout ((label, combos) as layout) scopeOpts voiceOpts sig sigEditComboP updateCombos buttSave buttDelete  =
+designLayout combos scopeOpts voiceOpts sig sigEditComboP updateCombos buttSave buttDelete  =
   let
     create = (\combo -> updateCombos (Tools.conj combo combos))
     delete = (\i -> updateCombos (Tools.removeAt i combos))
   in 
-  Components.card2 ("Editing Layout " ++ label) [buttSave, buttDelete] <|
+  Components.card2 "Editing ensemble" [buttSave, buttDelete] <|
    div [ class "container" ] <|
-    [ layoutNamer label (\str -> sig (str, combos))
-    , editLayout layout sigEditComboP create delete
+    [ editLayout combos sigEditComboP create delete
     ] 
 
    
@@ -823,7 +822,7 @@ viewCombo  (({cpc,cps,size} as scope), ensemble)  =
        
 
 viewTemplate : T.Template -> Html msg
-viewTemplate ((scoreMeta, (name, scopes)) as template) =
+viewTemplate ((scoreMeta, scopes) as template) =
   Components.box <|
     [ label [ class "title" ] [ text scoreMeta.title  ] ] ++ (List.map comboIcon scopes)
 

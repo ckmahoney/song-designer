@@ -30,9 +30,6 @@ port stopMusic : String -> Cmd msg
 
 port setSource : String -> Cmd msg
 
-
-
-
 type Playback
  = Play
  | Pause
@@ -66,8 +63,6 @@ type Msg
   | UpdateEditor (Maybe LayoutEditor.Model)
 
 
-
-
 changeLayout : Model -> (List Combo) -> Model
 changeLayout model layout = 
   { model | layout = layout }
@@ -85,36 +80,6 @@ type alias Model =
   , title : String
   }
 
-
--- -- access scope
--- (\layout i-layout scope)
-
--- -- create scope
--- (\layout i-layout ensemble i-ensemble)  
-
--- -- delete scope
--- (\layout i-layout ensemble i-ensemble)  
-
--- -- update scope
--- (\layout i-layout ensemble i-ensemble scope field)  
-
-
--- -- create voice
--- (\layout i-layout ensemble i-ensemble)  
-
--- -- delete voice
--- (\layout i-layout ensemble i-ensemble)  
-
--- -- access voice
--- (\layout i-layout ensemble i-ensemble voice)  
-
--- -- update voice
--- (\layout i-layout ensemble i-ensemble voice field)  
-
-
--- updateLayoutScope layout iLayout scope iEnsemble scope field)   =
--- LayoutEditor.Update iLayout 
-  -- <| ComboEditor.UpdateScope scope
 
 decodeTrackPrev : Decode.Decoder Track
 decodeTrackPrev =
@@ -138,7 +103,12 @@ decodeTrack =
 
 initFrom : List Voice -> List Scope -> List Layout -> List Template -> Maybe GhostMember -> Model
 initFrom v s l t m =
-  Model  "" Welcome  [] Nothing Stop m LayoutEditor.initState  (Just LayoutEditor.initTest) ""
+ let
+   template = Data.templateVerseChorus
+   layouts = [ Data.combos,  Tuple.second template ]
+   layout = Tuple.second template
+ in 
+  Model  "" Welcome  [] Nothing Stop m layout  (Just <| LayoutEditor.Overview layout) (Tuple.first template).title
 
 
 initTest : Model
@@ -173,11 +143,9 @@ init flags =
       (initFromMember member, getSongs member.email member.uuid)
 
 
-
-
 hostname = 
   "http://localhost:3000"
-  -- "https://synthony.app"
+ -- "https://synthony.app"
 
 
 apiUrl : String -> String 
@@ -192,18 +160,6 @@ reqTrack email uuid template =
     , body =  Http.jsonBody <| encodeReqTrack email uuid template
     , expect = Http.expectJson GotNewTrack decodeTrack
     }
-
-reqMiniTrack : String -> String -> Layout -> Cmd Msg
-reqMiniTrack email uuid ((title, combos) as layout) =
- let   
-  -- meta = {Data.scoreMetaT0 | title = title }
-  template = (Data.scoreMetaT0, layout)
- in
-  Http.post
-  { url = apiUrl "track"
-  , body = Http.jsonBody <| encodeReqTrack email uuid template
-  , expect = Http.expectJson GotNewTrack decodeTrack
-  }
 
 
 getSongs : String -> String -> Cmd Msg
@@ -262,9 +218,9 @@ encodeCombo (scope, ensemble) =
 
 
 encodeLayout : Layout -> Encode.Value
-encodeLayout (label, combos) =
+encodeLayout  combos =
   Encode.object
-    [ ("title", Encode.string label)
+    [ ("title", Encode.string "ensemble")
     , ("combos", Encode.list encodeCombo combos)
     ]
 
@@ -537,14 +493,15 @@ requestSongButton model =
     let 
        ref = Data.scoreMetaT0
        meta = { ref | title = model.title }
-       template = (meta, ("Needs a title", model.layout))
+       template : Template
+       template = ({meta | title = model.title},  model.layout)
     in  
-     Components.button (ReqTrack template) [style "width" "100%", class "is-primary mb-3"] ("Write A New Song: " ++ model.title )
+     Components.button (ReqTrack template) [ class "is-primary mb-3"] ("Write A New Song: " ++ model.title )
 
 
 editLayoutButton : Model -> Html Msg
 editLayoutButton model =
-  Components.button (OpenLayoutEditor model.layout) [style "width" "100%", class "is-info mb-3"] "Edit your layout"
+  Components.button (OpenLayoutEditor model.layout) [class "is-info mb-3"] "Edit your layout"
 
 
 miniSongDesigner : Model -> Html Msg
@@ -553,14 +510,17 @@ miniSongDesigner model =
     case model.layoutEditor of 
       Nothing -> 
        Components.box <|
-         [ editLayoutButton model
-         , requestSongButton model
+         [ Components.cols <| 
+             [ Components.col1 <| editLayoutButton model
+             , Components.col1 <| requestSongButton model
+             ]
          , div [] <| LayoutEditor.look model.layout
          ]
 
       Just mod ->
-        LayoutEditor.view mod (\m -> UpdateEditor <| Just m) SaveLayout CloseLayoutEditor
-
+        div [] [ Components.editText "Title" (text "The name for the song you're about to write.") model.title UpdateTitle
+        , LayoutEditor.view mod (\m -> UpdateEditor <| Just m) SaveLayout CloseLayoutEditor
+        ]
 
 view : Model -> Html Msg
 view model =

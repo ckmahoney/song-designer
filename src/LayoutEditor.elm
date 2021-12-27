@@ -226,8 +226,12 @@ update msg state =
    Cloning index ->
     PlacingClone state (curr state index)
 
+initState : State
 initState = 
-  [ Data.combo1, Data.combo2 ]
+ let
+  ((meta, layout) as template) = Data.templateVerseChorus
+ in
+  layout
   -- []
 
 

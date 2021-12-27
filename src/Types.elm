@@ -159,13 +159,15 @@ type alias SectionP = (Maybe Scope, Maybe Ensemble)
 type alias Combo = (Scope, Ensemble)
 type alias ComboP = (Maybe Scope, Maybe Ensemble)
 
-type alias Layout = (String, List Combo)
+
+type alias Layout =  List Combo
+
 
 type alias Score 
   = (ScoreMeta, List Combo)
 
-type alias TemplateP
-  = (ScoreMetaP, List ComboP)
+-- type alias TemplateP
+  -- = (ScoreMetaP, List ComboP)
 
 
 type alias Template
