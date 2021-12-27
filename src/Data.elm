@@ -765,5 +765,10 @@ scoreMetaT0 =
   ScoreMeta "Fresh <rivers>?!?!" 4 1 32
 
 
+roleName : SynthRole -> String
+roleName role = 
+  (Tuple.first <| roleLabel role)
+
 main = 
   Html.text ""
+

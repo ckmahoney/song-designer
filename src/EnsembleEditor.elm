@@ -21,30 +21,33 @@ type alias State = List Child
 
 
 type Msg
-  = Create
+  = Create SynthRole
   | Select Int 
   | Update Int Voice
   | Kill Int
   | Save State
+  | Picking SynthRole
+
+type alias PickingSynth = (Maybe SynthRole)
 
 
 type Model 
-  = Overview State
+  = Overview State PickingSynth
   | Editing State Int Child
 
 
 update : Msg -> State -> Model
 update msg state =
   case msg of 
-    Save next ->
-      Overview next
+    Picking role ->
+      Overview state (Just role)
 
-    Create -> 
-     let
-       v = VoiceEditor.newVoice
-       next = List.append state [ v ]
-     in
-      Editing next (List.length next) v
+    Save next ->
+      Overview next Nothing
+
+    Create role ->  
+     let next = VoiceEditor.newVoice in 
+      Overview ( { next | role = role } :: state) Nothing
 
     Select voiceIndex -> 
       Editing state voiceIndex <| Tools.getOr voiceIndex state VoiceEditor.newVoice
@@ -56,7 +59,7 @@ update msg state =
       Editing next index voice
 
     Kill index  -> 
-      Overview <| Tools.removeAt index state
+      Overview  (Tools.removeAt index state) Nothing
 
 
 picker : State -> (Int -> msg) -> Html msg
@@ -74,14 +77,13 @@ brief state open =
     List.singleton <| Components.cols <|
       [ Components.col [Attr.class "is-multiline columns is-three-quarters"] <| 
           List.map (\{role} -> Components.colSize "is-one-third" <| View.roleIcon role) state
-        , Components.colSize "is-one-quarter" <| Components.svgButton "settings" open
+        , Components.colSize "is-one-quarter" <| Components.svgButtonClass "settings" "has-background-primary" open
       ]
-
 
 
 initModel : Model
 initModel = 
-  Overview []
+  Overview [] Nothing
 
 
 editor : (Msg -> msg) -> State -> Int -> VoiceEditor.Model -> Html msg
@@ -107,6 +109,7 @@ voiceGrid state toMsg =
     :: List.indexedMap (\index {role} -> 
          div [Attr.class "column is-one-quarter", onClick <| toMsg <| Select index] [View.roleIcon role]) state 
 
+
 editorNew :State -> Int -> Voice -> (Msg -> msg) -> Html msg
 editorNew state index voice toMsg =
   let
@@ -122,17 +125,18 @@ editorNew state index voice toMsg =
 
 showNoVoices : State -> (Msg -> msg) -> Html msg
 showNoVoices state toMsg =
-  Components.button (toMsg <| Create) [] "Create the First Voice"  
+  Components.button (toMsg <| Create Bass) [] "Create the First Voice"  
 
 
 controls : (Msg -> msg) -> Int -> Voice -> Html msg
 controls toMsg i voice =
   div [Attr.class "column is-flex is-flex-direction-column is-one-quarter"] 
     [ div [ Attr.class "column is-flex is-align-items-flex-start is-justify-content-center" ] <|
-        [ Components.svgButton "settings" (toMsg <| Select  i) ]
+        [ Components.svgButtonClass "settings" "has-background-primary" (toMsg <| Select  i) ]
     , div [ Attr.class "column is-flex is-align-items-flex-end is-justify-content-center" ] <|
-        [Components.svgButton "trash" (toMsg <| Kill  i)]
+        [Components.svgButtonClass "trash" "has-background-danger" (toMsg <| Kill  i)]
     ]
+
 
 voiceCard : (Msg -> msg) -> Int -> Voice -> Html msg
 voiceCard toMsg i voice =
@@ -142,44 +146,49 @@ voiceCard toMsg i voice =
      ]
  
 
-
 listVoices : State -> (Msg -> msg) -> Html msg
 listVoices state toMsg =
   div [Attr.class "is-full has-text-centered"] <|
    List.indexedMap (voiceCard toMsg) state 
 
 
-display : Model -> (Msg -> msg) -> Html msg
-display model toMsg =
- case model of
-  Overview state -> 
-    if 0 == List.length state then 
-      showNoVoices state toMsg
-    else
-      Components.box <|
-        [ Components.plusButton (toMsg <| Create ) 
-        , div [ Attr.class "is-flex is-flex-direction-column align-items-flex-start" ] <|
-         [ listVoices state toMsg 
-         ]
-        ]
-
-  Editing state index mod ->
-    editor toMsg state index mod
-
+synthInitializer : PickingSynth -> (Msg ->msg) -> (SynthRole -> msg) -> msg ->Html msg
+synthInitializer model toMsg select init =
+  case model of 
+  Nothing ->
+    Components.addButton init "Add a Voice"
+  Just curr ->
+    let
+      pick = (\i -> select <| Tools.getOr i Data.roles curr)
+    in
+    Components.box <| 
+      [ Components.pickerSelected Data.roles View.roleIcon pick curr
+      , Components.button (toMsg <| Create curr) [] ("Create " ++ Data.roleName curr)
+      ]
 
 view : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
 view model forward save close =
  case model of 
-  Overview state ->
-    Components.box <|
-       [ Components.button (save state) [] "Save Ensemble"
-       , display model (\msg -> (forward <| update msg state))
-      ] 
+  Overview state mSynth ->
+   let
+     toMsg = (\msg -> (forward <| update msg state))
+     select = (\role -> toMsg <| Picking role)
+   in 
+    if 0 == List.length state then 
+      showNoVoices state toMsg
+    else
+     div []     
+        [ synthInitializer mSynth toMsg select (select Bass) 
+        , Components.button (save state) [] "save this ensemble now"
+        , div [ Attr.class "is-flex is-flex-direction-column align-items-flex-start" ] <|
+         [ listVoices state toMsg ]
+        ]
 
   Editing state index voice ->
-    Components.box <| 
-      [ editorNew state index voice (\msg -> (forward <| update msg state))
-      ] 
+    div [] [ 
+      editorNew state index voice (\msg -> (forward <| update msg state))
+    ]
+
 
 
 main = text ""

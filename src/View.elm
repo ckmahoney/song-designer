@@ -813,7 +813,7 @@ viewCombo  (({cpc,cps,size} as scope), ensemble)  =
  let
   nVoices = List.length ensemble
  in 
-  Components.colsWith [Attr.class "peek-combo"]
+  Components.colsWith [Attr.class "thumb-combo"]
     [ Components.col ((Attr.class "is-half" :: (border "right"))++  (border "left")) [ scopePeek scope ]
 
     , Components.col ((Attr.class "is-half" :: (border "left"))  ++ (border "right")) [ if nVoices == 0 then text "No voices"  else 

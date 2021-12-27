@@ -271,9 +271,9 @@ picker things icon select kill clone add =
          [ Components.colFull <| div [ Attr.class "is-full has-text-centered"] [icon thing]
           , div [Attr.class "column columns picker-icons"]
 
-           [ Components.col [ Attr.class "has-text-centered is-clickable " ] [Components.svgButton "settings" (select i)]
-           , Components.col [ Attr.class "has-text-centered" ] [Components.svgButton "clone" (clone i)]
-           , Components.col [ Attr.class "has-text-centered is-clickable " ] [Components.svgButton "trash" (kill i)] 
+           [ Components.col [ Attr.class "has-text-centered is-clickable " ] [Components.svgButtonClass "settings" "has-background-primary" (select i)]
+           , Components.col [ Attr.class "has-text-centered" ] [Components.svgButtonClass "clone" "has-background-info" (clone i)]
+           , Components.col [ Attr.class "has-text-centered is-clickable " ] [Components.svgButtonClass "trash" "has-background-danger" (kill i)] 
            ]
 
          ] ) things)
@@ -284,14 +284,18 @@ picker things icon select kill clone add =
       ]
    ]
 
-placer things icon place = 
+placer things icon place clone = 
   Components.box
    [ Html.h2 [ Attr.class "subtitle" ] [text "Layout"]
-   , div [ Attr.class "columns is-multiline level is-vcentered  is-flex-direction-column" ] <|
+   , div [Attr.class "mb-3" ] 
+       [ Html.h3 [] [text "Cloning this combo:"]
+       , icon clone
+       , p [] [text "Choose a place to put it."]
+       ]
+   , div [ Attr.class "inserting columns is-multiline level is-vcentered  is-flex-direction-column" ] <|
      (List.indexedMap (\i thing ->
-       div [ Attr.class "columns column is-flex is-flex-direction-column is-half my-3" ]
-         [ Components.colFull <| div [ Attr.class "is-full has-text-centered", onClick (place i)] [icon thing]
-
+       div [ Attr.class "is-clickable columns column is-flex is-flex-direction-column is-half my-3", onClick (place i) ]
+         [ Components.colFull <| div [ Attr.class "is-full has-text-centered"] [icon thing]
          ] ) things)
    ]
 
@@ -338,7 +342,6 @@ view model forward save close  =
      let 
       kill = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
       select = (\i -> (forward <| edit state (Select i) <| ComboEditor.initModel state i))
-      -- clone = (\i -> forward <| update (Save <| List.append state [curr state i]) state)
       clone = (\i -> forward <| update (Cloning i) state)
       add = (forward <| update (Save (apply state Create)) state)
      in 
@@ -351,7 +354,6 @@ view model forward save close  =
               , text "Click on a scope to change the details and voices." ] 
               , Html.br [] [] ]
         , picker state View.viewCombo select kill clone add
-
         , Components.button (close state) [] "Close" 
         ]
 
@@ -367,7 +369,7 @@ view model forward save close  =
               , Html.br [] []
               , text "Select the combo to put it before." ] 
               , Html.br [] [] ]
-        , placer state View.viewCombo (place)
+        , placer state View.viewCombo place combo
         , Components.button (close state) [] "Close" 
         ]
 
@@ -377,10 +379,10 @@ view model forward save close  =
         swap = (\c ->  Tools.replaceAt index c state)
         keep =  (\combo -> forward <| (update (Save <| swap combo) state))
       in 
-      Components.box <|
-        [ Components.button (close state)  [] "Save Combo"
-        , ComboEditor.thumbEdit mod continue keep
-        ] 
+      div []
+         [ Components.button (forward <| update (Save state) state) [] "Save Combo"
+         , ComboEditor.thumbEdit mod continue keep
+         ]
 
 
 main = text ""

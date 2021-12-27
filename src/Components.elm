@@ -105,7 +105,11 @@ svgClick name click =
 
 svgButton : String -> msg -> Html msg
 svgButton name click =
-  Html.button [class "is-clickable", onClick click] [svg name]
+  Html.button [class "is-clickable p-3 ", onClick click] [svg name]
+
+svgButtonClass : String -> String -> msg -> Html msg
+svgButtonClass name classes click =
+  Html.button [class classes, class "is-clickable p-4", onClick click, style "border-radius" "100%"] [svg name]
 
 svgSquare : String -> Int -> Html msg
 svgSquare name x = 
@@ -193,6 +197,7 @@ strvalToFloat min max str =
 label : String -> Html msg
 label content =
   Html.label [class "m-0 subtitle"] [ text content ]
+
 
 
 editRange : String -> Html msg -> (Float, Float) -> Float -> (Float -> msg) -> Html msg
@@ -347,7 +352,7 @@ button click attrs content =
 
 plusButton : msg -> Html msg
 plusButton msg  =
-  button msg [ class "is-primary" ] "+"
+  button msg [ class "has-6 p-6 is-primary" ] "+"
 
 addButton : msg -> String -> Html msg
 addButton msg content =
@@ -378,6 +383,14 @@ picker things icon select =
   div [ class "columns is-multiline level is-vcentered" ] <|
      List.indexedMap (\i thing ->
        div [ class "column is-vcentered has-text-centered", onClick (select i) ]
+         [ icon thing ]) things
+
+
+pickerSelected : List a -> (a -> Html msg) -> (Int -> msg) -> a -> Html msg
+pickerSelected things icon select current = 
+  div [ class "columns is-multiline level is-vcentered" ] <|
+     List.indexedMap (\i thing ->
+       div [ class <|if thing == current then "selected" else "", class "column is-vcentered has-text-centered", onClick (select i) ]
          [ icon thing ]) things
 
 

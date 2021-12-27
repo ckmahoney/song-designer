@@ -61,7 +61,7 @@ update msg ((s, e) as state) =
       Scope state <| ScopeEditor.Editing next
 
     PickEnsemble next ->
-      Ensemble state <| EnsembleEditor.Overview next
+      Ensemble state <| EnsembleEditor.Overview next Nothing
 
     SaveEnsemble ensemble int v ->
       Ensemble (s, ensemble) <| EnsembleEditor.Editing ensemble int v
@@ -128,12 +128,13 @@ thumbEdit model forward up =
 
     Ensemble ((scope, ensemble) as state) mod ->
      let
+        yy = Debug.log "has this ensemble:" ensemble
         continue = (\m -> forward <| Ensemble state m)
-        keep =  (\e -> up (scope, e))
+        keep =  (\e -> forward <| update (Save (scope, e)) state)
         done = (\_ -> forward <| Overview state)
      in
       div [] 
-        [ EnsembleEditor.view mod continue keep done
+        [ EnsembleEditor.view mod continue keep (\ens -> forward <| Overview (scope, ens))
         ] 
 
 
