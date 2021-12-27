@@ -1,7 +1,7 @@
 module LayoutEditor exposing (..)
 
 import Browser
-import Html exposing (Html, button, div, text, label, p, input)
+import Html exposing (Html, button, div, text, label, p, input,b)
 import Html.Attributes as Attr
 import Html.Events as Events exposing (onClick, onInput)
 
@@ -265,22 +265,27 @@ lookOld things icon =
    ]
 
 
+controls select kill clone = 
+  div [Attr.class "column columns is-flex-direction-column picker-icons is-one-quarter "]
+    [ Components.col [ Attr.class "has-text-centered is-clickable " ] [Components.svgButtonClass "settings" "has-background-primary" select]
+    , Components.col [ Attr.class "has-text-centered" ] [Components.svgButtonClass "clone" "has-background-info" clone]
+    , Components.col [ Attr.class "has-text-centered is-clickable " ] [Components.svgButtonClass "trash" "has-background-danger" kill] 
+    ]
+
+
+comboCard icon combo i select kill clone =
+  div [ Attr.class "is-mobile columns is-flex my-3", Attr.style "border" "1px solid lightgrey",  Attr.style "border-radius" "5px" ]  [ Components.colSize "is-three-quarters has-text-centered" <| Components.col1 <| icon combo
+     , controls select kill clone
+     ]
+ 
+
 picker things icon select kill clone add = 
   Components.box
    [ Html.h2 [ Attr.class "subtitle" ] [text "Layout"]
    , div [ Attr.class "columns is-multiline level is-vcentered  is-flex-direction-column" ] <|
     List.append 
      (List.indexedMap (\i thing ->
-       div [ Attr.class "columns column is-flex is-flex-direction-column is-half my-3" ]
-         [ Components.colFull <| div [ Attr.class "is-full has-text-centered"] [icon thing]
-          , div [Attr.class "column columns picker-icons"]
-
-           [ Components.col [ Attr.class "has-text-centered is-clickable " ] [Components.svgButtonClass "settings" "has-background-primary" (select i)]
-           , Components.col [ Attr.class "has-text-centered" ] [Components.svgButtonClass "clone" "has-background-info" (clone i)]
-           , Components.col [ Attr.class "has-text-centered is-clickable " ] [Components.svgButtonClass "trash" "has-background-danger" (kill i)] 
-           ]
-
-         ] ) things)
+       (comboCard icon thing i (select i) (kill i) (clone i))) things)
   
       [ if 4 > List.length things then 
           Components.col1 <| Components.plusButton add
@@ -288,19 +293,53 @@ picker things icon select kill clone add =
       ]
    ]
 
-placer things icon place clone = 
+pickerHorizontal things icon select kill clone add = 
   Components.box
-   [ Html.h2 [ Attr.class "subtitle" ] [text "Layout"]
-   , div [Attr.class "mb-3" ] 
-       [ Html.h3 [] [text "Cloning this combo:"]
-       , icon clone
-       , p [] [text "Choose a place to put it."]
-       ]
-   , div [ Attr.class "inserting columns is-multiline level is-vcentered  is-flex-direction-column" ] <|
+   [ Html.h2 [ Attr.class "title" ] [text "Layout"]
+   , div [ Attr.class "columns is-multiline" ] <|
+    List.append 
+     (List.indexedMap (\i thing ->
+       div [Attr.class "column is-flex is-flex-directtoin-row is-mobile is-half is-level"] 
+         [ comboCard icon thing i (select i) (kill i) (clone i)
+         , if i == (List.length things - 1) then text "" else 
+           Components.colSize "columns is-justify-content-center is-vcentered" <| Components.svg "right" 
+         ]) things)
+      [ if 4 > List.length things then 
+          Components.col1 <| Components.plusButton add
+        else text ""
+      ]
+   ]
+
+
+placerDesktop things icon place clone =
+  div [ Attr.class "inserting columns is-multiline level is-vcentered  is-flex-direction-column" ] <|
+     (List.indexedMap (\i thing ->
+       div [ Attr.class "is-clickable columns column is-flex is-flex-direction-column is-half my-3", onClick (place i) ] [ Components.colFull <| div [ Attr.class "is-full has-text-centered"]  [ Components.plusButton (place i) ]
+           , icon thing
+         ] ) things)
+
+placerMobile things icon place clone =
+  div [ Attr.class "columns is-multiline level is-vcentered  is-flex-direction-column" ] <|
      (List.indexedMap (\i thing ->
        div [ Attr.class "is-clickable columns column is-flex is-flex-direction-column is-half my-3", onClick (place i) ]
-         [ Components.colFull <| div [ Attr.class "is-full has-text-centered"] [icon thing]
+         [ Components.colFull <| div [ Attr.class "is-full has-text-centered"] 
+           [ div [onClick (place i), Attr.class "py-6"] [ Components.plusButton (place i) ]
+           , icon thing
+           ]
          ] ) things)
+
+placer things icon place clone = 
+  Components.box
+   [ Html.h2 [ Attr.class "subtitle" ] [text "Layout - Cloning a Combo"]
+   , div [Attr.class "mb-3" ] 
+       [ b [] [text "Cloning this combo:"]
+       , div [ Attr.class "has-background-warning"] <| List.singleton <|
+           Components.colSize "is-half is-offset-one-quarter" <| (icon clone)
+       , b [] [text "Choose a place to put it."]
+       ]
+   , Components.mobile []  [ placerMobile things icon place clone ]
+   , Components.tablet []  [ placerMobile things icon place clone ]
+   , Components.desktop [] [ placerDesktop things icon place clone ]
    ]
 
 
@@ -339,26 +378,50 @@ fromCombo state index combo =
   Tools.replaceAt index combo state
 
 
+
+
+
+displayMobile state model forward save close  =
+  let 
+   kill = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
+   select = (\i -> (forward <| edit state (Select i) <| ComboEditor.initModel state i))
+   clone = (\i -> forward <| update (Cloning i) state)
+   add = (forward <| update (Save (apply state Create)) state)
+  in 
+   Components.box <|
+     [ div [ Attr.class "columns is-multiline level is-vcentered" ]
+       [ p [ Attr.class "content"] 
+           [ text "Organize the parts of your sound. "    ] ]
+     , picker state View.viewComboVertical select kill clone add
+     , Components.button (close state) [] "Close" 
+     ]
+
+
+displayDesktop state model forward save close  =
+  let 
+   kill = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
+   select = (\i -> (forward <| edit state (Select i) <| ComboEditor.initModel state i))
+   clone = (\i -> forward <| update (Cloning i) state)
+   add = (forward <| update (Save (apply state Create)) state)
+  in 
+   Components.box <|
+     [ div [ Attr.class "columns is-multiline level is-vcentered" ]
+       [ p [ Attr.class "content"] 
+           [ text "Organize the parts of your sound. "    ] ]
+
+     , pickerHorizontal state View.viewComboVertical select kill clone add
+     , Components.button (close state) [] "Close" 
+     ]
+
+
+
 view : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
 view model forward save close  =
   case model of 
     Overview state ->
-     let 
-      kill = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
-      select = (\i -> (forward <| edit state (Select i) <| ComboEditor.initModel state i))
-      clone = (\i -> forward <| update (Cloning i) state)
-      add = (forward <| update (Save (apply state Create)) state)
-     in 
-      Components.box <|
-        [ div [ Attr.class "columns is-multiline level is-vcentered" ]
-          [ p [ Attr.class "content"] 
-              [ text "Organize the parts of your sound. "    
-              , Html.br [] []
-              , Html.br [] []
-              , text "Click on a scope to change the details and voices." ] 
-              , Html.br [] [] ]
-        , picker state View.viewCombo select kill clone add
-        , Components.button (close state) [] "Close" 
+      div [] 
+        [ Components.mobile [] <| List.singleton <| displayMobile state model forward save close
+        , Components.desktop [] <|List.singleton <|  displayDesktop state model forward save close
         ]
 
     PlacingClone state combo  ->

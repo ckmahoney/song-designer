@@ -820,6 +820,18 @@ viewCombo  (({cpc,cps,size} as scope), ensemble)  =
 
     ]
        
+viewComboVertical : T.Combo -> Html msg
+viewComboVertical  (({cpc,cps,size} as scope), ensemble)  =
+ let
+  nVoices = List.length ensemble
+ in 
+  Components.colsWith [Attr.class "thumb-combo-vertical is-flex-direction-column"]
+    [ Components.col ((Attr.class "" :: (border "right"))++  (border "left")) [ scopePeek scope ]
+
+    , Components.col ((Attr.class "" :: (border "left"))  ++ (border "right")) [ if nVoices == 0 then text "No voices"  else 
+        ensembleThumb ensemble ]
+    ]
+       
 
 viewTemplate : T.Template -> Html msg
 viewTemplate ((scoreMeta, scopes) as template) =

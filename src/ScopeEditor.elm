@@ -143,8 +143,8 @@ cpsOptions =
   bounds.tempos
 
 
-updateTitle : State -> String -> (Msg -> msg) -> msg
-updateTitle state str msg =
+updateTitle :  String -> (Msg -> msg) -> msg
+updateTitle  str msg =
   msg (Update <| Title str)
 
 flexStyles = "is-flex is-justify-content-space-around is-flex-wrap-wrap"
@@ -197,6 +197,24 @@ card model =
     ] 
 
 
+
+card2 :State -> (Msg ->msg ) -> Html msg
+card2 model toMsg = 
+  Components.box <| 
+   [  Components.cols <|
+        [ Components.colSize "is-three-quarters" <| div [] 
+          [ p [ Attr.class "subtitle"] [ text model.label ]
+          , V.sizeMessage model.cpc  model.size
+          , Components.editText "" (text "") model.label (\str -> updateTitle str toMsg)
+          ]
+        , Components.colSize "is-one-quarter" <| div [] 
+          [ p [Attr.class "has-text-centered"] [text <| V.durString model.cpc model.cps model.size ++ " seconds long"]
+          , p [Attr.class "has-text-centered"] [text <| "Key of " ++ V.keyLabel model.root]
+          ]
+        ]
+    ]
+
+
 thumb : State -> Html msg
 thumb state =
   Components.box 
@@ -237,10 +255,7 @@ info state =
 editorMobile : (Msg -> msg) -> State ->  Html msg
 editorMobile toMsg state  =
   Components.cols
-    [ card state
-    , Components.card "Scope label" <| div border
-      [ p [] [text "Something like 'verse' or 'chorus' to help you what this part is doing."]
-      , input [Attr.class "view0 input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> toMsg (Update <| Title  str))] [] ]
+    [ card2 state toMsg
     , keyPicker state.root toMsg
     , cpsPicker state.cps toMsg
     , cpcPicker state.cpc toMsg

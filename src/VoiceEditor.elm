@@ -72,19 +72,19 @@ controls model save kill =
  div [] 
   [ Components.mobile [] <| List.singleton <|
      div [Attr.class "columns is-mobile"]
-       [ div [Attr.class "column"] [ Components.svgButton "checkmark" (save model) ]
-       , div [Attr.class "column has-text-right"] [Components.svgButton "trash" kill]
+       [ div [Attr.class "column"] [ Components.svgButtonClass "checkmark"  "has-background-primary"  (save model) ]
+       , div [Attr.class "column has-text-right"] [Components.svgButtonClass "discard" "has-background-warning" kill]
        ]
   , Components.tablet [] <| List.singleton <|
      div [Attr.class "columns px-1"] <|
-       [ Components.col1 <| Components.svgButton "checkmark" (save model)
-       , div [Attr.class "column is-half has-text-right"] [Components.svgButton "trash" kill]
+       [ Components.col1 <| Components.svgButtonClass "checkmark"  "has-background-primary"  (save model)
+       , div [Attr.class "column is-half has-text-right"] [Components.svgButtonClass "discard" "has-background-warning" kill]
        ]
 
   , Components.desktop [] <| List.singleton <|
      div [Attr.class "columns px-1"] <|
-       [ Components.col1 <| Components.svgButton "checkmark" (save model)
-       , div [Attr.class "column is-half has-text-right"] [Components.svgButton "trash" kill]
+       [ Components.col1 <| Components.svgButtonClass  "checkmark" "has-background-primary" (save model)
+       , div [Attr.class "column is-half has-text-right"] [Components.svgButtonClass "discard" "has-background-warning" kill]
        ]
 
   ]

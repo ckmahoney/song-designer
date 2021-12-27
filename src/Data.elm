@@ -516,10 +516,10 @@ v1 : Scope
 v1 =
   { id = -11
   , label = "verse"
-  , cps = 33/10
+  , cps = 14/10
   , cpc = 4 
   , root = 5
-  , size = 2
+  , size = 3
   }
 
 
@@ -527,10 +527,10 @@ v2 : Scope
 v2 =
   { id = -13
   , label = "verse 2"
-  , cps = 44/10
+  , cps = 14/10
   , cpc = 8
   , root = 2
-  , size = 2
+  , size = 3
   }
 
 
@@ -540,17 +540,17 @@ c1 =
   , cps = 14/10
   , cpc = 4 
   , root = 7
-  , size = 2
+  , size = 4
   }
 
 
 c2 =
   { id = -14
   , label = "chorus 2"
-  , cps = 5/10
+  , cps = 14/10
   , cpc = 4 
   , root = 2
-  , size = 2
+  , size = 4
   }
 
 

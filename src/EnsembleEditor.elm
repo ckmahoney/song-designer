@@ -95,19 +95,17 @@ editor toMsg state index model =
   in 
   VoiceEditor.edit model up close kill
 
-voiceGrid : State -> (Msg -> msg) -> Html msg
-voiceGrid state toMsg =
+voiceGrid : State -> Voice -> (Msg -> msg) -> Html msg
+voiceGrid state curr toMsg =
   let
     next = List.append state [ Data.emptyVoice ]
     i = List.length next
-    createVoice =  toMsg <| Select i
   in 
   Components.box <|
    List.append [ (Components.label "Ensemble") ]
    <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-vcentered has-text-centered"] <|
-    Components.button createVoice [ Attr.class "column is-primary"] "Add Another Voice" 
-    :: List.indexedMap (\index {role} -> 
-         div [Attr.class "column is-one-quarter", onClick <| toMsg <| Select index] [View.roleIcon role]) state 
+    List.indexedMap (\index ({role} as el) -> 
+         div [Attr.class <| if el == curr then "has-background-warning" else "",  Attr.class "column is-one-quarter", onClick <| toMsg <| Select index] [View.roleIcon role]) state 
 
 
 editorNew :State -> Int -> Voice -> (Msg -> msg) -> Html msg
@@ -119,7 +117,7 @@ editorNew state index voice toMsg =
   in 
   div []
     [ VoiceEditor.edit voice up close kill
-    , voiceGrid state toMsg
+    , voiceGrid state voice toMsg
     ]
 
 
