@@ -74,11 +74,12 @@ brief : State -> msg -> Html msg
 brief state open =
   Components.box <| if List.length state == 0 then 
     [ text "No voices in this ensemble." ] else 
-    List.singleton <| Components.cols <|
-      [ Components.col [Attr.class "is-multiline columns is-three-quarters"] <| 
+     [ Components.label "Ensemble"
+     , Components.cols <|
+         [Components.col [Attr.class "is-multiline columns is-three-quarters"] <| 
           List.map (\{role} -> Components.colSize "is-one-third" <| View.roleIcon role) state
         , Components.colSize "is-one-quarter" <| Components.svgButtonClass "settings" "has-background-primary" open
-      ]
+      ] ]
 
 
 initModel : Model

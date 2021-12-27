@@ -78,6 +78,7 @@ type alias Model =
   , layout : List Combo
   , layoutEditor : Maybe LayoutEditor.Model
   , title : String
+  , templates : List Template
   }
 
 
@@ -108,17 +109,17 @@ initFrom v s l t m =
    layouts = [ Data.combos,  Tuple.second template ]
    layout = Tuple.second template
  in 
-  Model  "" Welcome  [] Nothing Stop m layout  (Just <| LayoutEditor.Overview layout) (Tuple.first template).title
+  Model  "" Welcome  [] Nothing Stop m layout  (Just <| LayoutEditor.Overview layout) (Tuple.first template).title Data.templates
 
 
 initTest : Model
 initTest = 
-  initFrom [Data.p1, Data.p2] [] [] [] (Just Data.testMember)
+  initFrom [Data.p1, Data.p2] [] [] [] (Just Data.testMember) 
 
 
 initEmpty : Model
 initEmpty = 
-  Model  "" Welcome  [] Nothing Stop Nothing LayoutEditor.initState (Just LayoutEditor.initTest) "Adventure Sound"
+  Model  "" Welcome  [] Nothing Stop Nothing LayoutEditor.initState (Just LayoutEditor.initTest) "Adventure Sound" []
 
 
 initFromMember : GhostMember -> Model
@@ -496,7 +497,7 @@ requestSongButton model =
        template : Template
        template = ({meta | title = model.title},  model.layout)
     in  
-     Components.button (ReqTrack template) [ class "is-primary mb-3"] ("Write A New Song: " ++ model.title )
+     Components.button (ReqTrack template) [ class "is-primary is-size-4 p-3"] ("Write A New Song: " ++ model.title )
 
 
 editLayoutButton : Model -> Html Msg
@@ -506,8 +507,9 @@ editLayoutButton model =
 
 miniSongDesigner : Model -> Html Msg
 miniSongDesigner model =
-  div [class "has-background-light"] <| List.singleton <|
-    case model.layoutEditor of 
+  div [class "has-background-light"] <| 
+   [ --templatePicker model.templates 
+     case model.layoutEditor of 
       Nothing -> 
        Components.box <|
          [ Components.cols <| 
@@ -518,9 +520,20 @@ miniSongDesigner model =
          ]
 
       Just mod ->
-        div [] [ Components.editText "Title" (text "The name for the song you're about to write.") model.title UpdateTitle
+        div []
+        [ Components.editText "Title" (div [class "is-flex is-align-items-center is-justify-content-space-between" ] [(text "The name for the song you're about to write."), requestSongButton model ]) model.title UpdateTitle
         , LayoutEditor.view mod (\m -> UpdateEditor <| Just m) SaveLayout CloseLayoutEditor
         ]
+   ]
+
+templatePicker : List Template -> Html msg
+templatePicker layouts = 
+  div [] <|
+    [ Html.h3 [class "is-size-3"] [text "Select a Preset"]
+    , Components.cols <| 
+      List.indexedMap (\i (meta, lay) -> 
+        Components.col [Components.centerText] [p [class "is-size-2"] [text meta.title]]) layouts
+    ]
 
 view : Model -> Html Msg
 view model =

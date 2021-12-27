@@ -109,7 +109,7 @@ svgButton name click =
 
 svgButtonClass : String -> String -> msg -> Html msg
 svgButtonClass name classes click =
-  Html.button [class classes, class "is-clickable p-4", onClick click, style "border-radius" "100%"] [svg name]
+    Html.button [class classes, class "is-clickable p-4", onClick click, style "border-radius" "15%"] [svg name]
 
 svgSquare : String -> Int -> Html msg
 svgSquare name x = 
@@ -196,7 +196,7 @@ strvalToFloat min max str =
 
 label : String -> Html msg
 label content =
-  Html.label [class "m-0 subtitle"] [ text content ]
+  Html.label [class "m-0 mb-3 subtitle"] [ text content ]
 
 
 
@@ -352,7 +352,7 @@ button click attrs content =
 
 plusButton : msg -> Html msg
 plusButton msg  =
-  button msg [ class "has-6 p-6 is-primary" ] "+"
+  button msg [ class "p-6 is-primary" ] "+"
 
 addButton : msg -> String -> Html msg
 addButton msg content =

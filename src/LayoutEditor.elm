@@ -314,9 +314,11 @@ pickerHorizontal things icon select kill clone add =
 placerDesktop things icon place clone =
   div [ Attr.class "inserting columns is-multiline level is-vcentered  is-flex-direction-column" ] <|
      (List.indexedMap (\i thing ->
-       div [ Attr.class "is-clickable columns column is-flex is-flex-direction-column is-half my-3", onClick (place i) ] [ Components.colFull <| div [ Attr.class "is-full has-text-centered"]  [ Components.plusButton (place i) ]
-           , icon thing
-         ] ) things)
+       div [ Attr.class "is-clickable columns column is-flex is-flex-direction-column is-half my-3"
+           , onClick (place i) ]
+             [ div [Attr.class "uncover"] [ Components.plusButton (place i) ]
+             , icon thing
+             ] ) things)
 
 placerMobile things icon place clone =
   div [ Attr.class "columns is-multiline level is-vcentered  is-flex-direction-column" ] <|

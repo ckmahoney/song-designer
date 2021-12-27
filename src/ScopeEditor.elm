@@ -229,7 +229,8 @@ thumb state =
 brief : State -> msg -> Html msg
 brief state open =
   Components.box 
-    [ Components.cols <|
+    [ Components.label "Scope"
+    , Components.cols <|
        [ Components.colSize "is-three-quarters" <| div [] [ Components.label state.label       , Components.colHalf <| text <| V.scopeTimeString state ]
        , Components.colSize "is-one-quarter" <| Components.svgButtonClass "settings" "has-background-primary" open
        ]

@@ -26,11 +26,11 @@ border pos =
 
 scopePeek : T.Scope -> Html msg
 scopePeek state =
-  div [] 
-    [ div [Components.centerText] [ Components.label state.label ]
-    , Components.colsWith [Components.centerText]  <|
-       [ Components.colHalf <| text <| scopeTimeString state
-       , Components.colHalf <| text <| Components.keyMessage True state.root
+  Components.colsWith [Attr.class "is-vcentered"] <|
+    [ Components.colHalf <| h1 [Attr.class "is-size-2"] [text  state.label ]
+    , Components.colHalf <| div [Attr.class "has-text-right is-size-4"]
+       [ Components.colHalf <| text <| Components.keyMessage True state.root
+       , Components.colHalf <| text <| scopeTimeString state
        ]
     ] 
 
@@ -93,28 +93,6 @@ getTimes scopes  =
 layoutDuration : List T.Scope -> Float
 layoutDuration scopes =
   List.foldl (\(cps, nCycles) total -> total + (cps * toFloat nCycles)) 0 (getTimes scopes)
-
-
-
--- templateDetails : T.Template -> Html msg
--- templateDetails ((mMeta, mScopes) as template) =
---   case mScopes of 
---     [] -> 
---       text "Empty template has no length."
-
---     combos  ->
---       let
---          scopes = List.map Tuple.first <| List.filter (\(m, xx) -> case m of 
---            Nothing -> False
---            _ -> True ) combos
-         
---          -- yy = Debug.log "Has scopes:" scopes
---          length = layoutDuration <| Tools.unMaybe scopes D.emptyScope
---       in 
---       Components.box 
---         [ text " total length of this template : "   
---         , text <| timeString length
---          ]
 
 
 editLayoutMessage : Html msg
@@ -582,14 +560,6 @@ ensembleAdder opts add =
           , p [] [ text voice.label ] ] ) opts ]
 
 
--- layoutAdder : List T.Combo -> (T.Combo -> msg) -> Html msg
--- layoutAdder opts add =
---   Components.box 
---     [ p [ class "mb-3" ] [ text "Add a scope to this layout." ] 
---     , div [ class "columns is-mobile is-multiline" ] <| 
---         List.map (\scope -> 
---           div [ class "column has-text-centered", onClick (add scope) ] [ scopeIcon scope ] ) opts ]
-
 
 sectionAdder : List T.Scope -> List T.Ensemble -> T.SectionP ->  Html msg
 sectionAdder scopes ensembles (mScope, mEns)  =
@@ -602,27 +572,6 @@ sectionAdder scopes ensembles (mScope, mEns)  =
         List.map (\ens -> 
           div [ class "column has-text-centered" ] [ ensembleIcon ens ] ) ensembles ]
 
-
--- ensembleNamer : T.NamedEnsemble -> (String -> msg) -> Html msg
--- ensembleNamer curr rename =
---   Components.editText "Label" (text "") (Tuple.first curr) rename 
-
-
--- ensembleEditor : List T.Voice -> List T.NamedEnsemble -> (Maybe T.NamedEnsemble) -> (Int -> msg) -> ((Maybe T.NamedEnsemble) -> msg) -> (List T.NamedEnsemble -> msg) -> Html msg
--- ensembleEditor options ensembles current select updateCurrent updateAll =
---   case current of 
---     Nothing ->
---       ensemblePicker ensembles select
-
---     Just ((label, ens) as e) ->
---       let 
---         swapEns = (\ee -> Just ((Tuple.first e), ee))
---       in 
---       Components.card ("Ensemble: " ++ label) <| Components.wraps
---         [ ensembleNamer e (\str -> updateCurrent (Just (str, (Tuple.second e)))) 
---         , viewEnsembleWithRemover e (\voice -> updateCurrent (swapEns (Tools.remove (Just voice) (Tuple.second e))))
---         , ensembleAdder options (\voice -> updateCurrent (swapEns (Tools.conj voice (Tuple.second e)))) 
---         ]
 
 
 scopeIcon : T.Scope -> Html msg

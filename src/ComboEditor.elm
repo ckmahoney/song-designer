@@ -80,8 +80,7 @@ border pos =
 thumb : Combo -> Html msg
 thumb (scope, ensemble) =
   Components.cols <| 
-    [ --Components.col (Attr.class "is-half" :: border "right") [ScopeEditor.brief scope]
-      Components.col (Attr.class "is-half" :: border "right") [ScopeEditor.thumb scope]
+    [ Components.col (Attr.class "is-half" :: border "right") [ScopeEditor.thumb scope]
     , Components.col (Attr.class "is-half" :: border "right") [View.ensemblePeek ensemble]
     ]
 
@@ -117,7 +116,7 @@ thumbEdit model forward up =
         ]
    
     Scope ((scope, ensemble) as state) mod ->
-     let
+      let
         continue = (\m -> forward <| Scope state m)
         keep =  (\s -> up (s, ensemble))
         done = (\_ -> forward <| Overview state)
@@ -128,7 +127,6 @@ thumbEdit model forward up =
 
     Ensemble ((scope, ensemble) as state) mod ->
      let
-        yy = Debug.log "has this ensemble:" ensemble
         continue = (\m -> forward <| Ensemble state m)
         keep =  (\e -> forward <| update (Save (scope, e)) state)
         done = (\_ -> forward <| Overview state)
