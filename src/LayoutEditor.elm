@@ -301,8 +301,6 @@ pickerHorizontal things icon select kill clone add =
      (List.indexedMap (\i thing ->
        div [Attr.class "column is-flex is-flex-directtoin-row is-mobile is-half is-level"] 
          [ comboCard icon thing i (select i) (kill i) (clone i)
-         , if i == (List.length things - 1) then text "" else 
-           Components.colSize "columns is-justify-content-center is-vcentered" <| Components.svg "right" 
          ]) things)
       [ if 4 > List.length things then 
           Components.col1 <| Components.plusButton add

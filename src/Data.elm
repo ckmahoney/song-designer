@@ -700,7 +700,7 @@ templateTernary =
    b : Layout 
    b = [ ({ id = 0, label = "intro", size = 2, cpc = 8, root = 0, cps = 1.0 }, kitVC1)
           , ({ id = 1, label = "partA", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC2)
-          , ({ id = 2, label = "partB", size = 8, cpc = 8, root = 9, cps = 1.0 }, kitVC2)
+          , ({ id = 2, label = "partB", size = 6, cpc = 8, root = 9, cps = 1.0 }, kitVC2)
           , ({ id = 3, label = "partA", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC1)
           , ({ id = 4, label = "outro", size = 2, cpc = 8, root = 0, cps = 1.0 }, kitVC1)
           ]
@@ -722,9 +722,9 @@ templateABAC =
    b : Layout 
    b = [ ({ id = 0, label = "intro", size = 2, cpc = 4, root = 0, cps = 1.0 }, kitVC1)
           , ({ id = 1, label = "partA", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC2)
-          , ({ id = 2, label = "partB", size = 8, cpc = 8, root = 9, cps = 1.0 }, kitVC2)
+          , ({ id = 2, label = "partB", size = 6, cpc = 8, root = 9, cps = 1.0 }, kitVC2)
           , ({ id = 3, label = "partA", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC1)
-          , ({ id = 5, label = "partC", size = 16, cpc = 8, root = 5, cps = 1.0 }, kitVC2)
+          , ({ id = 5, label = "partC", size = 6, cpc = 8, root = 5, cps = 1.0 }, kitVC2)
           , ({ id = 4, label = "outro", size = 2, cpc = 4, root = 0, cps = 1.0 }, kitVC1)
           ]
 
@@ -742,10 +742,10 @@ templateAB =
        , cpc = 4
        }
    b : Layout 
-   b = [ ({ id = 0, label = "intro", size = 2, cpc = 4, root = 0, cps = 1.0 }, kitVC1)
-          , ({ id = 1, label = "partA", size = 8, cpc = 8, root = 3, cps = 1.0 }, kitVC2)
-          , ({ id = 2, label = "partB", size = 8, cpc = 8, root = 10, cps = 1.0 }, kitVC2)
-          , ({ id = 4, label = "outro", size = 2, cpc = 4, root = 0, cps = 1.0 }, kitVC1)
+   b = [ ({ id = 0, label = "intro", size = 1, cpc = 4, root = 0, cps = 1.0 }, kitVC1)
+          , ({ id = 1, label = "partA", size = 5, cpc = 8, root = 3, cps = 1.0 }, kitVC2)
+          , ({ id = 2, label = "partB", size = 5, cpc = 8, root = 10, cps = 1.0 }, kitVC2)
+          , ({ id = 4, label = "outro", size = 1, cpc = 4, root = 0, cps = 1.0 }, kitVC1)
           ]
 
   in

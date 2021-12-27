@@ -423,12 +423,12 @@ meterMessage cpc =
 
 sizeToCycles: Int -> Int -> Int
 sizeToCycles cpc size =
- cpc * (2^size)
+ cpc * (2^(size-1))
 
 
 duration : Int -> Float -> Int -> Float
 duration cpc cps size  =
-  (1/cps) * (toFloat (sizeToCycles cpc <| Debug.log "has size : " size))
+  (1/cps) * (toFloat (sizeToCycles cpc size))
 
 durString : Int -> Float -> Int -> String
 durString cpc cps size  =
@@ -786,33 +786,6 @@ viewTemplate : T.Template -> Html msg
 viewTemplate ((scoreMeta, scopes) as template) =
   Components.box <|
     [ label [ class "title" ] [ text scoreMeta.title  ] ] ++ (List.map comboIcon scopes)
-
-
--- comboPEditor : List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
--- comboPEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
---   case curr of
---     Nothing -> 
---       Components.picker combos viewComboP (\i -> updateCombo (Tools.get i combos))
- 
---     Just cp ->
---       Components.card (Maybe.withDefault "This template has no title." meta.title)  <| Components.wraps <|
---         [ templateMessage
---         , templateDetails template
---         , viewTemplate template
-        -- , comboEditor scopes ensembles cp updateCombo ]
-
-
--- templateEditor :  List T.Scope -> List T.NamedEnsemble -> T.Template ->  Maybe T.ComboP ->  (Maybe T.ComboP -> msg) -> Html msg
--- templateEditor scopes ensembles ((meta, combos) as template) curr updateCombo =
-  -- div [ class "template-editor"] <| 
-    -- List.map viewComboP combos
-
-
-
-
--- playButton : Html msg
--- playButton =
-  -- Components.button (play "") [] "Play"
 
 
 main =

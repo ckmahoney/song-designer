@@ -1,10 +1,11 @@
-port module Router exposing (..)
+module Router exposing (..)
 
 import Browser
 import Html exposing (Html, button, div, text, label, p)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
+import Task
 import Types exposing (..)
 import Data
 import View 
@@ -20,33 +21,13 @@ import ScopeEditor
 import EnsembleEditor
 import ComboEditor
 import LayoutEditor
+import Playback
 
-
-port playMusic : String -> Cmd msg
-
-port pauseMusic : String -> Cmd msg
-
-port stopMusic : String -> Cmd msg
-
-port setSource : String -> Cmd msg
-
-type Playback
- = Play
- | Pause
- | Stop  
-
-
--- what is the problem Cortland?
--- I need to change the layout every time a change happens below
--- just do that even if it looks dumb
 
 -- data prepared for storage on server
 type Msg 
-  = LoadTrack TrackMeta
-  | PlayTrack 
-  | PauseTrack
-  | StopTrack
-  | SelectTrack (Maybe TrackMeta)
+  = UpdatePlayer (Playback.Player, Playback.Msg)
+
  
   | GotTracks (Result Http.Error (List TrackMeta))
   | GotNewTrack (Result Http.Error  TrackMeta)
@@ -63,17 +44,12 @@ type Msg
   | UpdateEditor (Maybe LayoutEditor.Model)
 
 
-changeLayout : Model -> (List Combo) -> Model
-changeLayout model layout = 
-  { model | layout = layout }
-
-
 type alias Model =
   { response : String
   , mailer : Posting
   , tracks : List TrackMeta
   , selection : Maybe TrackMeta
-  , playstate : Playback
+  , playstate : Playback.Player
   , member : Maybe GhostMember
   , layout : List Combo
   , layoutEditor : Maybe LayoutEditor.Model
@@ -105,11 +81,11 @@ decodeTrack =
 initFrom : List Voice -> List Scope -> List Layout -> List Template -> Maybe GhostMember -> Model
 initFrom v s l t m =
  let
-   template = Data.templateVerseChorus
+   template = Data.templateTernary
    layouts = [ Data.combos,  Tuple.second template ]
    layout = Tuple.second template
  in 
-  Model  "" Welcome  [] Nothing Stop m layout  (Just <| LayoutEditor.Overview layout) (Tuple.first template).title Data.templates
+  Model  "" Welcome  [] Nothing Playback.new m layout  (Just <| LayoutEditor.Overview layout) (Tuple.first template).title Data.templates
 
 
 initTest : Model
@@ -119,7 +95,7 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  Model  "" Welcome  [] Nothing Stop Nothing LayoutEditor.initState (Just LayoutEditor.initTest) "Adventure Sound" []
+  Model  "" Welcome  [] Nothing Playback.new Nothing LayoutEditor.initState (Just LayoutEditor.initTest) "Adventure Sound" []
 
 
 initFromMember : GhostMember -> Model
@@ -284,24 +260,19 @@ update msg model =
     SaveLayout layout ->
       ({ model | layout = layout }, Cmd.none)
 
-    LoadTrack track -> 
-      ( model, setSource track.filepath )
+    UpdatePlayer ((mTrack, pstate) as playstate, pCmd) ->
+      case mTrack of
+        Nothing ->
+         ({ model | playstate = Playback.new}, Playback.stopMusic "")
 
-    SelectTrack track ->
-      case track of 
-        Nothing -> 
-          ( { model | playstate = Stop, selection = Nothing }, setSource "" )
-        Just t -> 
-          ( { model | playstate = Play, selection = Just t }, setSource (hostname ++ t.filepath ))
+        Just t ->
+           case pCmd of 
+            Playback.Load path -> ( { model | playstate = playstate }, Playback.trigger <| Playback.Load (hostname ++ path))
+            Playback.Select (Just track) ->    
+             ( { model | playstate = playstate }, Playback.trigger <| Playback.Load (hostname ++ track.filepath))
 
-    PlayTrack ->
-      ( { model | playstate = Play } , playMusic "" )
-
-    PauseTrack ->
-      ( { model | playstate = Pause } , pauseMusic "" )
-
-    StopTrack ->
-      ( { model | playstate = Stop, selection = Nothing }, stopMusic "" )
+            _ ->
+             ( { model | playstate = playstate }, Playback.trigger pCmd)
 
     GotTracks response ->
       case response of 
@@ -328,8 +299,8 @@ update msg model =
           ( { model 
             | tracks = track :: model.tracks
             , selection = (Just track)
-            , playstate = Play
-            , mailer = Received }, setSource (hostname ++ track.filepath ) )
+            , playstate = (Just track, Playback.Playing)
+            , mailer = Received }, Playback.trigger <| Playback.Load (hostname ++ track.filepath ) )
 
         Err errr ->
           case errr of 
@@ -456,36 +427,6 @@ updateIn el els index =
   Tools.replaceAt index el els
 
 
-playlist : Playback -> (Maybe TrackMeta) -> List TrackMeta -> Html Msg
-playlist playstate selection tracks =
-  Components.box <| List.singleton  <| Components.colsMulti <|
-   List.map (\track ->
-     let 
-       icons = case selection of 
-         Nothing -> 
-            [ div [onClick <| SelectTrack (Just track)] [Components.svg "play"] ]
-
-         Just selected ->  
-           if selected == track then 
-             [ case playstate of 
-                 Play -> 
-                   div [onClick PauseTrack] [Components.svg "pause"] 
-
-                 Pause -> 
-                   div [onClick PlayTrack] [Components.svg "play"] 
-
-                 Stop ->
-                   div [onClick PlayTrack] [Components.svg "play"] 
-
-             , div [onClick StopTrack] [Components.svg "stop"]
-             ]
-           else 
-             [ div [onClick <| SelectTrack (Just track)] [Components.svg "play"] ]
-
-     in
-     Components.col [class "is-one-fifth"] [ Components.songCard track.title icons]) tracks
-
-
 requestSongButton : Model -> Html Msg
 requestSongButton model =
   if 0 == List.length model.layout then 
@@ -548,7 +489,7 @@ view model =
           _ ->
             miniSongDesigner model
 
-      , playlist model.playstate model.selection model.tracks
+      , Playback.view  model.playstate UpdatePlayer model.tracks
       ]
 
 
