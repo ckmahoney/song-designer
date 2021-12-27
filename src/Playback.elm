@@ -92,8 +92,6 @@ controls model trig =
         text ""
       _ -> div [onClick <| trig Stop] [Components.svg "stop"]
 
-
-
   ]
 
 player : Player -> ((Player, Msg) -> msg) -> msg -> Html msg

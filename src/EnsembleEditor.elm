@@ -72,14 +72,20 @@ picker state click =
 
 brief : State -> msg -> Html msg
 brief state open =
+ let 
+  child = Components.cols 
+         [ Components.col [Attr.class "is-multiline columns is-three-quarters is-mobile"] <| 
+           List.map (\{role} -> Components.colSize "is-one-third" <| View.roleIcon role) state
+         , Components.colSize "is-one-quarter" <| Components.svgButtonClass "settings" "has-background-primary" open
+         ]
+ in 
   Components.box <| if List.length state == 0 then 
     [ text "No voices in this ensemble." ] else 
      [ Components.label "Ensemble"
-     , Components.cols <|
-         [Components.col [Attr.class "is-multiline columns is-three-quarters"] <| 
-          List.map (\{role} -> Components.colSize "is-one-third" <| View.roleIcon role) state
-        , Components.colSize "is-one-quarter" <| Components.svgButtonClass "settings" "has-background-primary" open
-      ] ]
+     , Components.mobile [] <| List.singleton <| child
+     , Components.tablet [] <| List.singleton <| child
+     , Components.desktop [] <| List.singleton <| child
+    ]
 
 
 initModel : Model
@@ -162,7 +168,7 @@ synthInitializer model toMsg select init =
     in
     Components.box <| 
       [ Components.pickerSelected Data.roles View.roleIcon pick curr
-      , Components.button (toMsg <| Create curr) [] ("Create " ++ Data.roleName curr)
+      , Components.button (toMsg <| Create curr) [Attr.class "has-background-success has-text-light is-size-5"] ("Create " ++ Data.roleName curr)
       ]
 
 view : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
@@ -176,11 +182,15 @@ view model forward save close =
     if 0 == List.length state then 
       showNoVoices state toMsg
     else
-     div []     
-        [ synthInitializer mSynth toMsg select (select Bass) 
-        , Components.button (save state) [] "save this ensemble now"
-        , div [ Attr.class "is-flex is-flex-direction-column align-items-flex-start" ] <|
-         [ listVoices state toMsg ]
+     Components.colsMulti
+        [ Components.colFull <| Components.cols <|
+          [ Components.colHalf <| Html.h2 [ Attr.class "title"] [text "Ensemble"]
+          , Components.colHalf <| div [Attr.class "columns is-multiline has-text-right"]
+            [ Components.colFull <| Components.button (save state) [ Attr.class "is-info"] "Save Ensemble"
+            , Components.colFull <| synthInitializer mSynth toMsg select (select Bass) ]
+          ]
+        , Components.colSize "is-full is-flex is-flex-direction-column align-items-flex-start" <|
+           listVoices state toMsg 
         ]
 
   Editing state index voice ->

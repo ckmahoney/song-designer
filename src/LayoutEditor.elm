@@ -381,52 +381,49 @@ fromCombo state index combo =
 
 
 
-displayMobile state model forward save close  =
+displayMobile title state model forward updateTitle save close  =
   let 
    kill = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
    select = (\i -> (forward <| edit state (Select i) <| ComboEditor.initModel state i))
    clone = (\i -> forward <| update (Cloning i) state)
    add = (forward <| update (Save (apply state Create)) state)
   in 
-   Components.box <|
-     [ div [ Attr.class "columns is-multiline level is-vcentered" ]
-       [ p [ Attr.class "content"] 
-           [ text "Organize the parts of your sound. "    ] ]
-     , picker state View.viewComboVertical select kill clone add
-     , Components.button (close state) [] "Close" 
+   Components.colsMulti <|
+     [ Components.colFull <| Components.button (close state) [Attr.class "has-background-info has-text-light"] "Save Layout" 
+     , Components.colFull <| Components.box <| [ Html.h2 [Attr.class "title"] [text "Title"], Components.editText "" (text "") title updateTitle ]
+     , Components.colFull <| picker state View.viewComboVertical select kill clone add
      ]
 
 
-displayDesktop state model forward save close  =
+displayDesktop title state model forward updateTitle save close  =
   let 
    kill = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
    select = (\i -> (forward <| edit state (Select i) <| ComboEditor.initModel state i))
    clone = (\i -> forward <| update (Cloning i) state)
    add = (forward <| update (Save (apply state Create)) state)
   in 
-   Components.box <|
-     [ div [ Attr.class "columns is-multiline level is-vcentered" ]
-       [ p [ Attr.class "content"] 
-           [ text "Organize the parts of your sound. "    ] ]
-
-     , pickerHorizontal state View.viewComboVertical select kill clone add
-     , Components.button (close state) [] "Close" 
+   Components.colsMulti <|
+     [ Components.colFull <| Components.button (close state) [Attr.class "has-background-info has-text-light"] "Save Layout" 
+     , Components.colFull <| Components.box <| [ Html.h2 [Attr.class "title"] [text "Title"], Components.editText "" (text "") title updateTitle ]
+     , Components.colFull <|pickerHorizontal state View.viewComboVertical select kill clone add
      ]
 
 
 
-view : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
-view model forward save close  =
+view : String -> Model -> (Model -> msg) -> (String -> msg) ->  (State -> msg) -> (State -> msg) -> Html msg
+view title  model forward updateTitle save close  =
   case model of 
     Overview state ->
       div [] 
-        [ Components.mobile [] <| List.singleton <| displayMobile state model forward save close
-        , Components.desktop [] <|List.singleton <|  displayDesktop state model forward save close
+        [ Components.mobile [] <| List.singleton <| displayMobile title state model forward updateTitle save close
+        , Components.tablet [] <|List.singleton <|  displayDesktop title state model forward updateTitle save close
+        , Components.desktop [] <|List.singleton <|  displayDesktop title state model forward updateTitle save close
         ]
 
     PlacingClone state combo  ->
      let 
       place = (\i -> (forward <| update (Save <| Tools.insertAt i combo state) state))
+      cancel = forward <| Overview state
      in 
       Components.box <|
         [ div [ Attr.class "columns is-multiline level is-vcentered" ]
@@ -436,8 +433,8 @@ view model forward save close  =
               , Html.br [] []
               , text "Select the combo to put it before." ] 
               , Html.br [] [] ]
+        , Components.button cancel [Attr.class "has-background-warning"] "Cancel" 
         , placer state View.viewCombo place combo
-        , Components.button (close state) [] "Close" 
         ]
 
     Editing state index mod ->
@@ -445,11 +442,9 @@ view model forward save close  =
         continue = forward << edit state (Edit index (curr state index))
         swap = (\c ->  Tools.replaceAt index c state)
         keep =  (\combo -> forward <| (update (Save <| swap combo) state))
+        exit =  forward <| Overview state
       in 
-      div []
-         [ Components.button (forward <| update (Save state) state) [] "Save Combo"
-         , ComboEditor.thumbEdit mod continue keep
-         ]
+      ComboEditor.thumbEdit mod continue keep exit
 
 
 main = text ""

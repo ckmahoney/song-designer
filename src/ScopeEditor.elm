@@ -185,17 +185,23 @@ icon model =
   text "icon"
 
 
-card :State -> Html msg
-card model = 
-  Components.cardWith "has-background-warning" model.label <| Components.cols 
-   [  V.sizeMessage model.cpc  model.size
-    , p [Attr.class "has-text-centered"] [text <| "Key of " ++ V.keyLabel model.root]
-    , Html.br [] [] 
-    , Html.hr [] [] 
-    , Html.br [] [] 
-    , p [Attr.class "has-text-centered"] [text <| V.durString model.cpc model.cps model.size ++ " seconds long"]
-    ] 
-
+card :State -> (Msg -> msg) -> Html msg
+card model toMsg = 
+  Components.box
+   [  Components.colsMulti 
+        [ Components.colSize "is-half" <| div [] 
+          [ p [ Attr.class "subtitle"] [ text model.label ]
+          , V.sizeMessage model.cpc  model.size
+          ]
+        , Components.colSize "is-half" <| div [] 
+          [ Components.editText "" (text "") model.label (\str -> updateTitle str toMsg)
+          ]
+        , Components.colFull <| div [] 
+          [ p [Attr.class "has-text-centered"] [text ("duration: " ++ (V.timeString <| V.duration model.cpc model.cps model.size))]
+          , p [Attr.class "has-text-centered"] [text <| "Key of " ++ V.keyLabel model.root]
+          ]
+        ]
+    ]
 
 
 card2 :State -> (Msg ->msg ) -> Html msg
@@ -218,7 +224,8 @@ card2 model toMsg =
 thumb : State -> Html msg
 thumb state =
   Components.box 
-    [ div [Components.centerText] [ Components.label state.label ]
+    [ Html.h2 [ Attr.class "title"] [text "Scope"]
+    , div [Components.centerText] [ Components.label state.label ]
     , Components.colsWith [Components.centerText]  <|
        [ Components.colHalf <| text <| V.scopeTimeString state
        , Components.colHalf <| text <| Components.keyMessage True state.root
@@ -268,7 +275,7 @@ editorMobile toMsg state  =
 editorDesktop : (Msg -> msg) -> State -> Html msg
 editorDesktop toMsg state  =
    div [Attr.class "is-flex is-flex-direction-column view1"]
-     [  card state
+     [  card state toMsg
         , Components.card "Scope label" <| div []
         [ p [] [text "Something like 'verse' or 'chorus' to help you what this part is doing."]
         , input [Attr.class "input my-3 is-info", Attr.type_ "text",  Attr.value state.label, onInput (\str -> toMsg (Update <| Title  str))] [] ]
@@ -306,7 +313,8 @@ view model forward save close =
        toMsg = (\msg -> forward <| update msg state)
      in
       div []
-       [ Components.button (save state) [Attr.class "is-primary"] "Done with Scope"
+       [ Components.button (close state) [Attr.class "is-info"] "Save Scope"
+       , Html.h2 [ Attr.class "title"] [text "Scope"]
        , editor state toMsg
        ]
 

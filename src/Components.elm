@@ -17,6 +17,9 @@ type Modal
 mobileOnly child =
   div [ class "is-hidden-tablet" ] [ child ]
 
+mobileNot child =
+  div [ class "is-hidden-mobile is-hidden-touch" ] [ child ]
+
 tabletOnly child =
   div [ class "is-hidden-mobile is-hidden-desktop" ] [ child ]
 
@@ -109,7 +112,7 @@ svgButton name click =
 
 svgButtonClass : String -> String -> msg -> Html msg
 svgButtonClass name classes click =
-    Html.button [class classes, class "is-clickable p-4", onClick click, style "border-radius" "15%"] [svg name]
+    Html.button [class classes, class "is-clickable p-2", onClick click, style "border-radius" "15%"] [svg name]
 
 svgSquare : String -> Int -> Html msg
 svgSquare name x = 
@@ -276,7 +279,7 @@ editTextDesktop title html val toMsg =
 
 editText : String -> Html msg -> String -> ( String -> msg ) -> Html msg
 editText title html val toMsg =
-  div [class "box"]
+  div []
     [ mobileOnly <| editTextMobile title html val toMsg 
     , tabletOnly <| editTextDesktop title html val toMsg 
     , desktopOnly <| editTextDesktop title html val toMsg 

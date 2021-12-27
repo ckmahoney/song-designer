@@ -269,7 +269,7 @@ update msg model =
            case pCmd of 
             Playback.Load path -> ( { model | playstate = playstate }, Playback.trigger <| Playback.Load (hostname ++ path))
             Playback.Select (Just track) ->    
-             ( { model | playstate = playstate }, Playback.trigger <| Playback.Load (hostname ++ track.filepath))
+             ( { model | playstate = playstate }, Playback.trigger <| Playback.Load (hostname ++ track.filepath)) -- fixes the missing hostname on getSongs
 
             _ ->
              ( { model | playstate = playstate }, Playback.trigger pCmd)
@@ -449,10 +449,11 @@ editLayoutButton model =
 miniSongDesigner : Model -> Html Msg
 miniSongDesigner model =
   div [class "has-background-light"] <| 
-   [ --templatePicker model.templates 
-     case model.layoutEditor of 
+   [
+   --, templatePicker model.templates 
+    case model.layoutEditor of 
       Nothing -> 
-       Components.box <|
+       Components.box 
          [ Components.cols <| 
              [ Components.col1 <| editLayoutButton model
              , Components.col1 <| requestSongButton model
@@ -461,9 +462,8 @@ miniSongDesigner model =
          ]
 
       Just mod ->
-        div []
-        [ Components.editText "Title" (div [class "is-flex is-align-items-center is-justify-content-space-between" ] [(text "The name for the song you're about to write."), requestSongButton model ]) model.title UpdateTitle
-        , LayoutEditor.view mod (\m -> UpdateEditor <| Just m) SaveLayout CloseLayoutEditor
+        Components.box
+        [ LayoutEditor.view model.title mod (\m -> UpdateEditor <| Just m) UpdateTitle SaveLayout CloseLayoutEditor 
         ]
    ]
 
@@ -487,9 +487,9 @@ view model =
           Sending -> 
             text "Working on that track for you!"
           _ ->
-            miniSongDesigner model
+            miniSongDesigner model 
 
-      , Playback.view  model.playstate UpdatePlayer model.tracks
+      , Playback.view model.playstate UpdatePlayer model.tracks
       ]
 
 

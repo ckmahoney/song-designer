@@ -68,7 +68,7 @@ numberPickers model update =
     ]
 
 
-controls model save kill = 
+controlsSvg  model save kill = 
  div [] 
   [ Components.mobile [] <| List.singleton <|
      div [Attr.class "columns is-mobile"]
@@ -86,6 +86,19 @@ controls model save kill =
        [ Components.col1 <| Components.svgButtonClass  "checkmark" "has-background-primary" (save model)
        , div [Attr.class "column is-half has-text-right"] [Components.svgButtonClass "discard" "has-background-warning" kill]
        ]
+  ]
+
+controls model save kill = 
+ div [] 
+  [ Components.mobile [] <| List.singleton <|
+     div [Attr.class "columns is-mobile has-text-light"]
+       [ div [Attr.class "column"] [ Components.button  (save model)  [Attr.class "has-text-light has-background-primary"] "Save Voice" ]
+       , div [Attr.class "column has-text-right"] [Components.button kill [Attr.class "has-background-warning"] "Discard changes"]
+       ]
+  , Components.mobileNot <| Components.cols <|
+       [ div [Attr.class "column is-half"] [ Components.button  (save model)  [Attr.class "has-text-light has-background-primary"] "Save Voice" ]
+       , div [Attr.class "column is-half has-text-right"] [Components.button kill [Attr.class " has-background-warning"] "Discard changes"]
+       ]
 
   ]
 
@@ -96,8 +109,8 @@ edit model update save kill =
    options = List.map (\r -> (r, View.roleIcon r)) Data.roles
  in 
   div [ Attr.class "container" ]
-    [ controls model save kill
-
+    [ Html.h2 [ Attr.class "title"] [text "Voice"]
+    , controls model save kill
     , Components.mobile [ Attr.class "is-mobile is-flex is-flex-wrap-wrap columns is-multiline" ] <|
           [ Components.colFull <| Components.editText "Label" (text "Name") model.label (updateLabel model update)
           , Components.colFull <| div [Attr.class "has-text-centered"] [ View.viewVoice model]

@@ -27,8 +27,8 @@ border pos =
 scopePeek : T.Scope -> Html msg
 scopePeek state =
   Components.colsWith [Attr.class "is-vcentered"] <|
-    [ Components.colHalf <| h1 [Attr.class "is-size-2"] [text  state.label ]
-    , Components.colHalf <| div [Attr.class "has-text-right is-size-4"]
+    [ Components.colHalf <| h1 [Attr.class "is-size-4"] [text  state.label ]
+    , Components.colHalf <| div [Attr.class "columns has-text-right is-size-5"]
        [ Components.colHalf <| text <| Components.keyMessage True state.root
        , Components.colHalf <| text <| scopeTimeString state
        ]
@@ -618,8 +618,6 @@ comboPreview ((scope, ensemble) as combo) =
       <| [ div [ class "column is-one-quarter" ] [ scopeIcon scope ]
          , div [ class "column is-three-quarters" ] [ Components.colsMulti  
             (List.map (\voice -> div [class "column is-one-quarter" ][ (voiceIcon voice)]) ensemble) ] ]
-      
-
 
 
 viewLayout : T.Layout -> Html msg

@@ -100,16 +100,20 @@ initModel combos index =
   Overview <| Tools.getOr index combos Data.emptyCombo
 
 
-thumbEdit : Model -> (Model -> msg) -> (Combo -> msg) -> Html msg
-thumbEdit model forward up =
+thumbEdit : Model -> (Model -> msg) -> (Combo -> msg) -> msg ->  Html msg
+thumbEdit model forward up close =
   case model of 
     Overview ((scope, ensemble) as state) -> 
      let
         pickScope = forward <| update (PickScope scope) state
         pickEnsemble = forward <| update (PickEnsemble ensemble) state
      in
-      Components.cols <| 
-        [ Components.colHalf <|
+      Components.colsMulti <| 
+        [ Components.colFull <|
+              Components.button close [Attr.class "has-background-info has-text-light"] "Save Combo"
+        , Components.colFull <|
+              Html.h2 [ Attr.class "title"] [text "Combo"]
+        , Components.colHalf <|
               ScopeEditor.brief scope pickScope
         , Components.colHalf <|
               EnsembleEditor.brief ensemble pickEnsemble
