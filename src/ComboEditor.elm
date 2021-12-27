@@ -110,9 +110,7 @@ thumbEdit model forward up close =
      in
       Components.colsMulti <| 
         [ Components.colFull <|
-              Components.button close [Attr.class "has-background-info has-text-light"] "Save Combo"
-        , Components.colFull <|
-              Html.h2 [ Attr.class "title"] [text "Combo"]
+              Components.sectionHeading "combo" (Data.helpLink "combo") "Combo Designer" <| List.singleton <| Components.saveButton close "Save Combo"
         , Components.colHalf <|
               ScopeEditor.brief scope pickScope
         , Components.colHalf <|

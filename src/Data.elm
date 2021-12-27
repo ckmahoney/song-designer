@@ -884,3 +884,41 @@ roleName role =
 main = 
   Html.text ""
 
+
+helpLinks = 
+  { combo = "how-to-make-a-combo"
+  , ensemble = "how-to-make-an-enemble"
+  , layout = "how-to-make-a-layout"
+  , scope = "how-to-create-a-scope"
+  , voice = "how-to-create-a-voice"
+  }
+
+
+type HelpItem 
+  = Combo_Help
+  | Ensemble_Help
+  | Layout_Help
+  | Scope_Help
+  | Voice_help
+
+
+helpLink : String -> String
+helpLink role =
+ case role of 
+   "combo" ->
+      helpLinks.combo
+
+   "ensemble" ->
+     helpLinks.ensemble
+
+   "layout" ->
+     helpLinks.layout
+
+   "scope" ->
+     helpLinks.scope
+
+   "voice" ->
+     helpLinks.voice
+
+   _ ->
+     ""

@@ -81,7 +81,7 @@ brief state open =
  in 
   Components.box <| if List.length state == 0 then 
     [ text "No voices in this ensemble." ] else 
-     [ Components.label "Ensemble"
+     [ Components.label "Ensemble Designer"
      , Components.mobile [] <| List.singleton <| child
      , Components.tablet [] <| List.singleton <| child
      , Components.desktop [] <| List.singleton <| child
@@ -184,11 +184,11 @@ view model forward save close =
     else
      Components.colsMulti
         [ Components.colFull <| Components.cols <|
-          [ Components.colHalf <| Html.h2 [ Attr.class "title"] [text "Ensemble"]
-          , Components.colHalf <| div [Attr.class "columns is-multiline has-text-right"]
-            [ Components.colFull <| Components.button (save state) [ Attr.class "is-info"] "Save Ensemble"
-            , Components.colFull <| synthInitializer mSynth toMsg select (select Bass) ]
+          [ Components.sectionHeading "ensemble" (Data.helpLink "ensemble") "Ensemble Designer" [ -- Components.colHalf <| div [Attr.class "columns is-multiline has-text-right"]
+              Components.saveButton (save state) "Save Ensemble"]
+            
           ]
+        , Components.colFull <| synthInitializer mSynth toMsg select (select Bass) 
         , Components.colSize "is-full is-flex is-flex-direction-column align-items-flex-start" <|
            listVoices state toMsg 
         ]

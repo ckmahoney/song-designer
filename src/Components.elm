@@ -1,11 +1,12 @@
 module Components exposing (..)
 
-
+import Types exposing (..)
 import Html exposing (Html, text, div)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Data as D
 import Tools
+
 
 type Modal
   = Hidden
@@ -34,6 +35,20 @@ tablet  attrs =
 
 desktop attrs =
   div (attrs ++ [ class "is-hidden-touch" ])
+
+
+heading : String -> Html msg
+heading content =
+  Html.h2 [class "title"] [text content]
+
+
+sectionHeading : String -> Slug -> String -> List (Html msg) -> Html msg
+sectionHeading icon slug title buttons =
+  div [class "column is-full columns"]
+   [ colHalf <| heading title
+   , div [class " column is-half has-text-right is-flex is-justify-content-space-between columns"] <| 
+       List.map col1 (List.append buttons [howtoButton icon slug ])
+   ]
 
 
 invertColor : Html msg -> Html msg
@@ -109,6 +124,21 @@ svgClick name click =
 svgButton : String -> msg -> Html msg
 svgButton name click =
   Html.button [class "is-clickable p-3 ", onClick click] [svg name]
+
+
+saveButton : msg -> String -> Html msg
+saveButton click cta =
+  Html.button [class "button is-size-4 has-background-info has-text-light ", onClick click] [text cta]
+
+type alias Slug = String -- Relative to the absolute url
+
+howtoLink : Slug -> String
+howtoLink slug =
+  "/" ++ slug
+
+howtoButton : String -> Slug -> Html msg
+howtoButton icon slug =
+  Html.button [class "button is-size-4"] [ Html.a [class "is-flex is-align-items-center is-justify-content-center", href (howtoLink slug), target "_blank"] [text "How to ", svg icon]  ]
 
 svgButtonClass : String -> String -> msg -> Html msg
 svgButtonClass name classes click =
@@ -366,7 +396,7 @@ plusButton msg  =
 
 addButton : msg -> String -> Html msg
 addButton msg content =
-  button msg [ class "is-primary" ] content
+  button msg [ class "button is-size-4 has-background-success has-text-white" ] content
 
 
 skButtons : msg -> msg -> Html msg

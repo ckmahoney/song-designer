@@ -52,6 +52,12 @@ type alias DragModel =
     }
 
 
+
+new : Model
+new =
+  Overview []
+
+
 initialModel : DragModel
 initialModel =
     { beingDragged = Nothing
@@ -162,7 +168,6 @@ onDrop msg =
         Decode.succeed ( msg, True )
 
 
-
 apply : State -> Internal -> State
 apply state msg =
   case msg of 
@@ -225,44 +230,6 @@ update msg state =
 
    Cloning index ->
     PlacingClone state (curr state index)
-
-initState : State
-initState = 
- let
-  ((meta, layout) as template) = Data.templateVerseChorus
- in
-  layout
-  -- []
-
-
-initTest = 
-  Overview initState
-  -- Editing initState 0 <| ComboEditor.initModel initState 0 
-
-initModel =
-  Just <| Overview initState
-
-
-init =
-  Overview
-
-
-lookOld things icon =
-  Components.box
-   [ Html.h2 [ Attr.class "subtitle" ] [text "Layout"]
-   , div [ Attr.class "columns is-multiline level is-vcentered" ]
-       [ p [ Attr.class "content"] 
-           [ text "Here is your layout."
-           , Html.br [] []
-           , Html.br [] []
-           , text "Each combo has a name, some voices, and duration in seconds."] ]
-   , div [ Attr.class "columns is-multiline level is-vcentered is-flex is-justify-content-flex-start" ] <|
-     (List.indexedMap (\i thing ->
-       div [ Attr.class "is-flex is-flex-direction-column" ]
-         [ Components.col [ Attr.class "is-full has-text-centered" ] [(icon thing)]
-         ] ) things)
-
-   ]
 
 
 controls select kill clone = 
@@ -389,8 +356,10 @@ displayMobile title state model forward updateTitle save close  =
    add = (forward <| update (Save (apply state Create)) state)
   in 
    Components.colsMulti <|
-     [ Components.colFull <| Components.button (close state) [Attr.class "has-background-info has-text-light"] "Save Layout" 
-     , Components.colFull <| Components.box <| [ Html.h2 [Attr.class "title"] [text "Title"], Components.editText "" (text "") title updateTitle ]
+     [ Components.sectionHeading  "layout" (Data.helpLink "layout")  "Song Designer" [Components.saveButton (close state) "Save Layout"
+     ]
+
+
      , Components.colFull <| picker state View.viewComboVertical select kill clone add
      ]
 
@@ -403,8 +372,10 @@ displayDesktop title state model forward updateTitle save close  =
    add = (forward <| update (Save (apply state Create)) state)
   in 
    Components.colsMulti <|
-     [ Components.colFull <| Components.button (close state) [Attr.class "has-background-info has-text-light"] "Save Layout" 
-     , Components.colFull <| Components.box <| [ Html.h2 [Attr.class "title"] [text "Title"], Components.editText "" (text "") title updateTitle ]
+     [ Components.sectionHeading "layout" (Data.helpLink "layout")  "Song Designer" [Components.saveButton (close state) "Save Layout"] 
+
+     , Components.colFull <|  Components.box <| [ Html.h2 [Attr.class "title"] [text "Title"], Components.editText "" (text "") title updateTitle] 
+
      , Components.colFull <|pickerHorizontal state View.viewComboVertical select kill clone add
      ]
 

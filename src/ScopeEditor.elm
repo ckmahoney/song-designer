@@ -11,7 +11,7 @@ import View as V
 import Elements
 import Tools
 import Components
-
+import Data
 
 type alias State = Scope
 
@@ -313,8 +313,8 @@ view model forward save close =
        toMsg = (\msg -> forward <| update msg state)
      in
       div []
-       [ Components.button (close state) [Attr.class "is-info"] "Save Scope"
-       , Html.h2 [ Attr.class "title"] [text "Scope"]
+       [ Components.sectionHeading "scope" (Data.helpLink "scope") "Scope Editor" [ Components.saveButton (close state) "Save Scope" ]
+      
        , editor state toMsg
        ]
 

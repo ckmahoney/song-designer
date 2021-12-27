@@ -735,24 +735,6 @@ comboCompleteIcon ((scope, ensemble) as model) =
    [ div [ class "column is-full" ] [ scopeIcon scope ]
    , div [ class "column is-full" ] [ ensembleIcon ensemble ] ]
 
-viewComboP : T.ComboP -> Html msg
-viewComboP  ((mScope, mEnsemble) as model)  =
-  Components.box <| List.singleton  <| case model of
-    (Just ({cpc,cps,size} as a), Just  b) -> 
-      Components.wraps <|
-          [ label [ class "label" ] [ text a.label ]
-          , p [] [ text <| timeString <| duration cpc cps size ]
-          ]
-
-    (Nothing, Nothing) -> 
-      label [ class "subtitle"] [ text "Select a scope and an ensemble." ]
-
-    (Just a, Nothing) -> 
-      label [ class "subtitle"] [ text "Select an ensemble." ]
-
-    (Nothing, Just a) ->
-      label [ class "subtitle"] [ text "Select a scope." ]
-
 
 viewCombo : T.Combo -> Html msg
 viewCombo  (({cpc,cps,size} as scope), ensemble)  =

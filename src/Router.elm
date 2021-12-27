@@ -27,7 +27,7 @@ import Playback
 -- data prepared for storage on server
 type Msg 
   = UpdatePlayer (Playback.Player, Playback.Msg)
-
+  | SelectTemplate Int
  
   | GotTracks (Result Http.Error (List TrackMeta))
   | GotNewTrack (Result Http.Error  TrackMeta)
@@ -85,7 +85,7 @@ initFrom v s l t m =
    layouts = [ Data.combos,  Tuple.second template ]
    layout = Tuple.second template
  in 
-  Model  "" Welcome  [] Nothing Playback.new m layout  (Just <| LayoutEditor.Overview layout) (Tuple.first template).title Data.templates
+  Model  "" Welcome  [] Nothing Playback.new m layout  Nothing (Tuple.first template).title Data.templates
 
 
 initTest : Model
@@ -95,7 +95,7 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  Model  "" Welcome  [] Nothing Playback.new Nothing LayoutEditor.initState (Just LayoutEditor.initTest) "Adventure Sound" []
+  Model  "" Welcome  [] Nothing Playback.new Nothing [] Nothing "Adventure Sound" []
 
 
 initFromMember : GhostMember -> Model
@@ -336,6 +336,11 @@ update msg model =
         Err _ -> 
           ({ model | response = "We had a problem getting your string." }, Cmd.none)
 
+    SelectTemplate index ->
+      let
+        ((meta, lay) as t) = Tools.getOr index model.templates Data.emptyTemplate
+      in 
+      ( {model | layout = lay, title = meta.title}, Cmd.none)
 
 
 subscriptions : Model -> Sub Msg
@@ -443,18 +448,18 @@ requestSongButton model =
 
 editLayoutButton : Model -> Html Msg
 editLayoutButton model =
-  Components.button (OpenLayoutEditor model.layout) [class "is-info mb-3"] "Edit your layout"
+  Components.button (OpenLayoutEditor model.layout) [class "is-size-4 is-info mb-3"] "Edit this Template"
 
 
 miniSongDesigner : Model -> Html Msg
 miniSongDesigner model =
-  div [class "has-background-light"] <| 
-   [
-   --, templatePicker model.templates 
-    case model.layoutEditor of 
+  div [class "box"] <| 
+   [ case model.layoutEditor of 
       Nothing -> 
-       Components.box 
-         [ Components.cols <| 
+       div []
+         [ Html.h2 [class "title"] [text "Song Designer"]
+         , templatePicker model.templates 
+         , Components.cols <| 
              [ Components.col1 <| editLayoutButton model
              , Components.col1 <| requestSongButton model
              ]
@@ -462,18 +467,32 @@ miniSongDesigner model =
          ]
 
       Just mod ->
-        Components.box
+        div []
         [ LayoutEditor.view model.title mod (\m -> UpdateEditor <| Just m) UpdateTitle SaveLayout CloseLayoutEditor 
         ]
    ]
 
-templatePicker : List Template -> Html msg
+templateIcon : msg -> Template ->  Html msg 
+templateIcon pick ((meta, lay) as template)  =
+ let
+  scopes = List.map Tuple.first lay
+  totalLength = View.totalLength scopes
+ in 
+   Components.box
+    [ p [class "subtitle is-size-4"] [text meta.title]
+    , p [] [text <| (String.fromInt (List.length lay)) ++ " combos"]
+    , p [] [text <| View.timeString totalLength]
+    , Components.svg "select" 
+    ]
+
+
+templatePicker : List Template -> Html Msg
 templatePicker layouts = 
-  div [] <|
-    [ Html.h3 [class "is-size-3"] [text "Select a Preset"]
-    , Components.cols <| 
-      List.indexedMap (\i (meta, lay) -> 
-        Components.col [Components.centerText] [p [class "is-size-2"] [text meta.title]]) layouts
+  Components.colsMulti <|
+    [ Components.colFull <| Html.h3 [class "is-size-3"] [text "Select a Preset"]
+    , Components.colFull <| Components.colsMulti <| 
+      List.indexedMap (\i template -> 
+        Components.col [onClick (SelectTemplate i), Components.centerText] [templateIcon (SelectTemplate i) template]) layouts
     ]
 
 view : Model -> Html Msg

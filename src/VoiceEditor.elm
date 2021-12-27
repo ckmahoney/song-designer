@@ -89,15 +89,14 @@ controlsSvg  model save kill =
   ]
 
 controls model save kill = 
- div [] 
   [ Components.mobile [] <| List.singleton <|
      div [Attr.class "columns is-mobile has-text-light"]
-       [ div [Attr.class "column"] [ Components.button  (save model)  [Attr.class "has-text-light has-background-primary"] "Save Voice" ]
-       , div [Attr.class "column has-text-right"] [Components.button kill [Attr.class "has-background-warning"] "Discard changes"]
+       [ div [Attr.class "column"] [ Components.saveButton  (save model) "Save Voice" ]
+       , div [Attr.class "column has-text-right"] [Components.button kill [Attr.class "is-size-4 has-background-warning"] "Discard changes"]
        ]
   , Components.mobileNot <| Components.cols <|
-       [ div [Attr.class "column is-half"] [ Components.button  (save model)  [Attr.class "has-text-light has-background-primary"] "Save Voice" ]
-       , div [Attr.class "column is-half has-text-right"] [Components.button kill [Attr.class " has-background-warning"] "Discard changes"]
+       [ div [Attr.class "column"] [ Components.saveButton  (save model) "Save Voice" ]
+       , div [Attr.class "column has-text-right"] [Components.button kill [Attr.class "is-size-4 has-background-warning"] "Discard changes"]
        ]
 
   ]
@@ -109,10 +108,9 @@ edit model update save kill =
    options = List.map (\r -> (r, View.roleIcon r)) Data.roles
  in 
   div [ Attr.class "container" ]
-    [ Html.h2 [ Attr.class "title"] [text "Voice"]
-    , controls model save kill
+    [ Components.sectionHeading "voice" (Data.helpLink "voice") "Voice Editor"  <| controls model save kill
     , Components.mobile [ Attr.class "is-mobile is-flex is-flex-wrap-wrap columns is-multiline" ] <|
-          [ Components.colFull <| Components.editText "Label" (text "Name") model.label (updateLabel model update)
+          [ Components.colFull <| Components.box <| List.singleton <| Components.editText "Label" (text "Name") model.label (updateLabel model update)
           , Components.colFull <| div [Attr.class "has-text-centered"] [ View.viewVoice model]
           , Components.colFull <| Components.cols <|
               [ Components.colHalf <| Components.editSelection model.role "" (text "Role") options model.role (updateRole model update)             
@@ -124,7 +122,7 @@ edit model update save kill =
 
         [ Components.colHalf <| View.viewVoice model
         , Components.colHalf <| Components.colsMulti
-            [ Components.editText "Label" (text "Name") model.label (updateLabel model update)
+            [ Components.box <| List.singleton <| Components.editText "Label" (text "Name") model.label (updateLabel model update)
             , Components.editSelection model.role "" (text "Role") options model.role (updateRole model update)    
 
             ]
@@ -135,7 +133,7 @@ edit model update save kill =
     , Components.desktop [ Attr.class "columns is-multiline is-flex is-justify-content-space-between" ] 
         [ Components.colHalf <| View.viewVoice model
         , Components.colHalf <| Components.colsMulti
-            [ Components.colFull <| Components.editText "Label" (text "Name") model.label (updateLabel model update)
+            [ Components.colFull <| Components.box <| List.singleton <| Components.editText "Label" (text "Name") model.label (updateLabel model update)
             , Components.colFull <|Components.editSelection model.role "" (text "Role") options model.role (updateRole model update) 
             ]
 
