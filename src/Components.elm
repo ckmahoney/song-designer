@@ -297,6 +297,7 @@ editSelection curr name info options current select =
         div [ class "class column is-one-quarter",  onClick (select val) ] [ fx <| div [ class "has-text-centered has-background-white", class classes ] [ html ] ]  ) options ]
 
 
+
 header : String -> Html msg
 header content =
   Html.header [ class "" ] [ text content ]
@@ -396,7 +397,7 @@ pickerSelected : List a -> (a -> Html msg) -> (Int -> msg) -> a -> Html msg
 pickerSelected things icon select current = 
   div [ class "columns is-multiline level is-vcentered" ] <|
      List.indexedMap (\i thing ->
-       div [ class <|if thing == current then "selected" else "", class "column is-vcentered has-text-centered", onClick (select i) ]
+       div [ class <|if thing == current then "chosen" else "", class "column is-vcentered has-text-centered", onClick (select i) ]
          [ icon thing ]) things
 
 
