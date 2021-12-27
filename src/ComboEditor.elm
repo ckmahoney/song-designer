@@ -119,7 +119,7 @@ thumbEdit model forward up =
       let
         continue = (\m -> forward <| Scope state m)
         keep =  (\s -> up (s, ensemble))
-        done = (\_ -> forward <| Overview state)
+        done = (\s -> forward <| Overview (s, ensemble))
      in
       div [] 
         [ ScopeEditor.view  mod continue keep done
