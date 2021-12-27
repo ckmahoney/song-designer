@@ -297,6 +297,12 @@ editSelection curr name info options current select =
         div [ class "class column is-one-quarter",  onClick (select val) ] [ fx <| div [ class "has-text-centered has-background-white", class classes ] [ html ] ]  ) options ]
 
 
+header : String -> Html msg
+header content =
+  Html.header [ class "" ] [ text content ]
+
+
+
 card : String -> Html msg-> Html msg
 card title content = 
   div [ class "card my-3" ] 
