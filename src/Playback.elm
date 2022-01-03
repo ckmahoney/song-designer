@@ -194,8 +194,11 @@ card ((selection, model) as p) signal track =
 
 playlist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> Html msg
 playlist  ((selection, model) as p) signal tracks =
-  Components.box <| List.singleton  <| Components.colsMulti <|
+  div [] 
+   [ Html.h2 [Attr.class "title"] [text "My Songs"]
+   , Components.box <| List.singleton  <| Components.colsMulti <|
    List.map (card p signal) tracks
+   ] 
 
 
 clear : (Player, Msg)
