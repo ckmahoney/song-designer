@@ -95,6 +95,14 @@ layoutDuration scopes =
   List.foldl (\(cps, nCycles) total -> total + (cps * toFloat nCycles)) 0 (getTimes scopes)
 
 
+templateDuration : T.Template  -> Float
+templateDuration (meta, layout ) =
+ let
+   scopes = List.map Tuple.first layout
+ in 
+  List.foldl (\(cps, nCycles) total -> total + (meta.cps * (toFloat nCycles))) 0 (getTimes scopes)
+
+
 editLayoutMessage : Html msg
 editLayoutMessage = 
   p [class "content"] [text "Use this editor to create sections for your songs."]
@@ -754,10 +762,10 @@ viewComboVertical  (({cpc,cps,size} as scope), ensemble)  =
  let
   nVoices = List.length ensemble
  in 
-  Components.colsWith [Attr.class "thumb-combo-vertical is-flex-direction-column"]
-    [ Components.col ((Attr.class "" :: (border "right"))++  (border "left")) [ scopePeek scope ]
+  Components.colsWith [Attr.class "thumb-combo-vertical is-flex-direction-column columns"]
+    [ Components.col ((Attr.class "is-half" :: (border "right"))++  (border "left")) [ scopePeek scope ]
 
-    , Components.col ((Attr.class "" :: (border "left"))  ++ (border "right")) [ if nVoices == 0 then text "No voices"  else 
+    , Components.col ((Attr.class "is-half" :: (border "left"))  ++ (border "right")) [ if nVoices == 0 then text "No voices"  else 
         ensembleThumb ensemble ]
     ]
        

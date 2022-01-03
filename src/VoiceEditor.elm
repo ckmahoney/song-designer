@@ -88,7 +88,7 @@ controlsSvg  model save kill =
        ]
   ]
 
-controls model save kill = 
+controlsManual model save kill = 
   [ Components.mobile [] <| List.singleton <|
      div [Attr.class "columns is-mobile has-text-light"]
        [ div [Attr.class "column"] [ Components.saveButton  (save model) "Save Voice" ]
@@ -100,6 +100,11 @@ controls model save kill =
        ]
 
   ]
+
+controls model save kill = 
+  [ Components.saveButton  (save model) "Save Voice" 
+  , Components.button kill [Attr.class "is-size-4 has-background-warning"] "Discard changes"]
+
 
 
 edit : Model -> (Model -> msg) -> (Model -> msg) -> msg -> Html msg

@@ -675,11 +675,11 @@ kitVC2 =
 scoreVerseChorus : List Combo
 scoreVerseChorus =
   [ (v1, kitVC1)
-  , (c1, kitVC1)
-  , (v1, kitVC1)
-  , (c1, kitVC1)
-  , (v1, kitVC2)
   , (c1, kitVC2)
+  , (v1, kitVC1)
+  , (c1, kitVC2)
+  , (v1, kitVC2)
+  , (c1, kitVC1)
   ]
 
 
@@ -692,16 +692,16 @@ templateTernary : Template
 templateTernary =  
   let
    a : ScoreMeta
-   a = { title = "Three's Company"
-       , cps = 2.8
+   a = { title = "Basic Form"
+       , cps = 22/10
        , root = 8
        , cpc = 4
        }
    b : Layout 
    b = [ ({ id = 0, label = "intro", size = 2, cpc = 8, root = 0, cps = 1.0 }, kitVC1)
-          , ({ id = 1, label = "partA", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC2)
-          , ({ id = 2, label = "partB", size = 6, cpc = 8, root = 9, cps = 1.0 }, kitVC2)
-          , ({ id = 3, label = "partA", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC1)
+          , ({ id = 1, label = "Call", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC2)
+          , ({ id = 2, label = "Response", size = 6, cpc = 8, root = 9, cps = 1.0 }, kitVC2)
+          , ({ id = 3, label = "Return", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC1)
           , ({ id = 4, label = "outro", size = 2, cpc = 8, root = 0, cps = 1.0 }, kitVC1)
           ]
 
@@ -714,18 +714,18 @@ templateABAC : Template
 templateABAC =  
   let
    a : ScoreMeta
-   a = { title = "Fours a Crowd"
-       , cps = 2.8
+   a = { title = "Extra Variation"
+       , cps = 14/10
        , root = 8
        , cpc = 4
        }
    b : Layout 
-   b = [ ({ id = 0, label = "intro", size = 2, cpc = 4, root = 0, cps = 1.0 }, kitVC1)
-          , ({ id = 1, label = "partA", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC2)
-          , ({ id = 2, label = "partB", size = 6, cpc = 8, root = 9, cps = 1.0 }, kitVC2)
-          , ({ id = 3, label = "partA", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC1)
-          , ({ id = 5, label = "partC", size = 6, cpc = 8, root = 5, cps = 1.0 }, kitVC2)
-          , ({ id = 4, label = "outro", size = 2, cpc = 4, root = 0, cps = 1.0 }, kitVC1)
+   b = [   ({ id = 0, label = "intro", size = 2, cpc = 8, root = 0, cps = 1.0 }, kitVC1)
+           , ({ id = 1, label = "Verse", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC2)
+          , ({ id = 2, label = "Chorus", size = 6, cpc = 8, root = 9, cps = 1.0 }, kitVC2)
+          , ({ id = 3, label = "Verse", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC1)
+          , ({ id = 5, label = "Breakdown", size = 3, cpc = 8, root = 5, cps = 1.0 }, kitVC2)
+         , ({ id = 4, label = "outro", size = 2, cpc = 8, root = 0, cps = 1.0 }, kitVC1)
           ]
 
   in
@@ -736,16 +736,16 @@ templateAB : Template
 templateAB =  
   let
    a : ScoreMeta
-   a = { title = "Simple Compliments"
-       , cps = 2.8
+   a = { title = "Binary Form"
+       , cps = 33/10
        , root = 8
        , cpc = 4
        }
    b : Layout 
-   b = [ ({ id = 0, label = "intro", size = 1, cpc = 4, root = 0, cps = 1.0 }, kitVC1)
-          , ({ id = 1, label = "partA", size = 5, cpc = 8, root = 3, cps = 1.0 }, kitVC2)
-          , ({ id = 2, label = "partB", size = 5, cpc = 8, root = 10, cps = 1.0 }, kitVC2)
-          , ({ id = 4, label = "outro", size = 1, cpc = 4, root = 0, cps = 1.0 }, kitVC1)
+   b = [ ({ id = 0, label = "intro", size = 1, cpc = 4, root = 10, cps = 1.0 }, kitVC1)
+          , ({ id = 1, label = "Call", size = 5, cpc = 8, root = 2, cps = 1.0 }, kitVC2)
+          , ({ id = 2, label = "Response", size = 5, cpc = 8, root = 9, cps = 1.0 }, kitVC2)
+          , ({ id = 4, label = "outro", size = 1, cpc = 4, root = 10, cps = 1.0 }, kitVC1)
           ]
 
   in
@@ -866,7 +866,7 @@ scoreMetaMed =
 
 scoreMetaFast : ScoreMeta
 scoreMetaFast =
-  ScoreMeta "Fast for " 2.5 0 8
+  ScoreMeta "Verse-Chorus " (44/10) 0 8
 
 scoreMetaLudacris : ScoreMeta
 scoreMetaLudacris =
@@ -887,7 +887,7 @@ main =
 
 helpLinks = 
   { combo = "how-to-make-a-combo"
-  , ensemble = "how-to-make-an-enemble"
+  , ensemble = "how-to-make-an-ensemble"
   , layout = "how-to-make-a-layout"
   , scope = "how-to-create-a-scope"
   , voice = "how-to-create-a-voice"

@@ -87,6 +87,22 @@ brief state open =
      , Components.desktop [] <| List.singleton <| child
     ]
 
+thumb : State -> Html msg
+thumb state  =
+ let 
+  child = Components.cols 
+         [ Components.col [Attr.class "is-multiline columns is-mobile"] <| 
+           List.map (\{role} -> Components.colSize "is-one-third" <| View.roleIcon role) state
+
+         ]
+ in 
+  Components.box <| if List.length state == 0 then 
+    [ text "No voices in this ensemble." ] else 
+     [ Components.mobile [] <| List.singleton <| child
+     , Components.tablet [] <| List.singleton <| child
+     , Components.desktop [] <| List.singleton <| child
+    ]
+
 
 initModel : Model
 initModel = 

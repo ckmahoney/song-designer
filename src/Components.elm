@@ -46,7 +46,7 @@ sectionHeading : String -> Slug -> String -> List (Html msg) -> Html msg
 sectionHeading icon slug title buttons =
   div [class "column is-full columns"]
    [ colHalf <| heading title
-   , div [class " column is-half has-text-right is-flex is-justify-content-space-between columns"] <| 
+   , div [class " column is-half has-text-right is-flex is-justify-content-space-between columns is-multiline"] <| 
        List.map col1 (List.append buttons [howtoButton icon slug ])
    ]
 
@@ -138,7 +138,7 @@ howtoLink slug =
 
 howtoButton : String -> Slug -> Html msg
 howtoButton icon slug =
-  Html.button [class "button is-size-4"] [ Html.a [class "is-flex is-align-items-center is-justify-content-center", href (howtoLink slug), target "_blank"] [text "How to ", svg icon]  ]
+  Html.button [class "button is-size-4"] [ Html.a [class "is-flex is-align-items-center is-justify-content-center", href (howtoLink slug), target "_blank"] [text "How to use ", svg icon]  ]
 
 svgButtonClass : String -> String -> msg -> Html msg
 svgButtonClass name classes click =

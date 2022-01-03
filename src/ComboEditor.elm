@@ -81,7 +81,7 @@ thumb : Combo -> Html msg
 thumb (scope, ensemble) =
   Components.cols <| 
     [ Components.col (Attr.class "is-half" :: border "right") [ScopeEditor.thumb scope]
-    , Components.col (Attr.class "is-half" :: border "right") [View.ensemblePeek ensemble]
+    , Components.col (Attr.class "is-half" :: border "right") [EnsembleEditor.thumb ensemble]
     ]
 
 

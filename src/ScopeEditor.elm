@@ -91,7 +91,7 @@ bounds =
   , minSeconds = 1.0
   , maxSeconds = 15.0
   , roots = [0, 4, 8]
-  , tempos = [5/10, 1, 14/10, 22/10, 33/10, 44/10  ]
+  , tempos = [5/10, 1, 14/10, 22/10, 33/10, 44/10]
   }
 
 
@@ -224,8 +224,7 @@ card2 model toMsg =
 thumb : State -> Html msg
 thumb state =
   Components.box 
-    [ Html.h2 [ Attr.class "title"] [text "Scope"]
-    , div [Components.centerText] [ Components.label state.label ]
+    [ div [Components.centerText] [ Components.label state.label ]
     , Components.colsWith [Components.centerText]  <|
        [ Components.colHalf <| text <| V.scopeTimeString state
        , Components.colHalf <| text <| Components.keyMessage True state.root

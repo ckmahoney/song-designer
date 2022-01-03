@@ -63,7 +63,7 @@ initialModel =
     { beingDragged = Nothing
     , draggableItems =
         List.range 1 5
-            |> List.map Debug.toString
+            |> List.map String.fromInt
     , items = []
     }
 
@@ -253,7 +253,6 @@ picker things icon select kill clone add =
     List.append 
      (List.indexedMap (\i thing ->
        (comboCard icon thing i (select i) (kill i) (clone i))) things)
-  
       [ if 4 > List.length things then 
           Components.col1 <| Components.plusButton add
         else text ""
@@ -345,9 +344,6 @@ fromCombo state index combo =
   Tools.replaceAt index combo state
 
 
-
-
-
 displayMobile title state model forward updateTitle save close  =
   let 
    kill = (\i -> forward <| update (Save <| Tools.removeAt i state) state)
@@ -358,8 +354,6 @@ displayMobile title state model forward updateTitle save close  =
    Components.colsMulti <|
      [ Components.sectionHeading  "layout" (Data.helpLink "layout")  "Song Designer" [Components.saveButton (close state) "Save Layout"
      ]
-
-
      , Components.colFull <| picker state View.viewComboVertical select kill clone add
      ]
 

@@ -457,13 +457,16 @@ miniSongDesigner model =
    [ case model.layoutEditor of 
       Nothing -> 
        div []
-         [ Html.h2 [class "title"] [text "Song Designer"]
-         , templatePicker model.templates 
-         , Components.cols <| 
+         [ Components.cols <| 
              [ Components.col1 <| editLayoutButton model
              , Components.col1 <| requestSongButton model
              ]
+         , Html.h2 [class "title"] [text "Song Designer"]
+         , Components.desktopOnly <| templatePicker model.templates 
+         , div [class " box is-block has-text-centered" ] [text "Current template:", Html.h2 [class "is-size-1"] [text model.title]  ]
          , div [] <| LayoutEditor.look model.layout
+         , Components.mobileOnly <| templatePicker model.templates 
+         , Components.tabletOnly <| templatePicker model.templates 
          ]
 
       Just mod ->
@@ -481,7 +484,7 @@ templateIcon pick ((meta, lay) as template)  =
    Components.box
     [ p [class "subtitle is-size-4"] [text meta.title]
     , p [] [text <| (String.fromInt (List.length lay)) ++ " combos"]
-    , p [] [text <| View.timeString totalLength]
+    -- , p [] [text <| View.timeString <| View.templateDuration template]
     , Components.svg "select" 
     ]
 
