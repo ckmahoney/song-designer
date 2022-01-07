@@ -16,6 +16,7 @@ import Http
 import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
+import File.Download as Download
 
 import ScopeEditor
 import EnsembleEditor
@@ -31,7 +32,9 @@ type Msg
  
   | GotTracks (Result Http.Error (List TrackMeta))
   | GotNewTrack (Result Http.Error  TrackMeta)
+  | GotAsset (Result Http.Error String)
   | ReqTrack Template
+  | ReqAsset Playback.Asset
   | GotResp (Result Http.Error String)
 
   | Overview (List Combo)
@@ -139,6 +142,15 @@ reqTrack email uuid template =
     }
 
 
+reqAsset : String -> String -> Playback.Asset -> Cmd Msg
+reqAsset email uuid kind =
+  Http.post
+    { url = apiUrl "user"
+    , body =  Http.jsonBody <| encodeReqAsset email uuid kind
+    , expect = Http.expectJson GotAsset Decode.string
+    }
+
+
 getSongs : String -> String -> Cmd Msg
 getSongs email uuid =
   Http.post
@@ -212,6 +224,16 @@ encodeReqTrack email uuid template =
     ]
 
 
+encodeReqAsset : String -> String -> Playback.Asset -> Encode.Value
+encodeReqAsset email uuid kind =
+  Encode.object
+    [ ("ask", Encode.string "asset")
+    , ("type", Encode.string <| Playback.assetName kind)
+    , ("email", Encode.string email)
+    , ("uuid", Encode.string uuid)
+    ]
+
+
 encodeMember : GhostMember -> Encode.Value
 encodeMember member =
   Encode.object
@@ -222,14 +244,16 @@ encodeMember member =
 
 
 encodeUserReq :  Encode.Value
-encodeUserReq  =  Encode.object
+encodeUserReq  =  
+  Encode.object
     [ ("action", Encode.string "songs")
     , ("username", Encode.string "maxwell")
     ]
 
 
 encodeReqLoadSongs : String -> String -> Encode.Value
-encodeReqLoadSongs email uuid = Encode.object
+encodeReqLoadSongs email uuid = 
+  Encode.object
     [ ("action", Encode.string "songs")
     , ("email", Encode.string email)
     , ("uuid", Encode.string uuid)
@@ -267,9 +291,9 @@ update msg model =
 
         Just t ->
            case pCmd of 
-            Playback.Load path -> ( { model | playstate = playstate }, Playback.trigger <| Playback.Load (hostname ++ path))
+            Playback.Load (nodeId, path) -> ( { model | playstate = playstate }, Playback.trigger <| Playback.Load (nodeId, hostname ++ path))
             Playback.Select (Just track) ->    
-             ( { model | playstate = playstate }, Playback.trigger <| Playback.Load (hostname ++ track.filepath)) -- fixes the missing hostname on getSongs
+             ( { model | playstate = playstate }, Playback.trigger <| Playback.Load ("#the-player", hostname ++ track.filepath)) -- fixes the missing hostname on getSongs
 
             _ ->
              ( { model | playstate = playstate }, Playback.trigger pCmd)
@@ -300,7 +324,27 @@ update msg model =
             | tracks = track :: model.tracks
             , selection = (Just track)
             , playstate = (Just track, Playback.Playing)
-            , mailer = Received }, Playback.trigger <| Playback.Load (hostname ++ track.filepath ) )
+            , mailer = Received }, Playback.trigger <| Playback.Load ("#the-player", hostname ++ track.filepath ))
+
+        Err errr ->
+          case errr of 
+            Http.BadUrl str -> 
+              ({ model | mailer = Failed str }, Cmd.none)
+
+            Http.BadStatus int -> 
+              ({ model | mailer = Failed <| String.fromInt int }, Cmd.none)
+
+            Http.BadBody str -> 
+              ({ model | mailer = Failed str }, Cmd.none)
+ 
+            _ -> 
+              ({ model | mailer = Failed "big bug" }, Cmd.none)
+
+
+    GotAsset response ->
+      case response of 
+        Ok url ->
+          ( model, Download.url url )
 
         Err errr ->
           case errr of 
@@ -342,6 +386,18 @@ update msg model =
       in 
       ( {model | layout = lay, title = meta.title}, Cmd.none)
 
+    ReqAsset kind ->
+      case model.member of 
+        Nothing -> 
+         let
+          member = Data.testMember
+         in
+          ( { model | mailer = Sending }, reqAsset member.email member.uuid kind )
+          -- ( model, Cmd.none )
+
+        Just member ->
+          ( { model | mailer = Sending }, reqAsset member.email member.uuid kind )
+      
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -365,6 +421,7 @@ panel name plural coll msg =
     [ p [] [ text ("You have " ++ (listLenText coll) ++ " " ++ plural) ] 
     , Components.button msg [] ( name ++ " Overview")
     ] ]
+
 
 introduceVoice : Html msg -> msg -> Html msg
 introduceVoice helpLink create =

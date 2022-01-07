@@ -1,6 +1,5 @@
 port module Playback exposing (..)
 
-
 import Html exposing (Html, div, text)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)
@@ -24,6 +23,10 @@ port stopMusic : String -> Cmd msg
 
 port setSource : String -> Cmd msg
 
+port createSource : (String, String) -> Cmd msg
+
+port getAsset : String -> Cmd msg
+
 
 type Model
  = Playing 
@@ -31,12 +34,20 @@ type Model
  | Stopped 
 
 
+type Asset
+  = MixHigh
+  | MixLow
+  | Stems
+  | Midi
+
+
 type Msg
-  = Load String
+  = Load (String, String)
   | Play 
   | Pause
   | Stop
   | Select (Maybe TrackMeta)
+  | RequestAsset Asset
 
 
 type alias Player = 
@@ -48,16 +59,48 @@ new =
   (Nothing, Stopped)
 
 
+assetName : Asset -> String
+assetName kind =
+  case kind of 
+    MixLow -> 
+      "mix-mp3"
+  
+    MixHigh -> 
+      "mix-aiff"
+  
+    Stems -> 
+      "stem-pack"
+  
+    Midi -> 
+      "midi-pack"
+
+
+askAsset : Asset -> Cmd msg
+askAsset kind =
+  case kind of 
+    MixLow -> 
+      getAsset  "mix-mp3"
+  
+    MixHigh -> 
+      getAsset  "mix-aiff"
+  
+    Stems -> 
+      getAsset  "stem-pack"
+  
+    Midi -> 
+      getAsset  "midi-pack"
+  
 
 trigger : Msg -> Cmd msg
 trigger msg =
   case msg of 
-    Load filepath -> setSource filepath
+    Load (nodeId, filepath) -> createSource (nodeId, filepath)
     Select Nothing -> setSource ""
-    Select (Just track) -> setSource track.filepath
+    Select (Just track) -> createSource ("#the-player", track.filepath)
     Play -> playMusic ""
     Pause -> pauseMusic ""
     Stop -> stopMusic ""
+    RequestAsset kind -> askAsset kind
 
 
 apply : Msg -> Player -> Player
@@ -94,22 +137,8 @@ controls model trig =
 
   ]
 
-player : Player -> ((Player, Msg) -> msg) -> msg -> Html msg
-player ((track, state) as p) signal exit =
-  div [] 
-    [ Components.svgButton "close" exit
-    , case state of
-        Playing ->
-          div [onClick <| signal <| update Pause p] [text "playing"]
 
-        Paused ->
-          div [onClick <| signal <| update Play p] [text "paused"]
-
-        Stopped ->
-          div [onClick <| signal <| update Play p] [text "play"]
-    ]
-
-
+assets : TrackMeta -> (Msg -> msg) -> Html msg
 assets track trig  =
   Components.box
    [ Components.label <| (String.fromInt track.size_bytes) ++ " bytes"
@@ -127,20 +156,19 @@ assets track trig  =
            [ Html.button [] [text "MIDI Stems"]
            , Html.p [] [text "All the stems in MIDI format"]
            ]
-       , Components.colHalf <| div [] 
-           [ Html.button [] [text "Sheet Music"]
-           , Html.p [] [text "Sheet Music in PDF"]
-           ]
-       , Components.colHalf <| div [] 
-           [ Html.button [] [text "Stem Pack mp3"]
-           , Html.p [] [text "Recordings required to create the mixdown, in low resolution format"]
-           ]
+       -- , Components.colHalf <| div [] 
+           -- [ Html.button [] [text "Sheet Music"]
+           -- , Html.p [] [text "Sheet Music in PDF"]
+           -- ]
+       -- , Components.colHalf <| div [] 
+           -- [ Html.button [] [text "Stem Pack mp3"]
+           -- , Html.p [] [text "Recordings required to create the mixdown, in low resolution format"]
+           -- ]
        , Components.colHalf <| div [] 
            [ Html.button [] [text "Stem Pack aiff"]
            , Html.p [] [text "Recordings required to create the mixdown, in original high resolution format"]
            ]
        ]
-
    ]
 
 
@@ -152,18 +180,21 @@ meta track =
     ]
 
 
+-- the mini player
 face track model trig =
   Components.box
     [ Components.cols 
        [ Components.colHalf <| Components.label "Artist"
        , Components.colHalf <| Components.label track.title
        ]
-    , Components.cols 
+       , div [Attr.id "the-player"] [] 
+       , Components.cols
        [ Components.colHalf <| Components.label "0:00"
        , Components.colHalf <| Components.label <| View.timeString track.duration_seconds
        ]
     , controls model trig
-    ] 
+    ]
+
 
 feature : TrackMeta -> Model ->  (Msg -> msg) -> Html msg 
 feature track model trig =
@@ -173,8 +204,6 @@ feature track model trig =
     , assets track trig
     ]
 
-
-  
 
 card : Player -> ((Player, Msg) -> msg)-> TrackMeta -> Html msg
 card ((selection, model) as p) signal track = 
@@ -189,7 +218,7 @@ card ((selection, model) as p) signal track =
         else 
           div [onClick <| change <| Select (Just track)] [Components.svg "play"]
   in
-  Components.col [ Attr.class "is-one-half"] [ Components.songCard track.title <| List.singleton children]
+  Components.col [ Attr.class "is-half"] [ Components.songCard track.title <| List.singleton children]
 
 
 playlist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> Html msg
@@ -222,7 +251,6 @@ view ((selection, model) as p) signal tracks =
       [ Components.colSize "is-one-third" <| feature track model change
       , Components.colSize "is-two-thirds" <| playlist p signal tracks
       ] 
-
 
 
 main = Html.text ""

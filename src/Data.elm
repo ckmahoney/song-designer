@@ -600,6 +600,11 @@ demoLayout : Layout
 demoLayout =
   [demoIntro, demoVerse, demoChorus, demoVerse, demoChorus, demoChorus, demoOutro]
 
+
+demoLayoutShort : Layout
+demoLayoutShort =
+  [demoIntro, demoOutro]
+
 demoTemplate : Template
 demoTemplate =
  let
@@ -650,6 +655,12 @@ coreLayoutTitles =
   [ "Verse 1", "Verse 2", "Chorus 1", "Chorus 2"]
 
 
+kitVC0 : Ensemble
+kitVC0 =
+  [ Voice 0 Structure Kick "clock" 1 1 1
+  , Voice 5 Expression Melody "phrase" 5 3 1
+  ]
+
 kitVC1 : Ensemble
 kitVC1 =
   [ Voice 0 Structure Kick "clock" 1 1 1
@@ -682,10 +693,21 @@ scoreVerseChorus =
   , (c1, kitVC1)
   ]
 
+scoreVerseChorusShort : List Combo
+scoreVerseChorusShort =
+  [ (v1, kitVC0)
+
+  ]
+
 
 templateVerseChorus : Template
 templateVerseChorus =
   (scoreMetaFast, scoreVerseChorus)
+
+
+templateVerseChorusShort : Template
+templateVerseChorusShort =
+  (scoreMetaFast, scoreVerseChorusShort)
 
 
 templateTernary : Template
@@ -846,7 +868,7 @@ coreScores =
 templates = [ templateTernary
              , templateABAC
              , templateAB
-             , templateVerseChorus
+             , templateVerseChorusShort
              ]
 
 
