@@ -232,11 +232,19 @@ update msg state =
 
 
 controls select kill clone = 
-  div [Attr.class "column columns is-flex-direction-column picker-icons is-one-quarter "]
-    [ Components.col [ Attr.class "has-text-centered is-clickable " ] [Components.svgButtonClass "settings" "has-background-primary" select]
+  let
+   children = 
+    [ Components.col [ Attr.class "has-text-centered " ] [Components.svgButtonClass "settings" "has-background-primary" select]
     , Components.col [ Attr.class "has-text-centered" ] [Components.svgButtonClass "clone" "has-background-info" clone]
-    , Components.col [ Attr.class "has-text-centered is-clickable " ] [Components.svgButtonClass "trash" "has-background-danger" kill] 
+    , Components.col [ Attr.class "has-text-centered " ] [Components.svgButtonClass "trash" "has-background-danger" kill] 
     ]
+  in 
+    div [] 
+      [ Components.mobileOnly <| div [Attr.class "is-flex-direction-column is-justify-content-space-between picker-icons"] children
+      , Components.tabletOnly <| div [Attr.class "column columns is-flex-direction-column picker-icons is-one-quarter "] children
+      , Components.desktopOnly <| div [Attr.class "column columns is-flex-direction-column picker-icons is-one-quarter "] children
+   
+      ]
 
 
 comboCard icon combo i select kill clone =

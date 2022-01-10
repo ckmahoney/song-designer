@@ -324,10 +324,9 @@ editSelection curr name info options current select =
     , colsMulti <|
       List.map (\(val, html) -> 
         let 
-          fx = if (val == curr) then invertColor  else wrap
           classes = if (val == curr) then "chosen" else ""
         in 
-        div [ class "class column is-one-quarter",  onClick (select val) ] [ fx <| div [ class "has-text-centered has-background-white", class classes ] [ html ] ]  ) options ]
+        div [ class "class column is-one-quarter is-flex is-justify-content-center",  onClick (select val) ] [ div [ class "has-text-centered has-background-white", class classes ] [ html ] ]  ) options ]
 
 
 

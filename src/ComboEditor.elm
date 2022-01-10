@@ -3,7 +3,7 @@ module ComboEditor exposing (..)
 import Browser
 import Html exposing (Html, button, div, text, label, p, input)
 import Html.Attributes as Attr
-import Html.Events exposing (onClick, onInput)
+
 
 import Types exposing (..)
 import View
@@ -77,13 +77,11 @@ border pos =
   ]
 
 
-
-
 thumb : Combo -> Html msg
 thumb (scope, ensemble) =
   Components.colsWith (View.backgroundGradient ["#00e5ff", "#ee00ff"] :: (Attr.class "mx-auto column is-two-thirds is-flex-direction-column my-3" :: (List.append (border "right")  (border "left"))))  <| 
-    [ Components.colSize "" <| ScopeEditor.thumb scope
-    , Components.colSize "" <| EnsembleEditor.thumb ensemble
+    [ Components.col1 <| ScopeEditor.thumb scope
+    , Components.col1 <| EnsembleEditor.thumb ensemble
     ]
 
 

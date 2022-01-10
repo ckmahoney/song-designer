@@ -81,7 +81,7 @@ brief state open =
  in 
   Components.box <| if List.length state == 0 then 
     [ text "No voices in this ensemble." ] else 
-     [ Components.label "Ensemble Designer"
+     [ Components.label "Ensemble"
      , Components.mobile [] <| List.singleton <| child
      , Components.tablet [] <| List.singleton <| child
      , Components.desktop [] <| List.singleton <| child
@@ -114,14 +114,14 @@ initModel =
   Overview [] Nothing
 
 
-editor : (Msg -> msg) -> State -> Int -> VoiceEditor.Model -> Html msg
-editor toMsg state index model =
-  let
-    up = (\v -> toMsg <| Update index v)
-    close = (\v -> toMsg <| Save state)
-    kill = toMsg <| Kill index
-  in 
-  VoiceEditor.edit model up close kill
+-- editor : (Msg -> msg) -> State -> Int -> VoiceEditor.Model -> Html msg
+-- editor toMsg state index model =
+--   let
+--     up = (\v -> toMsg <| Update index v)
+--     close = (\v -> toMsg <| Save state)
+--     kill = toMsg <| Kill index
+--   in 
+--   VoiceEditor.edit model up close kill
 
 
 voiceGrid : State -> Voice -> (Msg -> msg) -> Html msg

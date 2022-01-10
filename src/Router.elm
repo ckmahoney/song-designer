@@ -556,7 +556,7 @@ templateIcon pick ((meta, lay) as template)  =
     [ p [class "subtitle is-size-4"] [text meta.title]
     , p [] [text <| (String.fromInt (List.length lay)) ++ " combos"]
     -- , p [] [text <| View.timeString <| View.templateDuration template]
-    , Components.svg "select" 
+    , div [class "is-clickable"] [ Components.svg "select" ]
     ]
 
 
