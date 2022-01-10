@@ -49,7 +49,13 @@ ensembleThumb state =
    div []   <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-mobile"]
      <| if List.length state == 0 then 
        [ text "No voices in this ensemble." ] else 
-       List.map (\{role} -> Components.colSize "is-one-quarter" <| Components.svg  (Tuple.first <| D.roleLabel role)) state
+       List.map (\{role} ->       
+         div [ class "column is-one-third is-flex is-justify-content-center"
+             , style "background" (D.roleColor role)]
+               [ img [ class "is-block" 
+               , width 50
+               , height 50
+               , src <| "/assets/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ]) state
 
 keyNames =
   if useSharps then D.sharps else D.flats
@@ -130,14 +136,14 @@ roleIcon role =
       , src <| "/assets/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] []
 
 
-presetIcon : T.SynthRole -> Html msg
-presetIcon role =
+roleIconColored : T.SynthRole -> Html msg
+roleIconColored role =
   div [ class "box"
       , style "background" (D.roleColor role)]
-  [ div [class "p-6"] [
-      img [ width 50
+  [ img [ class "is-block" 
+          , width 50
           , height 50
-          , src <| "/assets/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ] ]
+          , src <| "/assets/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ]
 
 
 ensembleIcon : T.Ensemble -> Html msg
@@ -749,7 +755,7 @@ viewCombo  (({cpc,cps,size} as scope), ensemble)  =
  let
   nVoices = List.length ensemble
  in 
-  Components.colsWith [Attr.class "thumb-combo"]
+  Components.colsWith [Attr.class "thumb-combo-horizontal"]
     [ Components.col ((Attr.class "is-half" :: (border "right"))++  (border "left")) [ scopePeek scope ]
 
     , Components.col ((Attr.class "is-half" :: (border "left"))  ++ (border "right")) [ if nVoices == 0 then text "No voices"  else 
@@ -763,9 +769,9 @@ viewComboVertical  (({cpc,cps,size} as scope), ensemble)  =
   nVoices = List.length ensemble
  in 
   Components.colsWith [Attr.class "thumb-combo-vertical is-flex-direction-column columns"]
-    [ Components.col ((Attr.class "is-half" :: (border "right"))++  (border "left")) [ scopePeek scope ]
+    [ Components.col ( (border "right")++  (border "left")) [ scopePeek scope ]
 
-    , Components.col ((Attr.class "is-half" :: (border "left"))  ++ (border "right")) [ if nVoices == 0 then text "No voices"  else 
+    , Components.col ( (border "left")  ++ (border "right")) [ if nVoices == 0 then text "No voices"  else 
         ensembleThumb ensemble ]
     ]
        

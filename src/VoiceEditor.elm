@@ -154,7 +154,15 @@ icon model =
 
 view : Model -> Html msg
 view model =
-  View.viewVoice model
+  Components.box 
+    [ Components.colsWith [] 
+        [ div [ Attr.class "column is-one-third"] [ View.roleIcon model.role ]
+        ]
+    , label [ Attr.class "label" ] [ text model.label ] 
+    , p [] [ View.densityMessage model ] 
+    , p [] [ View.complexityMessage model ] 
+    ] 
+
 
 
 main = text ""

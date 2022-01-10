@@ -77,11 +77,13 @@ border pos =
   ]
 
 
+
+
 thumb : Combo -> Html msg
 thumb (scope, ensemble) =
-  Components.cols <| 
-    [ Components.col (Attr.class "is-half" :: border "right") [ScopeEditor.thumb scope]
-    , Components.col (Attr.class "is-half" :: border "right") [EnsembleEditor.thumb ensemble]
+  Components.colsWith (View.backgroundGradient ["#00e5ff", "#ee00ff"] :: (Attr.class "mx-auto column is-two-thirds is-flex-direction-column my-3" :: (List.append (border "right")  (border "left"))))  <| 
+    [ Components.colSize "" <| ScopeEditor.thumb scope
+    , Components.colSize "" <| EnsembleEditor.thumb ensemble
     ]
 
 

@@ -52,7 +52,6 @@ type alias DragModel =
     }
 
 
-
 new : Model
 new =
   Overview []
@@ -259,6 +258,7 @@ picker things icon select kill clone add =
       ]
    ]
 
+
 pickerHorizontal things icon select kill clone add = 
   Components.box
    [ Html.h2 [ Attr.class "title" ] [text "Layout"]
@@ -284,6 +284,7 @@ placerDesktop things icon place clone =
              , icon thing
              ] ) things)
 
+
 placerMobile things icon place clone =
   div [ Attr.class "columns is-multiline level is-vcentered  is-flex-direction-column" ] <|
      (List.indexedMap (\i thing ->
@@ -293,6 +294,7 @@ placerMobile things icon place clone =
            , icon thing
            ]
          ] ) things)
+
 
 placer things icon place clone = 
   Components.box
@@ -327,7 +329,6 @@ create : State -> State
 create state  =
  List.append state [ Data.emptyCombo ]
  
-
 
 createMsg : State -> Msg
 createMsg state = 
@@ -372,7 +373,6 @@ displayDesktop title state model forward updateTitle save close  =
 
      , Components.colFull <|pickerHorizontal state View.viewComboVertical select kill clone add
      ]
-
 
 
 view : String -> Model -> (Model -> msg) -> (String -> msg) ->  (State -> msg) -> (State -> msg) -> Html msg

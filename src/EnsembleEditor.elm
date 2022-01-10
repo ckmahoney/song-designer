@@ -62,12 +62,12 @@ update msg state =
       Overview  (Tools.removeAt index state) Nothing
 
 
-picker : State -> (Int -> msg) -> Html msg
-picker state click =
-   Components.box <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-mobile"]
-     <| if List.length state == 0 then 
-       [ text "No voices in this ensemble." ] else 
-       List.indexedMap (\i {role} -> Components.col [onClick (click i), Attr.class "is-one-quarter"] <| List.singleton <| Components.svg  (Tuple.first <| Data.roleLabel role)) state
+-- picker : State -> (Int -> msg) -> Html msg
+-- picker state click =
+   -- Components.box <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-mobile"]
+     -- <| if List.length state == 0 then 
+       -- [ text "No voices in this ensemble." ] else 
+       -- List.indexedMap (\i {role} -> Components.col [onClick (click i), Attr.class "is-one-quarter"] <| List.singleton <| Components.svg  (Tuple.first <| Data.roleLabel role)) state
 
 
 brief : State -> msg -> Html msg
@@ -75,8 +75,8 @@ brief state open =
  let 
   child = Components.cols 
          [ Components.col [Attr.class "is-multiline columns is-three-quarters is-mobile"] <| 
-           List.map (\{role} -> Components.colSize "is-one-third" <| View.roleIcon role) state
-         , Components.colSize "is-one-quarter" <| Components.svgButtonClass "settings" "has-background-primary" open
+           List.map (\{role} -> Components.colSize "is-one-third" <| View.roleIconColored role) state
+           , Components.colSize "is-one-quarter" <| Components.svgButtonClass "settings" "has-background-primary" open
          ]
  in 
   Components.box <| if List.length state == 0 then 
@@ -87,13 +87,18 @@ brief state open =
      , Components.desktop [] <| List.singleton <| child
     ]
 
+
+colors : State -> List String
+colors ensemble =
+  List.map (.role >> Data.roleColor) ensemble
+
+
 thumb : State -> Html msg
 thumb state  =
  let 
   child = Components.cols 
          [ Components.col [Attr.class "is-multiline columns is-mobile"] <| 
-           List.map (\{role} -> Components.colSize "is-one-third" <| View.roleIcon role) state
-
+           List.map (\{role} -> Components.colSize "is-one-third is-flex is-justify-content-center" <| View.roleIconColored role) state
          ]
  in 
   Components.box <| if List.length state == 0 then 
@@ -118,6 +123,7 @@ editor toMsg state index model =
   in 
   VoiceEditor.edit model up close kill
 
+
 voiceGrid : State -> Voice -> (Msg -> msg) -> Html msg
 voiceGrid state curr toMsg =
   let
@@ -128,7 +134,7 @@ voiceGrid state curr toMsg =
    List.append [ (Components.label "Ensemble") ]
    <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-vcentered has-text-centered"] <|
     List.indexedMap (\index ({role} as el) -> 
-         div [Attr.class <| if el == curr then "has-background-warning" else "",  Attr.class "column is-one-quarter", onClick <| toMsg <| Select index] [View.roleIcon role]) state 
+         div [Attr.class <| if el == curr then "has-background-warning" else "",  Attr.class "column is-one-quarter", onClick <| toMsg <| Select index] [View.roleIconColored role]) state 
 
 
 editorNew :State -> Int -> Voice -> (Msg -> msg) -> Html msg
@@ -183,9 +189,10 @@ synthInitializer model toMsg select init =
       pick = (\i -> select <| Tools.getOr i Data.roles curr)
     in
     Components.box <| 
-      [ Components.pickerSelected Data.roles View.roleIcon pick curr
+      [ Components.pickerSelected Data.roles View.roleIconColored pick curr
       , Components.button (toMsg <| Create curr) [Attr.class "has-background-success has-text-light is-size-5"] ("Create " ++ Data.roleName curr)
       ]
+
 
 view : Model -> (Model -> msg) -> (State -> msg) -> (State -> msg) -> Html msg
 view model forward save close =
@@ -200,10 +207,7 @@ view model forward save close =
     else
      Components.colsMulti
         [ Components.colFull <| Components.cols <|
-          [ Components.sectionHeading "ensemble" (Data.helpLink "ensemble") "Ensemble Designer" [ -- Components.colHalf <| div [Attr.class "columns is-multiline has-text-right"]
-              Components.saveButton (save state) "Save Ensemble"]
-            
-          ]
+          [ Components.sectionHeading "ensemble" (Data.helpLink "ensemble") "Ensemble Designer" [ Components.saveButton (save state) "Save Ensemble"] ]
         , Components.colFull <| synthInitializer mSynth toMsg select (select Bass) 
         , Components.colSize "is-full is-flex is-flex-direction-column align-items-flex-start" <|
            listVoices state toMsg 
@@ -213,7 +217,6 @@ view model forward save close =
     div [] [ 
       editorNew state index voice (\msg -> (forward <| update msg state))
     ]
-
 
 
 main = text ""

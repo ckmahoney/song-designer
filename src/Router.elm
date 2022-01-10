@@ -25,6 +25,9 @@ import LayoutEditor
 import Playback
 
 
+type alias ID = Int
+
+
 -- data prepared for storage on server
 type Msg 
   = UpdatePlayer (Playback.Player, Playback.Msg)
@@ -34,7 +37,7 @@ type Msg
   | GotNewTrack (Result Http.Error  TrackMeta)
   | GotAsset (Result Http.Error String)
   | ReqTrack Template
-  | ReqAsset Playback.Asset
+  | ReqAsset ID Playback.Asset
   | GotResp (Result Http.Error String)
 
   | Overview (List Combo)
@@ -128,6 +131,12 @@ hostname =
  -- "https://synthony.app"
 
 
+download : String -> Cmd msg
+download url =
+  Download.url (hostname ++ url)
+
+
+
 apiUrl : String -> String 
 apiUrl endpoint =
   Url.crossOrigin hostname [ endpoint ] []
@@ -142,12 +151,12 @@ reqTrack email uuid template =
     }
 
 
-reqAsset : String -> String -> Playback.Asset -> Cmd Msg
-reqAsset email uuid kind =
+reqAsset : String -> String -> Int -> Playback.Asset -> Cmd Msg
+reqAsset email uuid id kind =
   Http.post
     { url = apiUrl "user"
-    , body =  Http.jsonBody <| encodeReqAsset email uuid kind
-    , expect = Http.expectJson GotAsset Decode.string
+    , body =  Http.jsonBody <| encodeReqAsset email uuid id kind
+    , expect = Http.expectString GotAsset
     }
 
 
@@ -224,10 +233,11 @@ encodeReqTrack email uuid template =
     ]
 
 
-encodeReqAsset : String -> String -> Playback.Asset -> Encode.Value
-encodeReqAsset email uuid kind =
+encodeReqAsset : String -> String -> Int -> Playback.Asset -> Encode.Value
+encodeReqAsset email uuid id kind =
   Encode.object
-    [ ("ask", Encode.string "asset")
+    [ ("action", Encode.string "asset")
+    , ("id", Encode.int id)
     , ("type", Encode.string <| Playback.assetName kind)
     , ("email", Encode.string email)
     , ("uuid", Encode.string uuid)
@@ -342,23 +352,26 @@ update msg model =
 
 
     GotAsset response ->
+     let
+      yy = Debug.log "go tresponse:" response
+     in
       case response of 
         Ok url ->
-          ( model, Download.url url )
+          ( model, download url )
 
         Err errr ->
           case errr of 
-            Http.BadUrl str -> 
-              ({ model | mailer = Failed str }, Cmd.none)
+            -- Http.BadUrl str -> 
+            --   ({ model | mailer = Failed str }, Cmd.none)
 
-            Http.BadStatus int -> 
-              ({ model | mailer = Failed <| String.fromInt int }, Cmd.none)
+            -- Http.BadStatus int -> 
+            --   ({ model | mailer = Failed <| String.fromInt int }, Cmd.none)
 
-            Http.BadBody str -> 
-              ({ model | mailer = Failed str }, Cmd.none)
+            -- Http.BadBody str -> 
+            --   ({ model | mailer = Failed str }, Cmd.none)
  
             _ -> 
-              ({ model | mailer = Failed "big bug" }, Cmd.none)
+              ({ model | mailer = Failed (Debug.log "Problem with the asset request..."  "Problem with the asset request...") }, Cmd.none)
 
     ReqTrack template -> 
       case model.member of 
@@ -386,17 +399,17 @@ update msg model =
       in 
       ( {model | layout = lay, title = meta.title}, Cmd.none)
 
-    ReqAsset kind ->
+    ReqAsset id kind ->
       case model.member of 
         Nothing -> 
          let
           member = Data.testMember
          in
-          ( { model | mailer = Sending }, reqAsset member.email member.uuid kind )
+          ( { model | mailer = Sending }, reqAsset member.email member.uuid id kind )
           -- ( model, Cmd.none )
 
         Just member ->
-          ( { model | mailer = Sending }, reqAsset member.email member.uuid kind )
+          ( { model | mailer = Sending }, reqAsset member.email member.uuid id kind )
       
 
 subscriptions : Model -> Sub Msg
@@ -521,7 +534,7 @@ miniSongDesigner model =
          , Html.h2 [class "title"] [text "Song Designer"]
          , Components.desktopOnly <| templatePicker model.templates 
          , div [class " box is-block has-text-centered" ] [text "Current template:", Html.h2 [class "is-size-1"] [text model.title]  ]
-         , div [] <| LayoutEditor.look model.layout
+         , Components.colsMulti <| LayoutEditor.look model.layout
          , Components.mobileOnly <| templatePicker model.templates 
          , Components.tabletOnly <| templatePicker model.templates 
          ]
@@ -531,6 +544,7 @@ miniSongDesigner model =
         [ LayoutEditor.view model.title mod (\m -> UpdateEditor <| Just m) UpdateTitle SaveLayout CloseLayoutEditor 
         ]
    ]
+
 
 templateIcon : msg -> Template ->  Html msg 
 templateIcon pick ((meta, lay) as template)  =
@@ -568,7 +582,8 @@ view model =
           _ ->
             miniSongDesigner model 
 
-      , Playback.view model.playstate UpdatePlayer model.tracks
+
+      , Playback.view model.playstate UpdatePlayer ReqAsset model.tracks
       ]
 
 

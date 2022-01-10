@@ -47,7 +47,6 @@ type Msg
   | Pause
   | Stop
   | Select (Maybe TrackMeta)
-  | RequestAsset Asset
 
 
 type alias Player = 
@@ -75,22 +74,6 @@ assetName kind =
       "midi-pack"
 
 
-askAsset : Asset -> Cmd msg
-askAsset kind =
-  case kind of 
-    MixLow -> 
-      getAsset  "mix-mp3"
-  
-    MixHigh -> 
-      getAsset  "mix-aiff"
-  
-    Stems -> 
-      getAsset  "stem-pack"
-  
-    Midi -> 
-      getAsset  "midi-pack"
-  
-
 trigger : Msg -> Cmd msg
 trigger msg =
   case msg of 
@@ -100,7 +83,6 @@ trigger msg =
     Play -> playMusic ""
     Pause -> pauseMusic ""
     Stop -> stopMusic ""
-    RequestAsset kind -> askAsset kind
 
 
 apply : Msg -> Player -> Player
@@ -112,6 +94,7 @@ apply msg ((track, model) as p) =
     Pause -> (track, Paused)
     Stop -> (track, Stopped)
     _ -> p
+
 
 update : Msg -> Player -> (Player, Msg)
 update msg model =
@@ -134,26 +117,25 @@ controls model trig =
       Stopped ->
         text ""
       _ -> div [onClick <| trig Stop] [Components.svg "stop"]
-
   ]
 
 
-assets : TrackMeta -> (Msg -> msg) -> Html msg
-assets track trig  =
+assets : TrackMeta -> (Asset -> msg) -> Html msg
+assets track req  =
   Components.box
    [ Components.label <| (String.fromInt track.size_bytes) ++ " bytes"
    , Components.header "Downloads"
    , Components.colsMulti
        [ Components.colHalf <| div [] 
-           [ Html.button [] [text "Mixdown mp3"]  
+           [ Html.button [onClick (req MixLow)] [text "Mixdown mp3"]  
            , Html.p [] [text "Low resolution master recording" ]
            ] 
        , Components.colHalf <| div [] 
-           [ Html.button [] [text "Mixdown aiff"]
+           [ Html.button [onClick (req MixHigh)] [text "Mixdown aiff"]
            , Html.p [] [text "Original high resolution master recording" ]
            ]
        , Components.colHalf <| div [] 
-           [ Html.button [] [text "MIDI Stems"]
+           [ Html.button [onClick (req Midi)] [text "MIDI Stems"]
            , Html.p [] [text "All the stems in MIDI format"]
            ]
        -- , Components.colHalf <| div [] 
@@ -165,7 +147,7 @@ assets track trig  =
            -- , Html.p [] [text "Recordings required to create the mixdown, in low resolution format"]
            -- ]
        , Components.colHalf <| div [] 
-           [ Html.button [] [text "Stem Pack aiff"]
+           [ Html.button [onClick (req Stems)] [text "Stem Pack aiff"]
            , Html.p [] [text "Recordings required to create the mixdown, in original high resolution format"]
            ]
        ]
@@ -196,12 +178,12 @@ face track model trig =
     ]
 
 
-feature : TrackMeta -> Model ->  (Msg -> msg) -> Html msg 
-feature track model trig =
+feature : TrackMeta -> Model ->  (Msg -> msg) -> (Int -> Asset -> msg) -> Html msg 
+feature track model trig req =
   div []
     [ face track model trig 
     , meta track
-    , assets track trig
+    , assets track (req track.id)
     ]
 
 
@@ -235,8 +217,8 @@ clear  =
   ((apply (Select Nothing) (Nothing, Stopped)), Select Nothing)
 
 
-view : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> Html msg
-view ((selection, model) as p) signal tracks =
+view : Player -> ((Player, Msg) -> msg) -> (Int -> Asset -> msg) -> List TrackMeta -> Html msg
+view ((selection, model) as p) signal req tracks =
   case selection of 
    Nothing ->
     Components.cols
@@ -248,7 +230,7 @@ view ((selection, model) as p) signal tracks =
        change = (\msg -> signal <| update msg (Just track, model))
     in
     Components.cols
-      [ Components.colSize "is-one-third" <| feature track model change
+      [ Components.colSize "is-one-third" <| feature track model change req
       , Components.colSize "is-two-thirds" <| playlist p signal tracks
       ] 
 
