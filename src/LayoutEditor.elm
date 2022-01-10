@@ -241,14 +241,14 @@ controls select kill clone =
   in 
     div [] 
       [ Components.mobileOnly <| div [Attr.class "is-flex-direction-column is-justify-content-space-between picker-icons"] children
-      , Components.tabletOnly <| div [Attr.class "column columns is-flex-direction-column picker-icons is-one-quarter "] children
-      , Components.desktopOnly <| div [Attr.class "column columns is-flex-direction-column picker-icons is-one-quarter "] children
-   
+      , Components.tabletOnly <| div [Attr.class ""] children
+      , Components.desktopOnly <| div [] children
       ]
 
 
 comboCard icon combo i select kill clone =
-  div [ Attr.class "is-mobile columns is-flex my-3", Attr.style "border" "1px solid lightgrey",  Attr.style "border-radius" "5px" ]  [ Components.colSize "is-three-quarters has-text-centered" <| Components.col1 <| icon combo
+  div [ Attr.class "is-mobile columns is-flex my-3", Attr.style "border" "1px solid lightgrey",  Attr.style "border-radius" "5px" ]  
+     [ Components.colSize "is-three-quarters has-text-centered" <| Components.col1 <| icon combo
      , controls select kill clone
      ]
  

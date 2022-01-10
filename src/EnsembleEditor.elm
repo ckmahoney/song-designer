@@ -74,14 +74,16 @@ brief : State -> msg -> Html msg
 brief state open =
  let 
   child = Components.cols 
-         [ Components.col [Attr.class "is-multiline columns is-three-quarters is-mobile"] <| 
-           List.map (\{role} -> Components.colSize "is-one-third" <| View.roleIconColored role) state
-           , Components.colSize "is-one-quarter" <| Components.svgButtonClass "settings" "has-background-primary" open
+         [ Components.col [Attr.class "is-multiline columns is-mobile"] <| 
+           List.map (\{role} -> Components.colSize "is-one-third is-flex is-justify-content-center" <| View.roleIconColored role) state
+
          ]
  in 
   Components.box <| if List.length state == 0 then 
     [ text "No voices in this ensemble." ] else 
-     [ Components.label "Ensemble"
+     [ Components.colsWith [Attr.class "is-mobile"] <|
+              [ Components.col1 <| Components.label "Ensemble"
+              , Components.colSize "is-one-quarter" <| Components.svgButtonClass "settings" "has-background-primary" open ]
      , Components.mobile [] <| List.singleton <| child
      , Components.tablet [] <| List.singleton <| child
      , Components.desktop [] <| List.singleton <| child

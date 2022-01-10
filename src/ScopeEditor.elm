@@ -235,9 +235,11 @@ thumb state =
 brief : State -> msg -> Html msg
 brief state open =
   Components.box 
-    [ Components.label "Scope"
-    , Components.cols <|
-       [ Components.colSize "is-three-quarters" <| div [] [ Components.label state.label       , Components.colHalf <| text <| V.scopeTimeString state ]
+    [ Components.colsWith [Attr.class "is-mobile"] <|
+       [ Components.colSize "is-three-quarters" <| div [] 
+           [ div [] [ Components.label "Scope" ] 
+           , div [] [ Components.label state.label ]
+           , Components.colHalf <| text <| V.scopeTimeString state ]
        , Components.colSize "is-one-quarter" <| Components.svgButtonClass "settings" "has-background-primary" open
        ]
     , p [ Attr.class "content" ] [ V.sizeMessage state.cpc state.size ]   
