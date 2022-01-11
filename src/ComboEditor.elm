@@ -4,7 +4,6 @@ import Browser
 import Html exposing (Html, button, div, text, label, p, input)
 import Html.Attributes as Attr
 
-
 import Types exposing (..)
 import View
 import Elements
@@ -89,10 +88,10 @@ fromScope : State -> ScopeEditor.Model -> ScopeEditor.State -> State
 fromScope (prev, ensemble) mod next =
   (next, ensemble)
 
+
 fromEnsemble : State ->  EnsembleEditor.Model -> EnsembleEditor.State ->State
 fromEnsemble (scope, prev) mod next =
   (scope, next)
-
 
 
 initModel : List State -> Int -> Model

@@ -34,11 +34,10 @@ type Msg
   | SelectTemplate Int
  
   | GotTracks (Result Http.Error (List TrackMeta))
-  | GotNewTrack (Result Http.Error  TrackMeta)
+  | GotNewTrack (Result Http.Error TrackMeta)
   | GotAsset (Result Http.Error String)
   | ReqTrack Template
   | ReqAsset ID Playback.Asset
-  | GotResp (Result Http.Error String)
 
   | Overview (List Combo)
   | EditingLayout (List Combo) Int LayoutEditor.Model
@@ -51,8 +50,7 @@ type Msg
 
 
 type alias Model =
-  { response : String
-  , mailer : Posting
+  { mailer : Posting
   , tracks : List TrackMeta
   , selection : Maybe TrackMeta
   , playstate : Playback.Player
@@ -91,7 +89,7 @@ initFrom v s l t m =
    layouts = [ Data.combos,  Tuple.second template ]
    layout = Tuple.second template
  in 
-  Model  "" Welcome  [] Nothing Playback.new m layout  Nothing (Tuple.first template).title Data.templates
+  Model  Welcome  [] Nothing Playback.new m layout  Nothing (Tuple.first template).title Data.templates
 
 
 initTest : Model
@@ -101,7 +99,7 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  Model  "" Welcome  [] Nothing Playback.new Nothing [] Nothing "Adventure Sound" []
+  Model  Welcome  [] Nothing Playback.new Nothing [] Nothing "Adventure Sound" []
 
 
 initFromMember : GhostMember -> Model
@@ -352,26 +350,24 @@ update msg model =
 
 
     GotAsset response ->
-     let
-      yy = Debug.log "go tresponse:" response
-     in
       case response of 
         Ok url ->
           ( model, download url )
 
         Err errr ->
           case errr of 
-            -- Http.BadUrl str -> 
-            --   ({ model | mailer = Failed str }, Cmd.none)
+            Http.BadUrl str -> 
+              ({ model | mailer = Failed str }, Cmd.none)
 
-            -- Http.BadStatus int -> 
-            --   ({ model | mailer = Failed <| String.fromInt int }, Cmd.none)
+            Http.BadStatus int -> 
+              ({ model | mailer = Failed <| String.fromInt int }, Cmd.none)
 
-            -- Http.BadBody str -> 
-            --   ({ model | mailer = Failed str }, Cmd.none)
+            Http.BadBody str -> 
+              ({ model | mailer = Failed str }, Cmd.none)
  
             _ -> 
-              ({ model | mailer = Failed (Debug.log "Problem with the asset request..."  "Problem with the asset request...") }, Cmd.none)
+              ({ model | mailer = Failed "Sorry, we had an oops while making that asset for you. Can you please tell us about it so we can fix it for you?" }, Cmd.none)
+
 
     ReqTrack template -> 
       case model.member of 
@@ -385,19 +381,13 @@ update msg model =
         Just member ->
           ( { model | mailer = Sending }, reqTrack member.email member.uuid template )
 
-    GotResp result -> 
-      case result of 
-        Ok str -> 
-          ({ model | response = str }, Cmd.none)
-
-        Err _ -> 
-          ({ model | response = "We had a problem getting your string." }, Cmd.none)
 
     SelectTemplate index ->
       let
         ((meta, lay) as t) = Tools.getOr index model.templates Data.emptyTemplate
       in 
       ( {model | layout = lay, title = meta.title}, Cmd.none)
+
 
     ReqAsset id kind ->
       case model.member of 
@@ -521,8 +511,8 @@ editLayoutButton model =
   Components.button (OpenLayoutEditor model.layout) [class "is-size-4 is-info mb-3"] "Edit this Template"
 
 
-miniSongDesigner : Model -> Html Msg
-miniSongDesigner model =
+songDesigner : Model -> Html Msg
+songDesigner model =
   div [class "box"] <| 
    [ case model.layoutEditor of 
       Nothing -> 
@@ -555,7 +545,6 @@ templateIcon pick ((meta, lay) as template)  =
    Components.box
     [ p [class "subtitle is-size-4"] [text meta.title]
     , p [] [text <| (String.fromInt (List.length lay)) ++ " combos"]
-    -- , p [] [text <| View.timeString <| View.templateDuration template]
     , div [class "is-clickable"] [ Components.svg "select" ]
     ]
 
@@ -569,6 +558,7 @@ templatePicker layouts =
         Components.col [onClick (SelectTemplate i), Components.centerText] [templateIcon (SelectTemplate i) template]) layouts
     ]
 
+
 view : Model -> Html Msg
 view model =
     div [ class "section" ]
@@ -580,7 +570,7 @@ view model =
           Sending -> 
             text "Working on that track for you!"
           _ ->
-            miniSongDesigner model 
+            songDesigner model 
 
 
       , Playback.view model.playstate UpdatePlayer ReqAsset model.tracks

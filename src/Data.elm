@@ -9,6 +9,11 @@ import Html
 -- providing helpers for humanizing as data
 
 
+synthRoles : List SynthRole
+synthRoles =
+  [Kick, Perc, Hat, Bass, Chords, Melody]
+
+
 minDensity : Int
 minDensity = 1
 
@@ -19,6 +24,7 @@ maxDensity = 3
 
 minComplexity : Int
 minComplexity = 1
+
 
 maxComplexity : Int
 maxComplexity = 3

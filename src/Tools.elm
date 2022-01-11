@@ -124,7 +124,6 @@ unMaybe xs def =
         def
       Just x ->
         x)
-    
 
 
 replaceAt : Int -> a -> List a -> List a
@@ -140,5 +139,16 @@ insertAt index el els =
    , List.singleton el
    , List.drop index els
    ] 
+
+
+toggleElement : a -> List a -> List a
+toggleElement x xs =
+  let
+    position = findIndex x xs
+  in 
+  if -1 == position then
+    x :: xs
+  else 
+    remove (Just x) xs
 
 main = Html.text ""

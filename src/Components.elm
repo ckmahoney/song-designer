@@ -1,4 +1,5 @@
 module Components exposing (..)
+-- Generic Html components with Bulma.css selectors
 
 import Types exposing (..)
 import Html exposing (Html, text, div)
@@ -316,6 +317,11 @@ editText title html val toMsg =
     ] 
 
 
+textEditor : String -> String -> ( String -> msg ) -> Html msg
+textEditor placeholder curr update =
+  Html.input [ type_ "text", value curr, onInput update ] []
+
+
 editSelection : a -> String -> Html msg -> List (a, (Html msg)) -> a -> (a -> msg) -> Html msg
 editSelection curr name info options current select =
   div [ class "box" ]
@@ -515,28 +521,6 @@ songCard : String -> List (Html msg) -> Html msg
 songCard title icons =
   div []
     ([ text title ] ++ icons)
-
-
-
-type alias Model 
-  = ()
-
-
-type Msg
-  = Input Int
-
-
-init : flags -> ( Model, Cmd Msg )
-init _ =
-  ( (), Cmd.none )
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-  case msg of 
-    Input n ->
-      ( model, Cmd.none )
-
 
 main = 
   Html.text ""

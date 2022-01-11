@@ -3,10 +3,13 @@ module MiniMaker exposing (Model, view)
 
 import Browser exposing (element)
 import Html exposing (Html, div, p, text)
-import Components
-import View
+import Html.Events exposing (onClick)
+
 import Types exposing (SynthRole(..))
 import Data exposing (synthRoles)
+import Components
+import View
+import Tools
 
 
 type Speed 
@@ -25,7 +28,7 @@ type alias Model =
 type Msg 
   = SetTitle String
   | SetSpeed Speed
-
+  | ToggleVoice SynthRole
 
 initModel : Model
 initModel =
@@ -49,6 +52,9 @@ apply msg model =
     SetSpeed next ->
       { model | speed = next }
 
+    ToggleVoice voice ->
+      { model | voices = Tools.toggleElement voice model.voices }    
+
 speedBox =
   div []
     [ Components.button (SetSpeed Slow) [] "Slow"
@@ -57,9 +63,17 @@ speedBox =
     ]
 
 
-voiceBox =
+voiceBox : (List SynthRole) -> (SynthRole -> msg) -> Html msg
+voiceBox current change =
+ let
+  child = (\(r, c) -> div [onClick <|  change r] [ c ])
+ in 
   div []
-    <| List.map View.roleIcon synthRoles
+    <| List.map (\r -> 
+       if List.member r current then 
+         child <| (r, View.roleIconColored r)
+       else 
+         child <| (r, View.roleIcon r))  synthRoles
 
 
 view : Model -> Html Msg
@@ -72,7 +86,7 @@ view state =
     , p [] [ text "What tempo should this song be?" ]
     , speedBox
     , p [] [ text "Which voices should we put in it?" ]
-    , voiceBox
+    , voiceBox state.voices ToggleVoice
     ]
 
 

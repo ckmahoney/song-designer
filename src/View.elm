@@ -1,4 +1,5 @@
 module View exposing (..)
+-- Html components specific to Synthony 
 
 import Html exposing (..)
 import Html.Attributes as Attr exposing (..)
