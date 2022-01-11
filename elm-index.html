@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <link rel="stylesheet" href="node_modules/bulma/css/bulma.min.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="assets/syn-bulma.css">
 
  <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+French+Canon:ital@1&display=swap" rel="stylesheet"> 
-  <title>Instrument</title>
-  <style>body { padding: 0; margin: 0; } .font-expression { font-family: "IM Fell French Canon", cursive; }
+  <title>Song Designer!</title>
+  <style>
+
+/* body { padding: 0; margin: 0; } .font-expression { font-family: "IM Fell French Canon", cursive; } */
 
 /* body { background : #e290ff }  */
 /* body { background : #fd5800 } */
@@ -22,11 +24,13 @@
 <body class="with-bulma">
 
 <div class="section">
-  <div  id="main-root"></div>
+  <div id="mini-song-maker"></div>
+  <!-- <div id="main-root"></div> -->
 </div>
 
 <div id="instrument-root"></div>
 <audio id="audio-player"></audio>
+
 
 <div id="demo-combo-intro"></div>
 <div id="demo-combo-verse"></div>
@@ -34,14 +38,26 @@
 <div id="demo-combo-outro"></div>
 <div id="demo-layout"></div>
 
+<div id="waveform"></div>
 <pre id="elm"></pre>
 
 
 <script src="elm-out.js"></script>
+<script src="node_modules/wavesurfer.js/dist/wavesurfer.js"></script>
+
 <script>
 
-var songDesigner = Elm.Main.init( { flags: null, node: document.getElementById("main-root") });
 
+</script>
+
+
+<script>
+
+var mainRoot = document.getElementById("main-root")
+var miniRoot = document.getElementById("mini-song-maker")
+
+var songDesigner = mainRoot && Elm.Main.init( { flags: null, node: mainRoot });
+var miniMaker = miniRoot && Elm.MiniMaker.init( { flags: null, node: miniRoot });
 
 function initDemos () {
    Elm.Demos.init( { flags: {type_: "combo", detail: "intro"}, node: document.querySelector("#demo-combo-intro")} );
@@ -58,25 +74,27 @@ function initDemos () {
 
 // initDemos();
 
-// document.getElementById("audio-player").volume = 0.1;
+var wave = WaveSurfer.create({
+    container: '#waveform',
+    scrollParent: true
+});
 
 function playMusic() {
-    document.getElementById("audio-player").play();
+    wave.playPause();
 }
 
 function stopMusic() {
-    document.getElementById("audio-player").pause();
-    document.getElementById("audio-player").currentTime = 0;
+    wave.stop();
 }
 
+
 function pauseMusic() {
-    document.getElementById("audio-player").pause();
+    wave.playPause();
 }
 
 function setSource(source) {
-    document.getElementById("audio-player").pause();
-    document.getElementById("audio-player").setAttribute("src", source);
-    document.getElementById("audio-player").play();
+  wave.load(source);
+  wave.on('ready', e => wave.play());
 }
 
 songDesigner.ports.playMusic.subscribe(playMusic);
