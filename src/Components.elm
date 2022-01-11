@@ -157,7 +157,6 @@ deleteIcon click =
   Html.span [ class "delete", onClick click ] []
 
 
-
 deleteButton : msg -> Html msg
 deleteButton click =
   Html.button [ class "button is-fullwidth has-background-danger has-text-weight-bold ", onClick click ] [text "Delete"]
@@ -209,10 +208,6 @@ viewList xs icon =
           div [ class "column has-text-centered" ]
            [ icon el ]) xs]
 
-
-noClickButton : Html msg
-noClickButton =
-  svg "square"
 
 
 buttonDisabled :  (List (Html.Attribute msg)) -> String -> Html msg
@@ -318,10 +313,11 @@ editText title html val toMsg =
 
 
 textEditor : String -> String -> ( String -> msg ) -> Html msg
-textEditor placeholder curr update =
+textEditor p curr update =
   Html.input [ type_ "text"
              , value curr
              , onInput update
+             , placeholder p
              , class "input my-3" ] []
 
 
