@@ -34,7 +34,7 @@ type Msg
 
 initModel : Model
 initModel =
-  { title = Just "Rock A Way"
+  { title = Just ""
   , speed = Medium
   , voices = [ Kick, Hat, Melody ]
   }
@@ -66,11 +66,12 @@ apply msg model =
       { model | voices = Tools.toggleElement voice model.voices }    
 
 
-
 titleBox : (Maybe String) -> (String ->msg) -> Html msg
 titleBox current change = 
-  div [Attr.class "is-flex is-justify-content-center"]
-    [  Components.textEditor "My Amazing Song" (Maybe.withDefault "" current) change ]
+  div [ Attr.class "is-flex is-justify-content-center"]
+    [ p [] [ text "What is the name of this song?" ]
+    ,  Components.textEditor "Rock A Way" (Maybe.withDefault "" current) change 
+    ]
 
 
 speedBox : Speed -> (Speed -> msg) -> Html msg
@@ -82,19 +83,25 @@ speedBox current change =
         , Attr.class "selected has-background-success" ]
       else [])
   in 
-  Components.colsWith [Attr.class "my-3"]  <| List.map (\child -> Components.col [Attr.class "is-flex is-flex is-justify-content-center"] [child])
-    [ Components.button (change Slow) (show Slow) "Slow"
-    , Components.button (change Medium) (show Medium) "Medium"
-    , Components.button (change Fast) (show Fast) "Fast"
-    ]
+  div [Attr.class "my-6"]
+    [ p [Attr.class "my-3"] [ text "What tempo should this song be?" ]
+    , Components.cols  <| List.map (\child -> Components.col [Attr.class "is-flex is-flex is-justify-content-center"] [child])
+      [ Components.button (change Slow) (show Slow) "Slow"
+      , Components.button (change Medium) (show Medium) "Medium"
+      , Components.button (change Fast) (show Fast) "Fast"
+      ] ]
 
 
-voiceIconClass = Attr.class "is-flex is-flex-direction-column is-align-items-center column is-one-third"
+voiceIconClass = Attr.class "is-flex is-flex-direction-column is-align-items-center column is-one-third is-one-third-mobile"
+-- voiceIconClass = Attr.class "column is-3"
 
 
-goButton : msg -> Html msg
-goButton msg = 
-  Components.button msg [ Attr.class "is-primary is-focused is-fullwidth" ] "Write a Song"
+goButton : String -> msg -> Html msg
+goButton title msg = 
+  if "" == title then 
+    Components.button msg [ Attr.class "is-primary is-focused is-fullwidth" ] "Write a Song"
+  else 
+    Components.button msg [ Attr.class "is-primary is-focused is-fullwidth" ] ("Write \"" ++ title ++ "\"")
 
 
 disabledGoButton : Html msg
@@ -109,13 +116,15 @@ fireButton state msg =
       [ disabledGoButton 
       , p [ Attr.class "my-3 has-text-danger" ] [ text "Add at least one voice to write a song." ]
       ] 
-  else if state.title == Nothing then 
-    div [ ]
-      [ disabledGoButton 
-      , p [ Attr.class "my-3 has-text-danger" ] [ text "Give your song a name! It can be anything. Really." ]
-      ]  
   else 
-    goButton msg
+    case state.title of
+       Nothing ->
+         div [ ]
+           [ disabledGoButton 
+           , p [ Attr.class "my-3 has-text-danger" ] [ text "Your song needs a name, can you give it one before we write it?" ]
+           ]  
+       Just title -> 
+         goButton title msg
 
 
 disabledIcon : SynthRole -> Html msg
@@ -129,32 +138,35 @@ disabledIcon role =
 selectedIcon role toggle =
     div [ voiceIconClass ] 
       [ div [toggle] [View.roleIconColored role]
-      , p [] [text <| Data.roleName role ] ]
+      , p [toggle] [text <| Data.roleName role ] ]
 
 
 availableIcon role toggle =
     div [voiceIconClass ] 
       [ Components.box <| List.singleton <| div [toggle] [View.roleIcon role]
-      , p [] [text <| Data.roleName role ] ]
+      , p [toggle] [text <| Data.roleName role ] ]
 
 
 voiceBox : (List SynthRole) -> (SynthRole -> msg) -> Html msg
 voiceBox current change =
- Components.colsWith [Attr.class "is-multiline my-3"] 
-    <| List.map (\r -> 
+ div [ Attr.class "my-6"]
+    [ p [Attr.class "mt-3"] [ text "Which voices should we put in it?" ]
+    , p [Attr.class "mb-3"] [ text "Pick up to 4 voices." ]
+    , div [ Attr.class "my-3 columns is-multiline is-mobile is-tablet is-desktop" ]  <| List.map (\r -> 
        if List.member r current then 
          selectedIcon r (onClick <| change r) 
        else if 4 > List.length current then
          availableIcon r (onClick <| change r) 
        else
-         disabledIcon r )  synthRoles
+         disabledIcon r )  synthRoles 
+    ]
 
 
 description : Html msg
 description =
   div []
-    [ p [] [ text "Hi! I'm your Mini Song Maker. Use me to write a 15 second song right now." ]
-    , p [] [ text "What is the name of this song?" ]
+    [ p [] [ text "Hi! I'm your Mini Song Maker." ]
+    , p [] [ text "Use me to write a 15 second song right now." ]
     ] 
 
 
@@ -167,10 +179,7 @@ view state =
         , Components.col1 <| fireButton state PushedButton
         ] 
     , titleBox state.title SetTitle
-    , p [] [ text "What tempo should this song be?" ]
     , speedBox state.speed SetSpeed
-    , p [] [ text "Which voices should we put in it?" ]
-    , p [] [ text "Pick up to 4 voices." ]
     , voiceBox state.voices ToggleVoice
     ]
 

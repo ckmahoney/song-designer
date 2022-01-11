@@ -132,7 +132,8 @@ reduceScopes  scopes =
 
 roleIcon : T.SynthRole -> Html msg
 roleIcon role =
-  img [ width 50
+  img [ class "is-block mx-auto"
+      , width 50
       , height 50
       , src <| "/assets/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] []
 
@@ -141,7 +142,7 @@ roleIconColored : T.SynthRole -> Html msg
 roleIconColored role =
   div [ class "box"
       , style "background" (D.roleColor role)]
-  [ img [ class "is-block" 
+  [ img [ class "mx-auto is-block" 
           , width 50
           , height 50
           , src <| "/assets/svg/" ++ (Tuple.first <| D.roleLabel role) ++ ".svg"] [] ]
