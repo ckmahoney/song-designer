@@ -393,13 +393,13 @@ roleLabel : SynthRole -> (String, String)
 roleLabel role =
   case role of
     Kick ->
-      ("kick", "Deep")
+      ("kick", "Kick Drum")
     
     Perc ->
-      ("perc", "Hits")
+      ("perc", "Percussion")
     
     Hat ->
-      ("hat", "Groove")
+      ("hat", "Hats")
     
     Bass ->
       ("bass", "Bassline")
@@ -907,7 +907,7 @@ scoreMetaRipley =
 
 roleName : SynthRole -> String
 roleName role = 
-  (Tuple.first <| roleLabel role)
+  (Tuple.second <| roleLabel role)
 
 main = 
   Html.text ""

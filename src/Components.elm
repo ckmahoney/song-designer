@@ -319,7 +319,10 @@ editText title html val toMsg =
 
 textEditor : String -> String -> ( String -> msg ) -> Html msg
 textEditor placeholder curr update =
-  Html.input [ type_ "text", value curr, onInput update ] []
+  Html.input [ type_ "text"
+             , value curr
+             , onInput update
+             , class "input my-3" ] []
 
 
 editSelection : a -> String -> Html msg -> List (a, (Html msg)) -> a -> (a -> msg) -> Html msg
