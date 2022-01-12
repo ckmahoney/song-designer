@@ -187,6 +187,14 @@ feature track model trig req =
     ]
 
 
+player : TrackMeta -> Model ->  (Msg -> msg) -> Html msg 
+player track model trig =
+  div []
+    [ face track model trig 
+    , meta track
+    ]
+
+
 card : Player -> ((Player, Msg) -> msg)-> TrackMeta -> Html msg
 card ((selection, model) as p) signal track = 
   let 
@@ -231,6 +239,21 @@ view ((selection, model) as p) signal req tracks =
     in
     Components.cols
       [ Components.colSize "is-one-third" <| feature track model change req
+      , Components.colSize "is-two-thirds" <| playlist p signal tracks
+      ] 
+
+mini : Player -> ((Player, Msg) -> msg) -> List TrackMeta -> Html msg
+mini ((selection, model) as p) signal tracks =
+  case selection of 
+   Nothing ->
+    text "Ready to Play!"
+
+   Just track ->
+    let
+       change = (\msg -> signal <| update msg (Just track, model))
+    in
+    Components.cols
+      [ Components.colSize "is-one-third" <| player track model change
       , Components.colSize "is-two-thirds" <| playlist p signal tracks
       ] 
 

@@ -17,6 +17,7 @@ import Json.Encode as Encode
 import Types exposing (GhostMember, SynthRole(..), ScoreMeta, TrackMeta, Template, Layout, Combo, SynthRole, Scope, Ensemble, Voice)
 import Data exposing (synthRoles)
 import Components
+import Playback
 import View
 import Tools
 
@@ -35,6 +36,7 @@ type alias Model =
   , tracks : List TrackMeta
   , error : Maybe String
   , status : Maybe String
+  , player : Playback.Player
   }
 
 
@@ -50,7 +52,8 @@ encodeReqTrack email uuid title ((scope,ensemble) as combo) =
 
 
 type Msg 
-  = SetTitle String
+  = UpdatePlayer (Playback.Player, Playback.Msg)
+  | SetTitle String
   | SetSpeed Speed
   | ToggleVoice SynthRole
   | PushedButton
@@ -59,6 +62,7 @@ type Msg
   | RolledCombo Combo
 
   | GotTrack (Result Http.Error TrackMeta)
+  | Passthrough -- do nothing
  
 
 apiUrl : String -> String 
@@ -165,6 +169,7 @@ initModel =
   , tracks = []
   , error = Nothing
   , status = Nothing
+  , player = Playback.new
   }
 
 
@@ -194,7 +199,9 @@ apply msg model =
     GotTrack response ->
       case response of 
         Ok track ->
-         { model | status = Nothing, tracks = track :: model.tracks }
+         { model | status = Nothing
+         , tracks = track :: model.tracks 
+         , player = (Just track, Playback.Playing)}
 
         Err errr ->
           case errr of 
@@ -371,6 +378,7 @@ view state =
         , Components.col1 <| fireButton state cb
         ] 
     , postBox state
+    , Playback.mini state.player UpdatePlayer state.tracks
     , titleBox state.title SetTitle
     , speedBox state.speed SetSpeed
     , voiceBox state.voices ToggleVoice
@@ -386,6 +394,21 @@ update msg model =
 
     RolledCombo combo ->
       ({ model | status = Just "Writing a track for you!"}, reqTrack model.member.email model.member.uuid (Maybe.withDefault "" model.title) combo)
+
+    UpdatePlayer ((mTrack, pstate) as playstate, pCmd) ->
+      case mTrack of
+        Nothing ->
+         ({ model | player = Playback.new}, Playback.stopMusic "")
+
+        Just t ->
+           case pCmd of 
+            Playback.Load (nodeId, path) -> ( { model | player = playstate }, Playback.trigger <| Playback.Load (nodeId, hostname ++ path))
+            Playback.Select (Just track) ->    
+             ( { model | player = playstate }, Playback.trigger <| Playback.Load ("#the-player", hostname ++ track.filepath)) -- fixes the missing hostname on getSongs
+
+            _ ->
+             ( { model | player = playstate }, Playback.trigger pCmd)
+
 
     _ -> 
       (apply msg model, Cmd.none)
