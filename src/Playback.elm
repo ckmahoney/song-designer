@@ -189,10 +189,7 @@ feature track model trig req =
 
 player : TrackMeta -> Model ->  (Msg -> msg) -> Html msg 
 player track model trig =
-  div []
-    [ face track model trig 
-    , meta track
-    ]
+  face track model trig 
 
 
 card : Player -> ((Player, Msg) -> msg)-> TrackMeta -> Html msg
@@ -246,7 +243,7 @@ mini : Player -> ((Player, Msg) -> msg) -> List TrackMeta -> Html msg
 mini ((selection, model) as p) signal tracks =
   case selection of 
    Nothing ->
-    text "Ready to Play!"
+    text ""
 
    Just track ->
     let

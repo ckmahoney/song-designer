@@ -110,9 +110,9 @@ rollScope title speed =
  let
   id = 0
   size = case speed of 
-    Slow -> 1
+    Slow -> 2
     Medium -> 3
-    Fast -> 9
+    Fast -> 4
  in
   Random.map3 (\cps root cpc -> Scope id title cps cpc root size) (rollCps speed) rollRoot rollCpc
 
@@ -150,7 +150,7 @@ reqTrack : String -> String -> String -> Combo -> Cmd Msg
 reqTrack email uuid title combo =
   Http.post
     { url = apiUrl "track"
-    , body =  Http.jsonBody <| encodeReqTrack email uuid title (Debug.log "using this combo:" combo)
+    , body =  Http.jsonBody <| encodeReqTrack email uuid title combo
     , expect = Http.expectJson GotTrack JD.decodeTrack
     }
 
@@ -196,27 +196,6 @@ validReq state =
 apply : Msg -> Model -> Model
 apply msg model =
   case msg of       
-    GotTrack response ->
-      case response of 
-        Ok track ->
-         { model | status = Nothing
-         , tracks = track :: model.tracks 
-         , player = (Just track, Playback.Playing)}
-
-        Err errr ->
-          case errr of 
-            Http.BadBody str -> 
-              { model | status = Nothing, error = Just "How did you post that body?"  }
- 
-            Http.BadUrl str -> 
-              { model | status = Nothing, error = Just "Where did you get that URL?" }
-
-            Http.BadStatus int -> 
-              { model | status = Nothing, error = Just <| "The server looks like it had a problem. Here's a hint: " ++ String.fromInt int }
-
-            _ -> 
-              { model | status = Nothing, error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }
-
     PushedButton ->
       case model.title of 
         Just "" -> 
@@ -338,7 +317,7 @@ description : Html msg
 description =
   div []
     [ p [] [ text "Hi! I'm your Mini Song Maker." ]
-    , p [] [ text "Use me to write a 15 second song right now." ]
+    , p [] [ text "Use me to write a short song right now." ]
     ] 
 
 
@@ -388,23 +367,56 @@ view state =
 -- intercepts Cmd msgs, otherwise passes pur updates to apply
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
+   let
+    ay = Debug.log "any msg in the house" msg
+   in
   case msg of 
+
     RollForTrack ->
       ({ model | status = Just "Rolling some dice..." }, modelToCombo (Maybe.withDefault "" model.title) model.speed model.voices)
 
     RolledCombo combo ->
       ({ model | status = Just "Writing a track for you!"}, reqTrack model.member.email model.member.uuid (Maybe.withDefault "" model.title) combo)
 
-    UpdatePlayer ((mTrack, pstate) as playstate, pCmd) ->
+    GotTrack response ->
+      case response of 
+        Ok track ->
+         ({ model | status = Nothing
+         , tracks = track :: model.tracks 
+         , player = (Just track, Playback.Playing)}, Playback.trigger <| Playback.Load ("#the-player", hostname ++ track.filepath))
+
+        Err errr ->
+          case errr of 
+            Http.BadBody str -> 
+              ({ model | status = Nothing, error = Just "How did you post that body?"  }, Cmd.none)
+ 
+            Http.BadUrl str -> 
+              ({ model | status = Nothing, error = Just "Where did you get that URL?" }, Cmd.none)
+
+            Http.BadStatus int -> 
+              ({ model | status = Nothing, error = Just <| "The server looks like it had a problem. Here's a hint: " ++ String.fromInt int }, Cmd.none)
+
+            _ -> 
+              ({ model | status = Nothing, error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }, Cmd.none)
+
+
+    UpdatePlayer ((mTrack, _) as playstate, pCmd) ->
+     let 
+       zz = Debug.log "recieved an update player message:"  pCmd
+     in 
       case mTrack of
         Nothing ->
          ({ model | player = Playback.new}, Playback.stopMusic "")
 
         Just t ->
+         let
+           yy = Debug.log "running the  player with " t
+         in
            case pCmd of 
-            Playback.Load (nodeId, path) -> ( { model | player = playstate }, Playback.trigger <| Playback.Load (nodeId, hostname ++ path))
+            Playback.Load (nodeId, path) -> 
+              ( { model | player = playstate }, Playback.trigger <| Playback.Load ("#the-player", hostname ++ path))
             Playback.Select (Just track) ->    
-             ( { model | player = playstate }, Playback.trigger <| Playback.Load ("#the-player", hostname ++ track.filepath)) -- fixes the missing hostname on getSongs
+              ( { model | player = playstate }, Playback.trigger <| Playback.Load ("#the-player", hostname ++ track.filepath)) -- fixes the missing hostname on getSongs
 
             _ ->
              ( { model | player = playstate }, Playback.trigger pCmd)
