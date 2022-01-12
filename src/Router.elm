@@ -133,7 +133,7 @@ reqTrack : String -> String -> Template -> Cmd Msg
 reqTrack email uuid template =
   Http.post
     { url = apiUrl "track"
-    , body =  Http.jsonBody <| encodeReqTrack email uuid template
+    , body =  Http.jsonBody <| JE.encodeReqTrack email uuid template
     , expect = Http.expectJson GotNewTrack decodeTrack
     }
 
@@ -156,16 +156,6 @@ getSongs email uuid =
   }
 
 
-encodeReqTrack : String -> String -> Template -> Encode.Value
-encodeReqTrack email uuid template =
-  Encode.object
-    [ ("meta", JE.encodeScoreMeta <| Tuple.first template)
-    , ("layout", JE.encodeLayout <| Tuple.second template)
-    , ("email", Encode.string email)
-    , ("uuid", Encode.string uuid)
-    ]
-
-
 encodeReqAsset : String -> String -> Int -> Playback.Asset -> Encode.Value
 encodeReqAsset email uuid id kind =
   Encode.object
@@ -175,16 +165,6 @@ encodeReqAsset email uuid id kind =
     , ("email", Encode.string email)
     , ("uuid", Encode.string uuid)
     ]
-
-
-encodeMember : GhostMember -> Encode.Value
-encodeMember member =
-  Encode.object
-    [ ("name", Encode.string member.name)
-    , ("email", Encode.string member.email)
-    , ("uuid", Encode.string member.uuid)
-    ]
-
 
 encodeUserReq :  Encode.Value
 encodeUserReq  =  

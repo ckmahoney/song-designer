@@ -1,4 +1,5 @@
 module Encoders exposing (..)
+-- Common data types encoded to JSON 
 
 import Types exposing (..)
 import Data
@@ -57,6 +58,24 @@ encodeLayout  combos =
   Encode.object
     [ ("title", Encode.string "ensemble")
     , ("combos", Encode.list encodeCombo combos)
+    ]
+
+encodeReqTrack : String -> String -> Template -> Encode.Value
+encodeReqTrack email uuid template =
+  Encode.object
+    [ ("meta", encodeScoreMeta <| Tuple.first template)
+    , ("layout", encodeLayout <| Tuple.second template)
+    , ("email", Encode.string email)
+    , ("uuid", Encode.string uuid)
+    ]
+
+
+encodeMember : GhostMember -> Encode.Value
+encodeMember member =
+  Encode.object
+    [ ("name", Encode.string member.name)
+    , ("email", Encode.string member.email)
+    , ("uuid", Encode.string member.uuid)
     ]
 
 
