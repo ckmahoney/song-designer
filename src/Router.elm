@@ -103,11 +103,7 @@ init : Maybe GhostMember -> (Model, Cmd Msg)
 init flags =
   case flags of 
     Nothing -> 
-     let
-       member = Data.testMember
-     in
-      (initFromMember member, getSongs member.email member.uuid)
-      -- (initEmpty, Cmd.none)
+      (initEmpty, Cmd.none)
     
     Just member ->
       (initFromMember member, getSongs member.email member.uuid)

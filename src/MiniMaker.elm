@@ -7,13 +7,14 @@ import Html.Attributes as Attr
 import Html.Events exposing (onClick)
 import Http
 import Random
+import Random.Extra
 import Url.Builder as Url
 import Encoders as JE
 import Decoders as JD
 import Json.Decode as Decode
 import Json.Encode as Encode
 
-import Types exposing (SynthRole(..), ScoreMeta, TrackMeta, Template, Layout, Combo, SynthRole, Scope, Ensemble, Voice)
+import Types exposing (GhostMember, SynthRole(..), ScoreMeta, TrackMeta, Template, Layout, Combo, SynthRole, Scope, Ensemble, Voice)
 import Data exposing (synthRoles)
 import Components
 import View
@@ -27,7 +28,8 @@ type Speed
 
 
 type alias Model =
-  { title : Maybe String
+  { member : GhostMember
+  , title : Maybe String
   , speed : Speed
   , voices: List SynthRole
   , tracks : List TrackMeta
@@ -83,9 +85,9 @@ rollTexture =
 rollCps : Speed -> Random.Generator Float
 rollCps speed = 
   case speed of 
-    Slow ->  Random.float 0.5 1.2
-    Medium -> Random.float 1.5 2.5
-    Fast -> Random.float 3.5 5.5
+    Slow ->  Random.float 0.8 1.5
+    Medium -> Random.float 2 3
+    Fast -> Random.float 3.5 5
 
 
 -- the Elm app right now sends requests using 0-11 semitone notation instead of Hz values
@@ -103,38 +105,48 @@ rollScope : String -> Speed -> Random.Generator Scope
 rollScope title speed = 
  let
   id = 0
-  size = 1
+  size = case speed of 
+    Slow -> 1
+    Medium -> 3
+    Fast -> 9
  in
   Random.map3 (\cps root cpc -> Scope id title cps cpc root size) (rollCps speed) rollRoot rollCpc
 
 
-rollVoice : Int -> SynthRole -> Random.Generator Voice
-rollVoice i role =
-  Random.map2 (Voice i Types.Structure role "label" (Data.voiceIndex role)) rollTexture rollTexture
+rollVoice : SynthRole -> Random.Generator Voice
+rollVoice role =
+  Random.map2 (Voice 0 Types.Structure role "label" (Data.voiceIndex role)) rollTexture rollTexture
+
+
+rollEnsemble : List SynthRole -> Random.Generator Ensemble
+rollEnsemble voices =
+  Random.Extra.sequence (List.map rollVoice voices) 
 
 
 rollComboOneVoice : String -> Speed -> SynthRole -> Random.Generator Combo
 rollComboOneVoice title speed role =
   Random.map2 (\meta voice -> (meta, [voice]))
     (rollScope title speed) 
-    (rollVoice 0 role)
+    (rollVoice role)
+
+
+rollCombo : String -> Speed -> List SynthRole -> Random.Generator Combo
+rollCombo title speed roles =
+  Random.pair
+    (rollScope title speed) 
+    (rollEnsemble roles)
 
 
 modelToCombo : String -> Speed -> (List SynthRole) -> Cmd Msg
 modelToCombo title speed roles =
- let
-   -- ensemble = Random.generate <| Random.list 1 List.indexedMap rollVoice roles
-   role = Maybe.withDefault Kick <| List.head roles
-
- in
- Random.generate RolledCombo (rollComboOneVoice title speed role)
+ Random.generate RolledCombo (rollCombo title speed roles)
   
 
 reqTrack : String -> String -> String -> Combo -> Cmd Msg
 reqTrack email uuid title combo =
   Http.post
     { url = apiUrl "track"
-    , body =  Http.jsonBody <| encodeReqTrack email uuid title combo
+    , body =  Http.jsonBody <| encodeReqTrack email uuid title (Debug.log "using this combo:" combo)
     , expect = Http.expectJson GotTrack JD.decodeTrack
     }
 
@@ -146,7 +158,8 @@ makeMeta title scope =
 
 initModel : Model
 initModel =
-  { title = Just ""
+  { member = Data.anonMember
+  , title = Just ""
   , speed = Medium
   , voices = [ Kick, Hat, Melody ]
   , tracks = []
@@ -155,9 +168,15 @@ initModel =
   }
 
 
-init : Maybe Int -> (Model, Cmd Msg)
-init _ =
-  (initModel, Cmd.none)
+init : Maybe GhostMember -> (Model, Cmd Msg)
+init flags =
+  case flags of 
+    Nothing -> 
+      (initModel, Cmd.none)
+    
+    Just member ->
+      ({ initModel | member =  member }, Cmd.none)
+
 
 
 validReq : Model -> Bool
@@ -180,16 +199,16 @@ apply msg model =
         Err errr ->
           case errr of 
             Http.BadBody str -> 
-              { model |  status = Nothing, error = Just "How did you post that body?"  }
+              { model | status = Nothing, error = Just "How did you post that body?"  }
  
             Http.BadUrl str -> 
-              { model |  status = Nothing, error = Just "Where did you get that URL?" }
+              { model | status = Nothing, error = Just "Where did you get that URL?" }
 
             Http.BadStatus int -> 
-              { model |  status = Nothing, error = Just <| "The server looks like it had a problem. Here's a hint: " ++ String.fromInt int }
+              { model | status = Nothing, error = Just <| "The server looks like it had a problem. Here's a hint: " ++ String.fromInt int }
 
             _ -> 
-              { model |  status = Nothing, error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }
+              { model | status = Nothing, error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }
 
     PushedButton ->
       case model.title of 
@@ -366,7 +385,7 @@ update msg model =
       ({ model | status = Just "Rolling some dice..." }, modelToCombo (Maybe.withDefault "" model.title) model.speed model.voices)
 
     RolledCombo combo ->
-      ({ model | status = Just "Writing a track for you!"}, reqTrack "email" "uuid" (Maybe.withDefault "" model.title) combo)
+      ({ model | status = Just "Writing a track for you!"}, reqTrack model.member.email model.member.uuid (Maybe.withDefault "" model.title) combo)
 
     _ -> 
       (apply msg model, Cmd.none)
