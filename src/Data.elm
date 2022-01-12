@@ -916,8 +916,8 @@ main =
 helpLinks = 
   { combo = "how-to-make-a-combo"
   , ensemble = "how-to-make-an-ensemble"
-  , layout = "how-to-make-a-layout"
-  , scope = "how-to-create-a-scope"
+  , layout = "how-to-make-a-template"
+  , scope = "how-to-create-a-section"
   , voice = "how-to-create-a-voice"
   }
 
