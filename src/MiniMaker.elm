@@ -8,10 +8,12 @@ import Html.Events exposing (onClick)
 import Http
 import Random
 import Url.Builder as Url
+import Encoders as JE
+import Decoders as JD
 import Json.Decode as Decode
 import Json.Encode as Encode
 
-import Types exposing (SynthRole(..), ScoreMeta, TrackMeta, Template)
+import Types exposing (SynthRole(..), ScoreMeta, TrackMeta, Template, Layout, Combo, SynthRole, Scope, Ensemble, Voice)
 import Data exposing (synthRoles)
 import Components
 import View
@@ -30,19 +32,19 @@ type alias Model =
   , voices: List SynthRole
   , tracks : List TrackMeta
   , error : Maybe String
+  , status : Maybe String
   }
 
 
 
-decodeTrack : Decode.Decoder TrackMeta
-decodeTrack =
-  Decode.map6 TrackMeta
-    (Decode.field "id" Decode.int)
-    (Decode.field "account_id" Decode.int)
-    (Decode.field "filepath" Decode.string)
-    (Decode.field "title" Decode.string)
-    (Decode.field "size_bytes" Decode.int)
-    (Decode.field "duration_seconds" Decode.float)
+encodeReqTrack : String -> String -> String -> Combo -> Encode.Value
+encodeReqTrack email uuid title ((scope,ensemble) as combo) =
+  Encode.object
+    [ ("meta", JE.encodeScoreMeta <| makeMeta title scope)
+    , ("layout", JE.encodeLayout [combo])
+    , ("email", Encode.string email)
+    , ("uuid", Encode.string uuid)
+    ]
 
 
 type Msg 
@@ -51,7 +53,9 @@ type Msg
   | ToggleVoice SynthRole
   | PushedButton
 
-  | RollTemplate Model
+  | RollForTrack
+  | RolledCombo Combo
+
   | GotTrack (Result Http.Error TrackMeta)
  
 
@@ -76,15 +80,18 @@ rollTexture =
   Random.int 1 3
 
 
-rollCps : Random.Generator Float
-rollCps = 
-  Random.int 3 4
+rollCps : Speed -> Random.Generator Float
+rollCps speed = 
+  case speed of 
+    Slow ->  Random.float 0.5 1.2
+    Medium -> Random.float 1.5 2.5
+    Fast -> Random.float 3.5 5.5
 
 
 -- the Elm app right now sends requests using 0-11 semitone notation instead of Hz values
-rollRoot : Random.Generator Float
+rollRoot : Random.Generator Int
 rollRoot = 
-  Random.map toFloat <| Random.int 0 11
+  Random.int 0 11
 
 
 rollCpc : Random.Generator Int
@@ -92,45 +99,49 @@ rollCpc =
   Random.int 3 4
 
 
-rollMeta : String -> Random.Generator ScoreMeta
-rollMeta title = 
-  Random.map3 (ScoreMeta title) rollCps rollRoot rollCpc
-
-modelToLayout : Model -> Layout
-modelToLayout state =
+rollScope : String -> Speed -> Random.Generator Scope
+rollScope title speed = 
  let
-   scope = 
-   ensemble = List.map
+  id = 0
+  size = 1
  in
-  [ scope, ensemble  ]  
+  Random.map3 (\cps root cpc -> Scope id title cps cpc root size) (rollCps speed) rollRoot rollCpc
 
 
-modelToTemplate : Model -> Cmd Msg
-modelToTemplate model =
-  Random.generate RollTemplate model
+rollVoice : Int -> SynthRole -> Random.Generator Voice
+rollVoice i role =
+  Random.map2 (Voice i Types.Structure role "label" (Data.voiceIndex role)) rollTexture rollTexture
+
+
+rollComboOneVoice : String -> Speed -> SynthRole -> Random.Generator Combo
+rollComboOneVoice title speed role =
+  Random.map2 (\meta voice -> (meta, [voice]))
+    (rollScope title speed) 
+    (rollVoice 0 role)
+
+
+modelToCombo : String -> Speed -> (List SynthRole) -> Cmd Msg
+modelToCombo title speed roles =
+ let
+   -- ensemble = Random.generate <| Random.list 1 List.indexedMap rollVoice roles
+   role = Maybe.withDefault Kick <| List.head roles
+
+ in
+ Random.generate RolledCombo (rollComboOneVoice title speed role)
   
 
-reqTrack : String -> String -> Model -> Cmd Msg
-reqTrack email uuid state =
+reqTrack : String -> String -> String -> Combo -> Cmd Msg
+reqTrack email uuid title combo =
   Http.post
     { url = apiUrl "track"
-    , body =  Http.jsonBody <| encodeReqTrack email uuid template
-    , expect = Http.expectJson GotTrack decodeTrack
+    , body =  Http.jsonBody <| encodeReqTrack email uuid title combo
+    , expect = Http.expectJson GotTrack JD.decodeTrack
     }
 
 
--- I need to create a template of length 1 
-
-
-encodeReqTrack : String -> String -> Model -> Encode.Value
-encodeReqTrack email uuid state =
-  Encode.object
-    [ ("meta", encodeScoreMeta <| Tuple.first template)
-    , ("layout", encodeLayout <| Tuple.second template)
-    , ("email", Encode.string email)
-    , ("uuid", Encode.string uuid)
-    ]
-
+makeMeta : String -> Scope -> ScoreMeta
+makeMeta title scope =
+  ScoreMeta title scope.cps (toFloat scope.root) scope.cpc
 
 
 initModel : Model
@@ -140,6 +151,7 @@ initModel =
   , voices = [ Kick, Hat, Melody ]
   , tracks = []
   , error = Nothing
+  , status = Nothing
   }
 
 
@@ -159,7 +171,7 @@ validReq state =
 
 apply : Msg -> Model -> Model
 apply msg model =
-  case msg of 
+  case msg of       
     GotTrack response ->
       case response of 
         Ok track ->
@@ -195,6 +207,9 @@ apply msg model =
 
     ToggleVoice voice ->
       { model | voices = Tools.toggleElement voice model.voices }    
+
+    _ ->
+      model
 
 
 titleBox : (Maybe String) -> (String ->msg) -> Html msg
@@ -301,14 +316,41 @@ description =
     ] 
 
 
+errorBox : (Maybe String) -> Html msg
+errorBox str =
+  case str of 
+    Nothing -> text ""
+    Just message ->
+      p [] [text message]
+
+
+statusBox : (Maybe String) -> Html msg
+statusBox str =
+  case str of 
+    Nothing -> text ""
+    Just message ->
+      p [] [text message]
+
+
+postBox : Model -> Html msg
+postBox state =
+  div [] 
+    [ errorBox state.error
+    , statusBox state.status
+    ]
+
 view : Model -> Html Msg
 view state =
+ let 
+  cb = (if validReq state then RollForTrack else PushedButton)
+ in 
   Components.box
     [ Components.heading "Mini Song Maker"
     , Components.cols
         [ Components.col1 description
-        , Components.col1 <| fireButton state (if validModel state then ReqTrack else PushedButton)
+        , Components.col1 <| fireButton state cb
         ] 
+    , postBox state
     , titleBox state.title SetTitle
     , speedBox state.speed SetSpeed
     , voiceBox state.voices ToggleVoice
@@ -317,7 +359,16 @@ view state =
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-  (apply msg model, Cmd.none)
+  case msg of 
+    RollForTrack ->
+      ({ model | status = Just "Rolling some dice..." }, modelToCombo (Maybe.withDefault "" model.title) model.speed model.voices)
+
+    RolledCombo combo ->
+      ({ model | status = Just "Writing a track for you!"}, reqTrack "email" "uuid" (Maybe.withDefault "" model.title) <| Debug.log "created combo" combo)
+
+
+    _ ->
+      (apply msg model, Cmd.none)
 
 
 main =  element 

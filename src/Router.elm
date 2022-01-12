@@ -5,13 +5,11 @@ import Html exposing (Html, button, div, text, label, p)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
-import Task
 import Types exposing (..)
 import Data
 import View 
 import Components
 import Tools
-import Array
 import Http
 import Url.Builder as Url
 import Json.Decode as Decode
@@ -28,7 +26,6 @@ import Playback
 type alias ID = Int
 
 
--- data prepared for storage on server
 type Msg 
   = UpdatePlayer (Playback.Player, Playback.Msg)
   | SelectTemplate Int
@@ -60,15 +57,6 @@ type alias Model =
   , title : String
   , templates : List Template
   }
-
-
-decodeTrackPrev : Decode.Decoder Track
-decodeTrackPrev =
-  Decode.map4 Track
-    (Decode.field "id" Decode.int)
-    (Decode.field "src" Decode.string)
-    (Decode.field "size" Decode.int)
-    (Decode.field "duration" Decode.float)
 
 
 decodeTrack : Decode.Decoder TrackMeta

@@ -913,6 +913,17 @@ main =
   Html.text ""
 
 
+voiceIndex : SynthRole -> Int
+voiceIndex role =
+  case role of 
+     Kick -> 1
+     Bass -> 2
+     Perc -> 3
+     Chords -> 4
+     Melody -> 5
+     Hat -> 6 
+
+
 helpLinks = 
   { combo = "how-to-make-a-combo"
   , ensemble = "how-to-make-an-ensemble"
