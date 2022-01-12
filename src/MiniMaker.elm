@@ -175,21 +175,21 @@ apply msg model =
     GotTrack response ->
       case response of 
         Ok track ->
-         { model | tracks = track :: model.tracks }
+         { model | status = Nothing, tracks = track :: model.tracks }
 
         Err errr ->
           case errr of 
             Http.BadBody str -> 
-              { model | error = Just "How did you post that body?"  }
+              { model |  status = Nothing, error = Just "How did you post that body?"  }
  
             Http.BadUrl str -> 
-              { model | error = Just "Where did you get that URL?" }
+              { model |  status = Nothing, error = Just "Where did you get that URL?" }
 
             Http.BadStatus int -> 
-              { model | error = Just <| "The server looks like it had a problem. Here's a hint: " ++ String.fromInt int }
+              { model |  status = Nothing, error = Just <| "The server looks like it had a problem. Here's a hint: " ++ String.fromInt int }
 
             _ -> 
-              { model | error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }
+              { model |  status = Nothing, error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }
 
     PushedButton ->
       case model.title of 
@@ -339,6 +339,7 @@ postBox state =
     , statusBox state.status
     ]
 
+
 view : Model -> Html Msg
 view state =
  let 
@@ -357,6 +358,7 @@ view state =
     ]
 
 
+-- intercepts Cmd msgs, otherwise passes pur updates to apply
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of 
@@ -364,10 +366,9 @@ update msg model =
       ({ model | status = Just "Rolling some dice..." }, modelToCombo (Maybe.withDefault "" model.title) model.speed model.voices)
 
     RolledCombo combo ->
-      ({ model | status = Just "Writing a track for you!"}, reqTrack "email" "uuid" (Maybe.withDefault "" model.title) <| Debug.log "created combo" combo)
+      ({ model | status = Just "Writing a track for you!"}, reqTrack "email" "uuid" (Maybe.withDefault "" model.title) combo)
 
-
-    _ ->
+    _ -> 
       (apply msg model, Cmd.none)
 
 
