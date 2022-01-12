@@ -1,8 +1,13 @@
 {
   "dependencies": {
-    "bulma": "^0.9.3"
-  }, 
-  "scripts" : {
-    "dev" : "elm-live src/*.elm --start-page=elm-index.html -- --output=elm-out.js"
+    "bulma": "^0.9.3",
+    "wavesurfer.js": "^5.2.0"
+  },
+  "scripts": {
+    "dev": "elm-live src/*.elm --start-page=elm-index.html -- --output=elm-out.js",
+    "dev-cors": "node_modules/.bin/elm-live src/*.elm --start-page=elm-index.html -- --output=elm-out.js"
+  },
+  "devDependencies": {
+    "elm-live": "^4.0.2"
   }
 }
