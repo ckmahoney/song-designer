@@ -8,14 +8,15 @@ import Html.Events exposing (onClick)
 import Http
 import Random
 import Random.Extra
-import Url.Builder as Url
 import Encoders as JE
 import Decoders as JD
 import Json.Decode as Decode
 import Json.Encode as Encode
 
+
 import Types exposing (GhostMember, SynthRole(..), ScoreMeta, TrackMeta, Template, Layout, Combo, SynthRole, Scope, Ensemble, Voice)
 import Data exposing (synthRoles)
+import Configs as Conf
 import Components
 import Playback
 import View
@@ -63,17 +64,8 @@ type Msg
 
   | GotTrack (Result Http.Error TrackMeta)
   | Passthrough -- do nothing
+  | Download String
  
-
-apiUrl : String -> String 
-apiUrl endpoint =
-  Url.crossOrigin hostname [ endpoint ] []
-
-
-hostname = 
-  "http://localhost:3000"
- -- "https://synthony.app"
-
 
 miniMakerMember =
   { uuid = ""
@@ -89,9 +81,9 @@ rollTexture =
 rollCps : Speed -> Random.Generator Float
 rollCps speed = 
   case speed of 
-    Slow ->  Random.float 0.8 1.5
-    Medium -> Random.float 2 3
-    Fast -> Random.float 3.5 5
+    Slow ->  Random.float 0.8 3
+    Medium -> Random.float 4 8
+    Fast -> Random.float 12 18
 
 
 -- the Elm app right now sends requests using 0-11 semitone notation instead of Hz values
@@ -111,8 +103,8 @@ rollScope title speed =
   id = 0
   size = case speed of 
     Slow -> 2
-    Medium -> 3
-    Fast -> 4
+    Medium -> 4
+    Fast -> 6
  in
   Random.map3 (\cps root cpc -> Scope id title cps cpc root size) (rollCps speed) rollRoot rollCpc
 
@@ -149,7 +141,7 @@ modelToCombo title speed roles =
 reqTrack : String -> String -> String -> Combo -> Cmd Msg
 reqTrack email uuid title combo =
   Http.post
-    { url = apiUrl "track"
+    { url = Conf.apiUrl "track"
     , body =  Http.jsonBody <| encodeReqTrack email uuid title combo
     , expect = Http.expectJson GotTrack JD.decodeTrack
     }
@@ -345,32 +337,48 @@ postBox state =
     ]
 
 
+boxes : Model -> Html Msg
+boxes state = 
+  case (state.status, state.error) of 
+    (Nothing, Nothing) ->
+      div []
+        [ titleBox state.title SetTitle
+        , speedBox state.speed SetSpeed
+        , voiceBox state.voices ToggleVoice
+        ]
+
+    _ ->
+     text ""
+
+
 view : Model -> Html Msg
 view state =
  let 
   cb = (if validReq state then RollForTrack else PushedButton)
+  butt =   case (state.status, state.error) of 
+    (Nothing, Nothing) ->
+      Components.col1 <| fireButton state cb
+    _ ->
+      text ""
  in 
   Components.box
     [ Components.heading "Mini Song Maker"
     , Components.cols
         [ Components.col1 description
-        , Components.col1 <| fireButton state cb
+        , butt
         ] 
+    , Playback.mini state.player UpdatePlayer state.tracks Download 
     , postBox state
-    , Playback.mini state.player UpdatePlayer state.tracks
-    , titleBox state.title SetTitle
-    , speedBox state.speed SetSpeed
-    , voiceBox state.voices ToggleVoice
+    , boxes state
     ]
 
 
 -- intercepts Cmd msgs, otherwise passes pur updates to apply
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-   let
-    ay = Debug.log "any msg in the house" msg
-   in
   case msg of 
+    Download url ->
+      (model, Conf.download url)
 
     RollForTrack ->
       ({ model | status = Just "Rolling some dice..." }, modelToCombo (Maybe.withDefault "" model.title) model.speed model.voices)
@@ -383,7 +391,7 @@ update msg model =
         Ok track ->
          ({ model | status = Nothing
          , tracks = track :: model.tracks 
-         , player = (Just track, Playback.Playing)}, Playback.trigger <| Playback.Load ("#the-player", hostname ++ track.filepath))
+         , player = (Just track, Playback.Playing)}, Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath))
 
         Err errr ->
           case errr of 
@@ -399,24 +407,17 @@ update msg model =
             _ -> 
               ({ model | status = Nothing, error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }, Cmd.none)
 
-
     UpdatePlayer ((mTrack, _) as playstate, pCmd) ->
-     let 
-       zz = Debug.log "recieved an update player message:"  pCmd
-     in 
       case mTrack of
         Nothing ->
          ({ model | player = Playback.new}, Playback.stopMusic "")
 
         Just t ->
-         let
-           yy = Debug.log "running the  player with " t
-         in
            case pCmd of 
             Playback.Load (nodeId, path) -> 
-              ( { model | player = playstate }, Playback.trigger <| Playback.Load ("#the-player", hostname ++ path))
+              ( { model | player = playstate }, Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ path))
             Playback.Select (Just track) ->    
-              ( { model | player = playstate }, Playback.trigger <| Playback.Load ("#the-player", hostname ++ track.filepath)) -- fixes the missing hostname on getSongs
+              ( { model | player = playstate }, Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath)) -- fixes the missing hostname on getSongs
 
             _ ->
              ( { model | player = playstate }, Playback.trigger pCmd)

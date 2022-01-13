@@ -13,7 +13,7 @@ import Http
 import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
-
+import Configs as Conf
 
 port playMusic : String -> Cmd msg
 
@@ -208,6 +208,26 @@ card ((selection, model) as p) signal track =
   Components.col [ Attr.class "is-half"] [ Components.songCard track.title <| List.singleton children]
 
 
+cardDL : Player -> ((Player, Msg) -> msg)-> TrackMeta -> (String -> msg) -> Html msg
+cardDL ((selection, model) as p) signal track download = 
+  let 
+    change = (\msg -> signal <| update msg (Just track, model))
+    children = case selection of 
+      Nothing -> 
+         div [onClick <| change <| Select (Just track)] [Components.svg "play"]
+      Just selected ->  
+        if selected == track then 
+          controls model change
+        else 
+          div [onClick <| change <| Select (Just track)] [Components.svg "play"]
+
+  in
+  Components.col [ Attr.class "is-half"] 
+    [ Components.songCard track.title 
+      <|  (List.append [children] [Components.button (download track.filepath) [] "Download"])]
+
+
+
 playlist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> Html msg
 playlist  ((selection, model) as p) signal tracks =
   div [] 
@@ -215,6 +235,19 @@ playlist  ((selection, model) as p) signal tracks =
    , Components.box <| List.singleton  <| Components.colsMulti <|
    List.map (card p signal) tracks
    ] 
+
+
+actionlist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> (String -> msg) -> Html msg
+actionlist  ((selection, model) as p) signal tracks download =
+  Components.box <| List.singleton  <| Components.colsMulti <|
+    List.map ((\x -> cardDL p signal x download)) tracks
+
+
+
+minilist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> Html msg
+minilist  ((selection, model) as p) signal tracks =
+  Components.box <| List.singleton <| Components.colsMulti <|
+   List.map (card p signal) tracks
 
 
 clear : (Player, Msg)
@@ -239,8 +272,9 @@ view ((selection, model) as p) signal req tracks =
       , Components.colSize "is-two-thirds" <| playlist p signal tracks
       ] 
 
-mini : Player -> ((Player, Msg) -> msg) -> List TrackMeta -> Html msg
-mini ((selection, model) as p) signal tracks =
+
+mini : Player -> ((Player, Msg) -> msg) -> List TrackMeta -> (String -> msg) -> Html msg
+mini ((selection, model) as p) signal tracks download =
   case selection of 
    Nothing ->
     text ""
@@ -250,8 +284,8 @@ mini ((selection, model) as p) signal tracks =
        change = (\msg -> signal <| update msg (Just track, model))
     in
     Components.cols
-      [ Components.colSize "is-one-third" <| player track model change
-      , Components.colSize "is-two-thirds" <| playlist p signal tracks
+      [ Components.colSize "is-one-half" <| player track model change
+      , Components.colSize "is-two-thirds" <| actionlist p signal tracks download
       ] 
 
 
