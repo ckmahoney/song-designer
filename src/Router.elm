@@ -15,7 +15,7 @@ import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Encoders as JE
-import File.Download as Download
+import Configs as Conf
 
 import ScopeEditor
 import EnsembleEditor
@@ -109,20 +109,9 @@ init flags =
       (initFromMember member, getSongs member.email member.uuid)
 
 
-hostname = 
-  "http://localhost:3000"
- -- "https://synthony.app"
-
-
-download : String -> Cmd msg
-download url =
-  Download.url (hostname ++ url)
-
-
-
 apiUrl : String -> String 
 apiUrl endpoint =
-  Url.crossOrigin hostname [ endpoint ] []
+  Url.crossOrigin Conf.hostname [ endpoint ] []
 
 
 reqTrack : String -> String -> Template -> Cmd Msg
@@ -210,9 +199,9 @@ update msg model =
 
         Just t ->
            case pCmd of 
-            Playback.Load (nodeId, path) -> ( { model | playstate = playstate }, Playback.trigger <| Playback.Load (nodeId, hostname ++ path))
+            Playback.Load (nodeId, path) -> ( { model | playstate = playstate }, Playback.trigger <| Playback.Load (nodeId, Conf.hostname ++ path))
             Playback.Select (Just track) ->    
-             ( { model | playstate = playstate }, Playback.trigger <| Playback.Load ("#the-player", hostname ++ track.filepath)) -- fixes the missing hostname on getSongs
+             ( { model | playstate = playstate }, Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath)) -- fixes the missing Conf.hostname on getSongs
 
             _ ->
              ( { model | playstate = playstate }, Playback.trigger pCmd)
@@ -243,7 +232,7 @@ update msg model =
             | tracks = track :: model.tracks
             , selection = (Just track)
             , playstate = (Just track, Playback.Playing)
-            , mailer = Received }, Playback.trigger <| Playback.Load ("#the-player", hostname ++ track.filepath ))
+            , mailer = Received }, Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath ))
 
         Err errr ->
           case errr of 
@@ -263,7 +252,7 @@ update msg model =
     GotAsset response ->
       case response of 
         Ok url ->
-          ( model, download url )
+          ( model, Conf.download url )
 
         Err errr ->
           case errr of 
