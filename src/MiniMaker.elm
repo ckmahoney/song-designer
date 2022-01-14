@@ -258,9 +258,9 @@ apply msg model =
 
 titleBox : (Maybe String) -> (String ->msg) -> Html msg
 titleBox current change = 
-  div [ Attr.class "is-flex is-justify-content-center"]
-    [ p [] [ text "What is the name of this song?" ]
-    ,  Components.textEditor "Rock A Way" (Maybe.withDefault "" current) change 
+  div [ Attr.class "is-flex is-justify-content-center columns"]
+    [ Components.col1 <| p [] [ text "What is the name of this song?" ]
+    , Components.col1 <| Components.textEditor "Rock A Way" (Maybe.withDefault "" current) change 
     ]
 
 
@@ -467,11 +467,11 @@ view state =
         [ Components.col1 description
         , butt
         ] 
-    , Playback.mini state.player UpdatePlayer state.tracks Download 
-    , postBox state
     , case state.pending of 
         Nothing -> text ""
         Just p -> showCta state p (RegisterUser p)
+    , Playback.mini state.player UpdatePlayer state.tracks Download 
+    , postBox state
     , makerBoxes state
     ]
 
