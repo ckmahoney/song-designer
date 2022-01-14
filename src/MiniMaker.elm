@@ -29,8 +29,15 @@ type Speed
   | Fast
 
 
+type alias PendingMember =
+  { name : String
+  , email : String
+  , tracks : List Int
+  } 
+
 type alias Model =
   { member : GhostMember
+  , pending : Maybe PendingMember
   , title : Maybe String
   , speed : Speed
   , voices: List SynthRole
@@ -65,7 +72,9 @@ type Msg
   | GotTrack (Result Http.Error TrackMeta)
   | Passthrough -- do nothing
   | Download String
- 
+  | CompletedReg (Result Http.Error String)
+  | UpdateName String
+  | UpdateEmail String
 
 miniMakerMember =
   { uuid = ""
@@ -147,6 +156,16 @@ reqTrack email uuid title combo =
     }
 
 
+
+reqRegister : String -> String -> Cmd Msg
+reqRegister email name =
+  Http.post
+    { url = Conf.regUrl
+    , body = Http.jsonBody <| JE.encodeReqRegister <| Conf.regData email name
+    , expect = Http.expectString CompletedReg
+    }
+
+
 makeMeta : String -> Scope -> ScoreMeta
 makeMeta title scope =
   ScoreMeta title scope.cps (toFloat scope.root) scope.cpc
@@ -154,7 +173,8 @@ makeMeta title scope =
 
 initModel : Model
 initModel =
-  { member = Data.anonMember
+  { member = Conf.anonMember
+  , pending = Nothing
   , title = Just ""
   , speed = Medium
   , voices = [ Kick, Hat, Melody ]
@@ -168,8 +188,8 @@ initModel =
 init : Maybe GhostMember -> (Model, Cmd Msg)
 init flags =
   case flags of 
-    Nothing -> 
-      (initModel, Cmd.none)
+    Nothing -> -- use the anon member and open a  pending member
+      ({ initModel | pending = Just { name = "", email = "", tracks = [] } }, Cmd.none)
     
     Just member ->
       ({ initModel | member =  member }, Cmd.none)
@@ -337,8 +357,9 @@ postBox state =
     ]
 
 
-boxes : Model -> Html Msg
-boxes state = 
+-- Controls for the MiniMaker 
+makerBoxes : Model -> Html Msg
+makerBoxes state = 
   case (state.status, state.error) of 
     (Nothing, Nothing) ->
       div []
@@ -349,6 +370,27 @@ boxes state =
 
     _ ->
      text ""
+
+
+
+cta : PendingMember -> (String -> Msg) -> (String -> Msg) -> Html Msg
+cta pending uName uEmail=
+  Components.box <| 
+    [ p [Attr.class "mb-3"] [text "Sign up to save these songs. It's easy and free."]
+    , Components.label "Name" 
+    , Components.textEditor "Name" pending.name uName
+    , Components.label "Email" 
+    , Components.textEditor "Email" pending.email uEmail
+    ] 
+
+
+showCta : Model -> PendingMember -> Html Msg
+showCta state pending =
+  if (Debug.log "current member:" state.member) /= Conf.anonMember then 
+    text ""
+  else if List.length state.tracks > -1 then 
+    cta pending UpdateName UpdateEmail
+  else text ""
 
 
 view : Model -> Html Msg
@@ -369,14 +411,17 @@ view state =
         ] 
     , Playback.mini state.player UpdatePlayer state.tracks Download 
     , postBox state
-    , boxes state
+    , case state.pending of 
+        Nothing -> text ""
+        Just p -> showCta state p
+    , makerBoxes state
     ]
 
 
 -- intercepts Cmd msgs, otherwise passes pur updates to apply
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-  case msg of 
+  case msg of  
     Download url ->
       (model, Conf.download url)
 
@@ -389,9 +434,17 @@ update msg model =
     GotTrack response ->
       case response of 
         Ok track ->
-         ({ model | status = Nothing
-         , tracks = track :: model.tracks 
-         , player = (Just track, Playback.Playing)}, Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath))
+         let
+            newTracks = track :: model.tracks 
+            pending = case model.pending of 
+              Just p -> 
+                Just { p | tracks = List.map .id newTracks }
+              _ -> Nothing
+         in 
+          ({ model | status = Nothing
+          , tracks = newTracks
+          , pending = pending
+          , player = (Just track, Playback.Playing)}, Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath))
 
         Err errr ->
           case errr of 
