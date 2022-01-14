@@ -120,6 +120,14 @@ controls model trig =
   ]
 
 
+-- A button to change current selection and begin playback immediately
+selectPlay  : Model -> (Msg -> msg) -> Html msg
+selectPlay model trig = 
+  div [ Attr.class "is-flex is-justify-content-space-around"]  
+      [ div [onClick <| trig Play] [Components.svg "play"] 
+      ]
+
+
 assets : TrackMeta -> (Asset -> msg) -> Html msg
 assets track req  =
   Components.box
@@ -208,8 +216,9 @@ card ((selection, model) as p) signal track =
   Components.col [ Attr.class "is-half"] [ Components.songCard track.title <| List.singleton children]
 
 
-cardDL : Player -> ((Player, Msg) -> msg)-> TrackMeta -> (String -> msg) -> Html msg
-cardDL ((selection, model) as p) signal track download = 
+
+listing : Player -> ((Player, Msg) -> msg)-> TrackMeta -> (String -> msg) -> Html msg
+listing ((selection, model) as p) signal track download = 
   let 
     change = (\msg -> signal <| update msg (Just track, model))
     children = case selection of 
@@ -217,14 +226,17 @@ cardDL ((selection, model) as p) signal track download =
          div [onClick <| change <| Select (Just track)] [Components.svg "play"]
       Just selected ->  
         if selected == track then 
-          controls model change
+          selectPlay model change
         else 
           div [onClick <| change <| Select (Just track)] [Components.svg "play"]
 
   in
-  Components.col [ Attr.class "is-half"] 
-    [ Components.songCard track.title 
-      <|  (List.append [children] [Components.button (download track.filepath) [] "Download"])]
+  Components.colSize "is-full"
+    <| Components.colsWith [Attr.class "is-vcentered"]
+       [ Components.col1 <|  Components.label track.title 
+       , Components.col1 <| selectPlay model change
+       , Components.col1 <| Components.button (download track.filepath) [] "Download"
+       ]
 
 
 
@@ -240,7 +252,7 @@ playlist  ((selection, model) as p) signal tracks =
 actionlist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> (String -> msg) -> Html msg
 actionlist  ((selection, model) as p) signal tracks download =
   Components.box <| List.singleton  <| Components.colsMulti <|
-    List.map ((\x -> cardDL p signal x download)) tracks
+    List.map ((\x -> listing p signal x download)) tracks
 
 
 

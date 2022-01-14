@@ -38,6 +38,8 @@ type alias PendingMember =
 type alias Model =
   { member : GhostMember
   , pending : Maybe PendingMember
+  , pendingError : Maybe String
+  , pendingSubmitted : Maybe String
   , title : Maybe String
   , speed : Speed
   , voices: List SynthRole
@@ -75,6 +77,9 @@ type Msg
   | CompletedReg (Result Http.Error String)
   | UpdateName String
   | UpdateEmail String
+  | ClickedRegister
+  | RegisterUser PendingMember
+
 
 miniMakerMember =
   { uuid = ""
@@ -156,9 +161,8 @@ reqTrack email uuid title combo =
     }
 
 
-
-reqRegister : String -> String -> Cmd Msg
-reqRegister email name =
+reqRegister : PendingMember -> Cmd Msg
+reqRegister {email, name} =
   Http.post
     { url = Conf.regUrl
     , body = Http.jsonBody <| JE.encodeReqRegister <| Conf.regData email name
@@ -175,6 +179,8 @@ initModel : Model
 initModel =
   { member = Conf.anonMember
   , pending = Nothing
+  , pendingError = Nothing
+  , pendingSubmitted = Nothing
   , title = Just ""
   , speed = Medium
   , voices = [ Kick, Hat, Melody ]
@@ -205,9 +211,30 @@ validReq state =
       List.length state.voices > 0 
 
 
+updatePending : PendingMember -> String -> String -> PendingMember
+updatePending p field val  =
+  if field == "name" then 
+    { p | name = val }
+  else if field == "email" then 
+    { p | email = val }
+  else 
+    { name = "", email = "", tracks = [] }
+
+
 apply : Msg -> Model -> Model
 apply msg model =
   case msg of       
+    UpdateName name -> 
+     case model.pending of 
+       Nothing -> { model | pending = Just { name = name, email = "", tracks = [] } }
+       Just p -> { model | pending = Just <| updatePending p "name" name }
+
+    UpdateEmail email -> 
+     case model.pending of 
+       Nothing -> { model | pending = Just { name = "", email = email, tracks = [] } }
+       Just p -> { model | pending = Just <| updatePending p "email" email }
+
+
     PushedButton ->
       case model.title of 
         Just "" -> 
@@ -372,24 +399,55 @@ makerBoxes state =
      text ""
 
 
+pendingErrMessage : PendingMember -> Maybe String
+pendingErrMessage {name, email} =
+  if String.length name < 3 then 
+    Just "That name is too short, can you make it longer?"
+  else if True /= String.contains "@" email then 
+    Just "We need an email address to log you in."
+  else if String.length email < 6 then 
+    Just "That email address is funky, can you fix it?"
+  else
+    Nothing
 
-cta : PendingMember -> (String -> Msg) -> (String -> Msg) -> Html Msg
-cta pending uName uEmail=
+
+pendingIsOK : PendingMember -> Bool
+pendingIsOK pending =
+  if Nothing == pendingErrMessage pending then True else False
+
+
+cta : PendingMember -> (String -> msg) -> (String -> msg) -> msg -> (Maybe String) -> Html msg
+cta pending uName uEmail register maybeError =
   Components.box <| 
-    [ p [Attr.class "mb-3"] [text "Sign up to save these songs. It's easy and free."]
+    [ p [Attr.class "mb-3"] [text "Music is a very fleeting thing. These short songs will disappear into the void..."]
+    , p [Attr.class "mb-3"] [text "But you can save and keep them if you want. Just sign up here, it's easy and free."]
     , Components.label "Name" 
     , Components.textEditor "Name" pending.name uName
     , Components.label "Email" 
     , Components.textEditor "Email" pending.email uEmail
-    ] 
+    , Components.button register [Attr.class "button is-primary"]  "Join Synthony!"
+    , case maybeError of 
+        Nothing -> text ""
+        Just msg -> p [Attr.class "has-text-danger"] [text msg]
+    ]
 
 
-showCta : Model -> PendingMember -> Html Msg
-showCta state pending =
-  if (Debug.log "current member:" state.member) /= Conf.anonMember then 
+showCta : Model -> PendingMember -> Msg -> Html Msg
+showCta state pending register =
+  if state.member /= Conf.anonMember then 
     text ""
+
   else if List.length state.tracks > -1 then 
-    cta pending UpdateName UpdateEmail
+    case state.pendingSubmitted of 
+      Just submitted -> 
+        Components.box <|
+        [ text submitted
+        , Components.button (RegisterUser pending) [Attr.class "button is-warning"] "Try Again"
+        ]
+
+      Nothing -> 
+        cta pending UpdateName UpdateEmail (if pendingIsOK pending then RegisterUser pending else ClickedRegister) state.pendingError
+
   else text ""
 
 
@@ -413,7 +471,7 @@ view state =
     , postBox state
     , case state.pending of 
         Nothing -> text ""
-        Just p -> showCta state p
+        Just p -> showCta state p (RegisterUser p)
     , makerBoxes state
     ]
 
@@ -422,6 +480,50 @@ view state =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of  
+    CompletedReg response ->
+      case response of 
+        Ok message ->
+          ( { model | pending = Nothing
+            , pendingSubmitted = Just "Amazing fam. We sent you an email, make sure you open it" }, Cmd.none)
+
+
+        Err errr ->
+          case errr of 
+            Http.BadBody str -> 
+              ({ model | status = Nothing
+               , pendingSubmitted = Just "Did you try to break something or was that us?"  }, Cmd.none)
+ 
+            Http.BadUrl str -> 
+              ({ model | status = Nothing
+               , pendingSubmitted = Just "Where did you get that URL?" }, Cmd.none)
+
+            Http.BadStatus int -> 
+              ({ model | status = Nothing
+               , pendingSubmitted = Just <| "The server looks like it had a problem. Here's a hint: " ++ String.fromInt int }, Cmd.none)
+
+            _ -> 
+              ({ model | status = Nothing, error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }, Cmd.none)
+
+
+
+
+    ClickedRegister ->
+     case model.pending of 
+        Nothing -> (model, Cmd.none) -- weird how did you get here
+        Just pending -> 
+         let
+           message = pendingErrMessage pending
+         in
+         case message of 
+          Nothing ->
+           update (RegisterUser pending) model
+
+          Just error ->
+           ({ model | pendingError = Just error }, Cmd.none )
+
+    RegisterUser pending ->
+          (model, reqRegister pending)
+
     Download url ->
       (model, Conf.download url)
 
