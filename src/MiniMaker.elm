@@ -437,13 +437,13 @@ showCta state pending register =
   if state.member /= Conf.anonMember then 
     text ""
 
-  else if List.length state.tracks > -1 then 
+  else if List.length state.tracks > 2 then 
     case state.pendingSubmitted of 
       Just submitted -> 
-        Components.box <|
-        [ text submitted
-        , Components.button (RegisterUser pending) [Attr.class "button is-warning"] "Try Again"
-        ]
+        Components.box <| List.singleton <| Components.cols <|
+          [ Components.col1 <| text submitted
+          , Components.col1 <| Components.button (RegisterUser pending) [Attr.class "button is-warning"] "Try Again"
+          ]
 
       Nothing -> 
         cta pending UpdateName UpdateEmail (if pendingIsOK pending then RegisterUser pending else ClickedRegister) state.pendingError
