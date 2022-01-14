@@ -13,7 +13,6 @@ import Decoders as JD
 import Json.Decode as Decode
 import Json.Encode as Encode
 
-
 import Types exposing (GhostMember, SynthRole(..), ScoreMeta, TrackMeta, Template, Layout, Combo, SynthRole, Scope, Ensemble, Voice)
 import Data exposing (synthRoles)
 import Configs as Conf
@@ -35,6 +34,7 @@ type alias PendingMember =
   , tracks : List Int
   } 
 
+
 type alias Model =
   { member : GhostMember
   , pending : Maybe PendingMember
@@ -50,6 +50,9 @@ type alias Model =
   }
 
 
+-- current probem: 
+-- when I try to change the track, it does not look like it chagnes. 
+
 
 encodeReqTrack : String -> String -> String -> Combo -> Encode.Value
 encodeReqTrack email uuid title ((scope,ensemble) as combo) =
@@ -62,22 +65,23 @@ encodeReqTrack email uuid title ((scope,ensemble) as combo) =
 
 
 type Msg 
-  = UpdatePlayer (Playback.Player, Playback.Msg)
-  | SetTitle String
+  = SetTitle String
   | SetSpeed Speed
   | ToggleVoice SynthRole
   | PushedButton
-
-  | RollForTrack
-  | RolledCombo Combo
-
-  | GotTrack (Result Http.Error TrackMeta)
-  | Passthrough -- do nothing
-  | Download String
-  | CompletedReg (Result Http.Error String)
   | UpdateName String
   | UpdateEmail String
   | ClickedRegister
+
+  -- Random generators
+  | RollForTrack
+  | RolledCombo Combo
+
+  -- Sidefx things 
+  | UpdatePlayer (Playback.Player, Playback.Msg)
+  | Download String
+  | GotTrack (Result Http.Error TrackMeta)
+  | CompletedReg (Result Http.Error String)
   | RegisterUser PendingMember
 
 
@@ -199,7 +203,6 @@ init flags =
     
     Just member ->
       ({ initModel | member =  member }, Cmd.none)
-
 
 
 validReq : Model -> Bool
@@ -486,7 +489,6 @@ update msg model =
           ( { model | pending = Nothing
             , pendingSubmitted = Just "Amazing fam. We sent you an email, make sure you open it" }, Cmd.none)
 
-
         Err errr ->
           case errr of 
             Http.BadBody str -> 
@@ -503,9 +505,6 @@ update msg model =
 
             _ -> 
               ({ model | status = Nothing, error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }, Cmd.none)
-
-
-
 
     ClickedRegister ->
      case model.pending of 
@@ -562,20 +561,28 @@ update msg model =
             _ -> 
               ({ model | status = Nothing, error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }, Cmd.none)
 
-    UpdatePlayer ((mTrack, _) as playstate, pCmd) ->
+    UpdatePlayer ((mTrack, playState) as player, pMsg) ->
       case mTrack of
         Nothing ->
          ({ model | player = Playback.new}, Playback.stopMusic "")
 
         Just t ->
-           case pCmd of 
+         let
+           yy = Debug.log "has play stuff:" (player, pMsg)
+         in
+
+           case pMsg  of 
             Playback.Load (nodeId, path) -> 
-              ( { model | player = playstate }, Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ path))
+              ( { model | player = player }
+              , Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ path))
+
             Playback.Select (Just track) ->    
-              ( { model | player = playstate }, Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath)) -- fixes the missing hostname on getSongs
+              ( { model | player = player }
+              , Playback.trigger <| Playback.Select (Just track)) -- fixes the missing hostname on getSongs
 
             _ ->
-             ( { model | player = playstate }, Playback.trigger pCmd)
+             ( { model | player = player }
+             , Playback.trigger pMsg )
 
 
     _ -> 

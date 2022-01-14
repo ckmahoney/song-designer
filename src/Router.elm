@@ -199,12 +199,17 @@ update msg model =
 
         Just t ->
            case pCmd of 
-            Playback.Load (nodeId, path) -> ( { model | playstate = playstate }, Playback.trigger <| Playback.Load (nodeId, Conf.hostname ++ path))
+            Playback.Load (nodeId, path) -> 
+              ( { model | playstate = playstate }
+              , Playback.trigger <| Playback.Load (nodeId, Conf.hostname ++ path))
+
             Playback.Select (Just track) ->    
-             ( { model | playstate = playstate }, Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath)) -- fixes the missing Conf.hostname on getSongs
+             ( { model | playstate = playstate }
+             , Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath)) -- fixes the missing Conf.hostname on getSongs
 
             _ ->
-             ( { model | playstate = playstate }, Playback.trigger pCmd)
+             ( { model | playstate = playstate }
+             , Playback.trigger pCmd)
 
     GotTracks response ->
       case response of 
