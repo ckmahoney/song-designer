@@ -1,6 +1,7 @@
 module Encoders exposing (..)
 -- Common data types encoded to JSON 
 
+import Configs as Conf
 import Types exposing (..)
 import Data
 import Json.Encode as Encode
@@ -78,6 +79,14 @@ encodeMember member =
     , ("uuid", Encode.string member.uuid)
     ]
 
+
+encodeReqRegister : Conf.RegEntry -> Encode.Value
+encodeReqRegister {email, name, requestSrc}  =
+  Encode.object 
+    [ ("email", Encode.string email)
+    , ("name" , Encode.string name)
+    , ("requestSrc", Encode.string requestSrc)
+    ]
 
 
 main = text ""
