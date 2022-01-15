@@ -12,7 +12,7 @@ type alias RegEntry =
   }
 
 
-devMode = True
+devMode = False
 
  
 regUrl : String

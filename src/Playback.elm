@@ -216,7 +216,6 @@ card ((selection, model) as p) signal track =
   Components.col [ Attr.class "is-half"] [ Components.songCard track.title <| List.singleton children]
 
 
-
 listing : Player -> ((Player, Msg) -> msg)-> TrackMeta -> (String -> msg) -> Html msg
 listing ((selection, model) as p) signal track download = 
   let 
@@ -233,11 +232,10 @@ listing ((selection, model) as p) signal track download =
   in
   Components.colSize "is-full"
     <| Components.colsWith [Attr.class "is-vcentered"]
-       [ Components.col1 <|  Components.label track.title 
+       [ Components.col1 <| Components.label track.title 
        , Components.col1 <| selectPlay model change
        , Components.col1 <| Components.button (download track.filepath) [] "Download"
        ]
-
 
 
 playlist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> Html msg
@@ -253,7 +251,6 @@ actionlist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> (String -> m
 actionlist  ((selection, model) as p) signal tracks download =
   Components.box <| List.singleton  <| Components.colsMulti <|
     List.map ((\x -> listing p signal x download)) tracks
-
 
 
 minilist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> Html msg

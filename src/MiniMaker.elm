@@ -286,7 +286,7 @@ speedBox current change =
 
 
 voiceIconClass = Attr.class "is-flex is-flex-direction-column is-align-items-center column is-one-third is-one-third-mobile"
--- voiceIconClass = Attr.class "column is-3"
+
 
 
 goButton : String -> msg -> Html msg
@@ -388,14 +388,15 @@ postBox state =
 
 
 -- Controls for the MiniMaker 
-makerBoxes : Model -> Html Msg
-makerBoxes state = 
+makerBoxes : Model -> (Html Msg) -> Html Msg
+makerBoxes state button = 
   case (state.status, state.error) of 
     (Nothing, Nothing) ->
       div []
         [ titleBox state.title SetTitle
         , speedBox state.speed SetSpeed
         , voiceBox state.voices ToggleVoice
+        , button
         ]
 
     _ ->
@@ -468,14 +469,13 @@ view state =
     [ Components.heading "Mini Song Maker"
     , Components.cols
         [ Components.col1 description
-        , butt
         ] 
     , case state.pending of 
         Nothing -> text ""
         Just p -> showCta state p (RegisterUser p)
     , Playback.mini state.player UpdatePlayer state.tracks Download 
     , postBox state
-    , makerBoxes state
+    , makerBoxes state butt
     ]
 
 
@@ -567,10 +567,6 @@ update msg model =
          ({ model | player = Playback.new}, Playback.stopMusic "")
 
         Just t ->
-         let
-           yy = Debug.log "has play stuff:" (player, pMsg)
-         in
-
            case pMsg  of 
             Playback.Load (nodeId, path) -> 
               ( { model | player = player }
