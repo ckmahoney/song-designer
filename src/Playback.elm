@@ -24,6 +24,8 @@ port stopMusic : String -> Cmd msg
 
 port setSource : String -> Cmd msg
 
+port kill : String -> Cmd msg
+
 port createSource : (String, String) -> Cmd msg
 
 port getAsset : String -> Cmd msg
@@ -43,7 +45,7 @@ type Asset
 
 
 type Msg
-  = Load (String, String)
+  = Load String
   | Play 
   | Pause
   | Stop
@@ -78,8 +80,8 @@ assetName kind =
 trigger : Msg -> Cmd msg
 trigger msg =
   case msg of 
-    Load (nodeId, filepath) -> createSource (nodeId, filepath)
-    Select Nothing -> setSource ""
+    Load filepath -> setSource filepath
+    Select Nothing -> kill ""
     Select (Just track) -> createSource ("#the-player", track.filepath)
     Play -> playMusic ""
     Pause -> pauseMusic ""

@@ -195,21 +195,27 @@ update msg model =
     UpdatePlayer ((mTrack, pstate) as playstate, pCmd) ->
       case mTrack of
         Nothing ->
-         ({ model | playstate = Playback.new}, Playback.stopMusic "")
+         ( { model | playstate = Playback.new}
+         , Playback.stopMusic ""
+         )
 
         Just t ->
            case pCmd of 
-            Playback.Load (nodeId, path) -> 
+            Playback.Load path -> 
               ( { model | playstate = playstate }
-              , Playback.trigger <| Playback.Load (nodeId, Conf.hostname ++ path))
+              , Playback.trigger <| Playback.Load <| Conf.hostname ++ path
+              )
 
             Playback.Select (Just track) ->    
              ( { model | playstate = playstate }
-             , Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath)) -- fixes the missing Conf.hostname on getSongs
+             , Playback.trigger <| Playback.Load <|  Conf.hostname ++ track.filepath
+             ) 
+
 
             _ ->
              ( { model | playstate = playstate }
-             , Playback.trigger pCmd)
+             , Playback.trigger pCmd
+             )
 
     GotTracks response ->
       case response of 
@@ -237,7 +243,9 @@ update msg model =
             | tracks = track :: model.tracks
             , selection = (Just track)
             , playstate = (Just track, Playback.Playing)
-            , mailer = Received }, Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath ))
+            , mailer = Received 
+            }, Playback.trigger <| Playback.Load <|  Conf.hostname ++ track.filepath 
+            )
 
         Err errr ->
           case errr of 

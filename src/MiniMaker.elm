@@ -25,7 +25,7 @@ import Tools
 port scrollTo : String -> Cmd msg
 
 
-scroll : String -> Cmd Msg
+scroll : String -> Cmd  Msg
 scroll id = 
   scrollTo id
 
@@ -193,7 +193,7 @@ initModel =
   , pending = Nothing
   , pendingError = Nothing
   , pendingSubmitted = Nothing
-  , title = Just ""
+  , title = Just "testing playback"
   , speed = Medium
   , voices = [ Kick, Hat, Melody ]
   , tracks = []
@@ -560,8 +560,8 @@ update msg model =
           , pending = pending
           , player = (Just track, Playback.Playing)}
           , Cmd.batch 
-              [ Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath)
-              , scroll "mini-player"
+              [ Playback.trigger <| Playback.Load <|  Conf.hostname ++ track.filepath
+              , scroll "#mini-player"
               ]
           )
 
@@ -586,9 +586,10 @@ update msg model =
 
         Just t ->
            case pMsg  of 
-            Playback.Load (nodeId, path) -> 
+            Playback.Load path ->
               ( { model | player = player }
-              , Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ path))
+              , Playback.trigger <| Playback.Load <|  Conf.hostname ++ path
+              )
 
             Playback.Select (Just track) ->    
               ( { model | player = player }
