@@ -1,4 +1,4 @@
-module MiniMaker exposing (Model, view)
+port module MiniMaker exposing (Model, view)
 -- Instance of a song maker with limited options
 
 import Browser exposing (element)
@@ -21,6 +21,13 @@ import Playback
 import View
 import Tools
 
+
+port scrollTo : String -> Cmd msg
+
+
+scroll : String -> Cmd Msg
+scroll id = 
+  scrollTo id
 
 type Speed 
   = Slow
@@ -84,6 +91,7 @@ type Msg
   | CompletedReg (Result Http.Error String)
   | RegisterUser PendingMember
 
+  | Scroll String
 
 miniMakerMember =
   { uuid = ""
@@ -288,7 +296,6 @@ speedBox current change =
 voiceIconClass = Attr.class "is-flex is-flex-direction-column is-align-items-center column is-one-third is-one-third-mobile"
 
 
-
 goButton : String -> msg -> Html msg
 goButton title msg = 
   if "" == title then 
@@ -401,11 +408,13 @@ makerBoxes state button =
       _ -> "overlay-disabled"
 
   in 
-  div [Attr.class class]
-    [ titleBox state.title SetTitle
-    , speedBox state.speed SetSpeed
-    , voiceBox state.voices ToggleVoice
-    , button 
+  div []
+    [ div [Attr.class class]
+      [ titleBox state.title SetTitle
+      , speedBox state.speed SetSpeed
+      , voiceBox state.voices ToggleVoice
+      ]
+      , button 
     ]
 
 
@@ -469,7 +478,7 @@ view state =
     (Nothing, Nothing) ->
       Components.col1 <| fireButton state cb
     _ ->
-      text ""
+      postBox state
  in 
   Components.box
     [ Components.heading "Mini Song Maker"
@@ -479,7 +488,6 @@ view state =
         Nothing -> text ""
         Just p -> showCta state p (RegisterUser p)
     , Playback.mini state.player UpdatePlayer state.tracks Download 
-    , postBox state
     , makerBoxes state butt
     ]
 
@@ -550,7 +558,12 @@ update msg model =
           ({ model | status = Nothing
           , tracks = newTracks
           , pending = pending
-          , player = (Just track, Playback.Playing)}, Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath))
+          , player = (Just track, Playback.Playing)}
+          , Cmd.batch 
+              [ Playback.trigger <| Playback.Load ("#the-player", Conf.hostname ++ track.filepath)
+              , scroll "mini-player"
+              ]
+          )
 
         Err errr ->
           case errr of 

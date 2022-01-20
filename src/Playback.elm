@@ -15,6 +15,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Configs as Conf
 
+
 port playMusic : String -> Cmd msg
 
 port pauseMusic : String -> Cmd msg
@@ -292,7 +293,8 @@ mini ((selection, model) as p) signal tracks download =
     let
        change = (\msg -> signal <| update msg (Just track, model))
     in
-    Components.cols
+    div [Attr.id "mini-player"] <| List.singleton <|
+     Components.cols
       [ Components.colSize "is-one-half" <| player track model change
       , Components.colSize "is-two-thirds" <| actionlist p signal tracks download
       ] 
