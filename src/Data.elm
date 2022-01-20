@@ -751,7 +751,7 @@ templateABAC =
        }
    b : Layout 
    b = [   ({ id = 0, label = "intro", size = 2, cpc = 8, root = 0, cps = 1.0 }, kitVC1)
-           , ({ id = 1, label = "Verse", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC2)
+          , ({ id = 1, label = "Verse", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC2)
           , ({ id = 2, label = "Chorus", size = 6, cpc = 8, root = 9, cps = 1.0 }, kitVC2)
           , ({ id = 3, label = "Verse", size = 4, cpc = 4, root = 2, cps = 1.0 }, kitVC1)
           , ({ id = 5, label = "Breakdown", size = 3, cpc = 8, root = 5, cps = 1.0 }, kitVC2)
@@ -761,23 +761,206 @@ templateABAC =
   in
   (a,b)
 
+vc role job octave dens compl =
+ Voice 0 Structure role job octave dens compl 
 
-templateAB : Template
-templateAB =  
+
+kitShortBrightIO : Ensemble
+kitShortBrightIO = -- voice density complexity
+  [ vc Kick "clock" 2 1 1
+  , vc Kick "clock" 3 1 1
+  , vc Hat "offbeat" 6 1 1
+  , vc Hat "offbeat" 5 1 1
+  , vc Perc "clap" 3 1 2
+  , vc Perc "slap" 4 2 1
+  ]
+
+
+kitShortBrightVerse : Ensemble
+kitShortBrightVerse = -- voice density complexity
+  [ vc Kick "dots" 2 1 1
+  , vc Hat "offbeat" 5 1 1
+  , vc Perc "clap" 4 2 1
+  , vc Melody "clap" 5 3 2
+  , vc Bass "phrase" 3 2 1
+  ]
+
+
+kitShortBrightChorus : Ensemble
+kitShortBrightChorus = -- voice density complexity
+  [ vc Kick "pedal" 2 3 1
+  , vc Perc "clock" 4 1 1
+  , vc Perc "dots" 4 1 3
+  , vc Melody "clap" 5 3 2
+  , vc Chords "half" 3 1 1
+  , vc Bass "phrase" 3 2 1
+  ]
+
+
+templateBright : Template
+templateBright =  
   let
    a : ScoreMeta
-   a = { title = "Binary Form"
-       , cps = 33/10
+   a = { title = "Bright"
+       , cps = 22/10
        , root = 8
+       , cpc = 8
+       }
+   b : Layout 
+   b = [ ({ id = 0, label = "intro", size = 1, cpc = 4, root = 7, cps = 1.0 }, kitShortBrightIO)
+       , ({ id = 1, label = "Call", size = 2, cpc = 8, root = 2, cps = 1.0 }, kitShortBrightVerse)
+       , ({ id = 2, label = "Response", size = 3, cpc = 8, root = 5, cps = 1.0 }, kitShortBrightChorus)
+       , ({ id = 1, label = "Call", size = 2, cpc = 8, root = 2, cps = 1.0 }, kitShortBrightVerse)
+       , ({ id = 4, label = "outro", size = 1, cpc = 4, root = 7, cps = 1.0 }, kitShortBrightIO)
+       ]
+  in
+  (a,b)
+
+
+  
+kitBalladIO : Ensemble
+kitBalladIO =
+  [ vc Kick "dots" 2 1 1
+  , vc Bass "half" 3 1 1
+  , vc Hat "offbeat" 5 1 1
+  , vc Perc "clap" 3 1 2
+  , vc Perc "slap" 4 2 1
+  ]
+
+
+kitBalladVerse : Ensemble
+kitBalladVerse = 
+  [ vc Kick "dots" 2 1 1
+  , vc Hat "offbeat" 5 1 1
+  , vc Perc "clap" 4 2 1
+  , vc Melody "clap" 5 3 2
+  , vc Bass "phrase" 3 2 1
+  ]
+
+
+kitBalladChorus : Ensemble
+kitBalladChorus =
+  [ vc Kick "pedal" 2 3 1
+  , vc Perc "clock" 4 1 1
+  , vc Perc "dots" 4 1 3
+  , vc Melody "clap" 5 3 2
+  , vc Chords "half" 4 1 1
+  , vc Bass "phrase" 3 2 1
+  ]
+
+
+kitBalladBreak : Ensemble
+kitBalladBreak =
+  [ vc Chords "phrase" 3 1 1
+  , vc Chords "phrase" 4 2 1
+  ]
+
+
+kitBalladBreak2 : Ensemble
+kitBalladBreak2 =
+  [ vc Chords "phrase" 4 2 1
+  , vc Chords "phrase" 5 3 1 
+  ]
+
+
+templateBallad : Template
+templateBallad =  
+  let
+   a : ScoreMeta
+   a = { title = "Ballad"
+       , cps = 14/10
+       , root = 10
+       , cpc = 6
+       }
+   b : Layout 
+   b = [ ({ id = 0, label = "intro", size = 1, cpc = 3, root = 2, cps = 1.0 }, kitBalladIO)
+       , ({ id = 1, label = "Call", size = 3, cpc = 6, root = 0, cps = 1.0 }, kitBalladVerse)
+       , ({ id = 2, label = "Response", size = 2, cpc = 6, root = 7, cps = 1.0 }, kitBalladChorus)
+       , ({ id = 1, label = "Call", size = 3, cpc = 6, root = 0, cps = 1.0 }, kitBalladVerse)
+       , ({ id = 2, label = "Response", size = 2, cpc = 6, root = 7, cps = 1.0 }, kitBalladChorus)
+       , ({ id = 2, label = "Break", size = 2, cpc = 6, root = 10, cps = 1.0 }, kitBalladBreak)
+       , ({ id = 2, label = "Break 2", size = 2, cpc = 6, root = 10, cps = 1.0 }, kitBalladBreak2)
+       , ({ id = 1, label = "Call", size = 3, cpc = 6, root = 0, cps = 1.0 }, kitBalladVerse)
+       , ({ id = 2, label = "Response", size = 2, cpc = 6, root = 10, cps = 1.0 }, kitBalladChorus)
+       , ({ id = 4, label = "outro", size = 1, cpc = 3, root = 0, cps = 1.0 }, kitBalladIO)
+       ]
+  in
+  (a,b)
+
+  
+kitBanger1 : Ensemble
+kitBanger1 =
+  [ vc Kick "half" 2 1 1
+  , vc Melody "dots" 5 1 1
+  , vc Bass "clock" 3 1 1
+  , vc Chords "phrase" 5 1 1
+  ]
+
+
+kitBanger2 : Ensemble
+kitBanger2 = 
+  [ vc Hat "clock" 5 1 1
+  , vc Chords "pedal" 3 2 1
+  , vc Melody "clap" 5 3 2
+  , vc Bass "phrase" 3 2 1
+  ]
+
+
+kitBanger3 : Ensemble
+kitBanger3 =
+  [ vc Kick "pedal" 2 3 1
+  , vc Perc "clock" 4 1 1
+  , vc Hat "dots" 4 1 3
+  , vc Melody "clap" 5 3 2
+  , vc Chords "half" 3 1 1
+  ]
+
+
+kitBanger4 : Ensemble
+kitBanger4 =
+  [ vc Kick "slap" 2 1 1
+  , vc Chords "phrase" 3 1 1
+  , vc Chords "phrase" 4 1 1
+  , vc Chords "phrase" 5 2 1
+  ]
+
+
+kitBanger5 : Ensemble
+kitBanger5 =
+  [ vc Kick "pedal" 2 1 1
+  , vc Melody "slap" 5 1 1
+  , vc Chords "phrase" 4 2 1
+  ]
+
+
+kitBanger6 : Ensemble
+kitBanger6 =
+  [ vc Kick "off" 2 1 1
+  , vc Hat "clock" 2 1 1
+  , vc Perc "clock" 3 1 1
+  , vc Melody "phrase" 2 1 1
+  , vc Chords "slap" 4 2 1
+  , vc Bass "dots" 4 2 1
+  ]
+
+
+templateBanger : Template
+templateBanger =  
+  let
+   a : ScoreMeta
+   a = { title = "Banger"
+       , cps = 44/10
+       , root = 2
        , cpc = 4
        }
    b : Layout 
-   b = [ ({ id = 0, label = "intro", size = 1, cpc = 4, root = 10, cps = 1.0 }, kitVC1)
-          , ({ id = 1, label = "Call", size = 5, cpc = 8, root = 2, cps = 1.0 }, kitVC2)
-          , ({ id = 2, label = "Response", size = 5, cpc = 8, root = 9, cps = 1.0 }, kitVC2)
-          , ({ id = 4, label = "outro", size = 1, cpc = 4, root = 10, cps = 1.0 }, kitVC1)
-          ]
-
+   b = [ ({ id = 0, label = "First one", size = 1, cpc = 3, root = 7, cps = 1.0 }, kitBanger1)
+       , ({ id = 1, label = "Then second", size = 3, cpc = 6, root = 0, cps = 1.0 }, kitBanger2)
+       , ({ id = 2, label = "Third one", size = 2, cpc = 4, root = 5, cps = 1.0 }, kitBanger3)
+       , ({ id = 1, label = "Number 4", size = 2, cpc = 8, root = 10, cps = 1.0 }, kitBanger4)
+       , ({ id = 2, label = "ive", size = 4, cpc = 6, root = 2, cps = 1.0 }, kitBanger5)
+       , ({ id = 2, label = "6.6", size = 3, cpc = 8, root = 7, cps = 1.0 }, kitBanger6)
+       ]
   in
   (a,b)
 
@@ -873,11 +1056,10 @@ coreScores =
   ] 
 
 
-templates = [ templateTernary
-             , templateABAC
-             , templateAB
-             , templateVerseChorusShort
-             ]
+templates = [ templateBright
+            , templateBallad
+            , templateBanger
+            ]
 
 
 scoreMetaT0 : ScoreMeta

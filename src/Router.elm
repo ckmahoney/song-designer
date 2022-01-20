@@ -74,7 +74,7 @@ decodeTrack =
 initFrom : List Voice -> List Scope -> List Layout -> List Template -> Maybe GhostMember -> Model
 initFrom v s l t m =
  let
-   template = Data.templateTernary
+   template = Data.templateBright
    layouts = [ Data.combos,  Tuple.second template ]
    layout = Tuple.second template
  in 
@@ -428,10 +428,10 @@ songDesigner model =
              ]
          , Html.h2 [class "title"] [text "Song Designer"]
          , Components.desktopOnly <| templatePicker model.templates 
-         , div [class " box is-block has-text-centered" ] [text "Current template:", Html.h2 [class "is-size-1"] [text model.title]  ]
-         , Components.colsMulti <| LayoutEditor.look model.layout
          , Components.mobileOnly <| templatePicker model.templates 
          , Components.tabletOnly <| templatePicker model.templates 
+         , div [class " box is-block has-text-centered" ] [text "Current template:", Html.h2 [class "is-size-1"] [text model.title]  ]
+         , Components.colsMulti <| LayoutEditor.look model.layout
          ]
 
       Just mod ->
@@ -471,14 +471,12 @@ view model =
           Nothing -> text ""
           Just m -> Html.h2 [class "subtitle"] [text ("Welcome back " ++ m.firstname)]
 
+      , Playback.view model.playstate UpdatePlayer ReqAsset model.tracks
       , case model.mailer of 
           Sending -> 
             text "Working on that track for you!"
           _ ->
             songDesigner model 
-
-
-      , Playback.view model.playstate UpdatePlayer ReqAsset model.tracks
       ]
 
 

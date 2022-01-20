@@ -368,7 +368,8 @@ errorBox str =
   case str of 
     Nothing -> text ""
     Just message ->
-      p [] [text message]
+      div [Attr.class "is-warning is-light"]
+        [ p [] [text message] ]
 
 
 statusBox : (Maybe String) -> Html msg
@@ -376,31 +377,36 @@ statusBox str =
   case str of 
     Nothing -> text ""
     Just message ->
-      p [] [text message]
+      div [Attr.class "notification is-success is-light"]
+        [ p [] [text message] ]
 
 
 postBox : Model -> Html msg
 postBox state =
-  div [] 
-    [ errorBox state.error
-    , statusBox state.status
-    ]
+  case (state.status, state.error) of 
+    (Nothing, Nothing) -> text ""
+    _ -> 
+      Components.box
+          [ errorBox state.error
+          , statusBox state.status
+          ]
 
 
 -- Controls for the MiniMaker 
 makerBoxes : Model -> (Html Msg) -> Html Msg
 makerBoxes state button = 
-  case (state.status, state.error) of 
-    (Nothing, Nothing) ->
-      div []
-        [ titleBox state.title SetTitle
-        , speedBox state.speed SetSpeed
-        , voiceBox state.voices ToggleVoice
-        , button
-        ]
+  let
+    class = case (state.status, state.error) of 
+      (Nothing, Nothing) -> ""
+      _ -> "overlay-disabled"
 
-    _ ->
-     text ""
+  in 
+  div [Attr.class class]
+    [ titleBox state.title SetTitle
+    , speedBox state.speed SetSpeed
+    , voiceBox state.voices ToggleVoice
+    , button 
+    ]
 
 
 pendingErrMessage : PendingMember -> Maybe String
@@ -424,7 +430,7 @@ cta : PendingMember -> (String -> msg) -> (String -> msg) -> msg -> (Maybe Strin
 cta pending uName uEmail register maybeError =
   Components.box <| 
     [ p [Attr.class "mb-3"] [text "Music is a very fleeting thing. These short songs will disappear into the void..."]
-    , p [Attr.class "mb-3"] [text "But you can save and keep them if you want. Just sign up here, it's easy and free."]
+    , p [Attr.class "mb-3"] [text "To keep your songs and download them anywhere, just join here :)"]
     , Components.label "Name" 
     , Components.textEditor "Name" pending.name uName
     , Components.label "Email" 
@@ -468,8 +474,7 @@ view state =
   Components.box
     [ Components.heading "Mini Song Maker"
     , Components.cols
-        [ Components.col1 description
-        ] 
+        [ Components.col1 description ] 
     , case state.pending of 
         Nothing -> text ""
         Just p -> showCta state p (RegisterUser p)
