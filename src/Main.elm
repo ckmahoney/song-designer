@@ -12,7 +12,6 @@ import Time
 import App
 import Types as T
 import Data exposing (p1, p2, p3, p4)
-import Update as U
 import View 
 import Router 
 

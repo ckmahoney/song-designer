@@ -573,7 +573,7 @@ update msg model =
 
 updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
 updateWithStorage msg model =
-  case msg of 
+  case Debug.log "updating message:" msg of 
     GotTrack response ->
       case response of 
         Ok track ->
@@ -587,11 +587,11 @@ updateWithStorage msg model =
           ({ model | status = Nothing
           , tracks = newTracks
           , pendingMember = pendingMember
-          , player = (Just track, Playback.Playing)}
-          , Cmd.batch 
+          , player = (Just track, Playback.Playing)
+          }, Cmd.batch 
               [ Playback.trigger <| Playback.Load <|  Conf.hostname ++ track.filepath
               , scroll "#mini-player"
-              , setStorage ("trackIDs", (JE.ints <| List.map .id newTracks ))
+              , setStorage ("trackIDs", (JE.ints <| List.map .id newTracks))
               ]
           )
 
@@ -615,7 +615,7 @@ updateWithStorage msg model =
 
 main =  element 
   { init = init
-  , update = update
+  , update = updateWithStorage
   , view = view
   , subscriptions = (\_ -> Sub.none)
   }

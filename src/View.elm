@@ -10,7 +10,6 @@ import Components
 import Array
 import Types as T
 import Data as D
-import Update as U
 import String exposing (String(..))
 import Tools
 
