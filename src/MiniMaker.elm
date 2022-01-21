@@ -24,6 +24,8 @@ import Tools
 
 port scrollTo : String -> Cmd msg
 
+port setStorage : (String, Encode.Value) -> Cmd msg
+
 
 scroll : String -> Cmd  Msg
 scroll id = 
@@ -38,15 +40,15 @@ type Speed
 type alias PendingMember =
   { name : String
   , email : String
-  , tracks : List Int
+  , trackIDs : List Int
   } 
 
 
 type alias Model =
   { member : GhostMember
-  , pending : Maybe PendingMember
-  , pendingError : Maybe String
-  , pendingSubmitted : Maybe String
+  , pendingMember : Maybe PendingMember
+  , pendingMemberError : Maybe String
+  , pendingMemberSubmitted : Maybe String
   , title : Maybe String
   , speed : Speed
   , voices: List SynthRole
@@ -174,10 +176,10 @@ reqTrack email uuid title combo =
 
 
 reqRegister : PendingMember -> Cmd Msg
-reqRegister {email, name} =
+reqRegister {email, name, trackIDs} =
   Http.post
     { url = Conf.regUrl
-    , body = Http.jsonBody <| JE.encodeReqRegister <| Conf.regData email name
+    , body = Http.jsonBody <| JE.encodeReqRegister <| Conf.regData email name trackIDs
     , expect = Http.expectString CompletedReg
     }
 
@@ -190,9 +192,9 @@ makeMeta title scope =
 initModel : Model
 initModel =
   { member = Conf.anonMember
-  , pending = Nothing
-  , pendingError = Nothing
-  , pendingSubmitted = Nothing
+  , pendingMember = Nothing
+  , pendingMemberError = Nothing
+  , pendingMemberSubmitted = Nothing
   , title = Just "testing playback"
   , speed = Medium
   , voices = [ Kick, Hat, Melody ]
@@ -207,7 +209,7 @@ init : Maybe GhostMember -> (Model, Cmd Msg)
 init flags =
   case flags of 
     Nothing -> -- use the anon member and open a  pending member
-      ({ initModel | pending = Just { name = "", email = "", tracks = [] } }, Cmd.none)
+      ({ initModel | pendingMember = Just { name = "", email = "", trackIDs = [] } }, Cmd.none)
     
     Just member ->
       ({ initModel | member =  member }, Cmd.none)
@@ -222,29 +224,28 @@ validReq state =
       List.length state.voices > 0 
 
 
-updatePending : PendingMember -> String -> String -> PendingMember
-updatePending p field val  =
+updatePendingMember : PendingMember -> String -> String -> PendingMember
+updatePendingMember p field val  =
   if field == "name" then 
     { p | name = val }
   else if field == "email" then 
     { p | email = val }
   else 
-    { name = "", email = "", tracks = [] }
+    { name = "", email = "", trackIDs = [] }
 
 
 apply : Msg -> Model -> Model
 apply msg model =
   case msg of       
     UpdateName name -> 
-     case model.pending of 
-       Nothing -> { model | pending = Just { name = name, email = "", tracks = [] } }
-       Just p -> { model | pending = Just <| updatePending p "name" name }
+     case model.pendingMember of 
+       Nothing -> { model | pendingMember = Just { name = name, email = "", trackIDs = [] } }
+       Just p -> { model | pendingMember = Just <| updatePendingMember p "name" name }
 
     UpdateEmail email -> 
-     case model.pending of 
-       Nothing -> { model | pending = Just { name = "", email = email, tracks = [] } }
-       Just p -> { model | pending = Just <| updatePending p "email" email }
-
+     case model.pendingMember of 
+       Nothing -> { model | pendingMember = Just { name = "", email = email, trackIDs = [] } }
+       Just p -> { model | pendingMember = Just <| updatePendingMember p "email" email }
 
     PushedButton ->
       case model.title of 
@@ -418,8 +419,8 @@ makerBoxes state button =
     ]
 
 
-pendingErrMessage : PendingMember -> Maybe String
-pendingErrMessage {name, email} =
+pendingMemberErrMessage : PendingMember -> Maybe String
+pendingMemberErrMessage {name, email} =
   if String.length name < 3 then 
     Just "That name is too short, can you make it longer?"
   else if True /= String.contains "@" email then 
@@ -430,20 +431,20 @@ pendingErrMessage {name, email} =
     Nothing
 
 
-pendingIsOK : PendingMember -> Bool
-pendingIsOK pending =
-  if Nothing == pendingErrMessage pending then True else False
+pendingMemberIsOK : PendingMember -> Bool
+pendingMemberIsOK pendingMember = 
+ if Nothing == pendingMemberErrMessage pendingMember then True else False
 
 
 cta : PendingMember -> (String -> msg) -> (String -> msg) -> msg -> (Maybe String) -> Html msg
-cta pending uName uEmail register maybeError =
+cta pendingMember uName uEmail register maybeError =
   Components.box <| 
     [ p [Attr.class "mb-3"] [text "Music is a very fleeting thing. These short songs will disappear into the void..."]
     , p [Attr.class "mb-3"] [text "To keep your songs and download them anywhere, just join here :)"]
     , Components.label "Name" 
-    , Components.textEditor "Name" pending.name uName
+    , Components.textEditor "Name" pendingMember.name uName
     , Components.label "Email" 
-    , Components.textEditor "Email" pending.email uEmail
+    , Components.textEditor "Email" pendingMember.email uEmail
     , Components.button register [Attr.class "button is-primary"]  "Join Synthony!"
     , case maybeError of 
         Nothing -> text ""
@@ -452,20 +453,20 @@ cta pending uName uEmail register maybeError =
 
 
 showCta : Model -> PendingMember -> Msg -> Html Msg
-showCta state pending register =
+showCta state pendingMember register =
   if state.member /= Conf.anonMember then 
     text ""
 
   else if List.length state.tracks > 2 then 
-    case state.pendingSubmitted of 
+    case state.pendingMemberSubmitted of 
       Just submitted -> 
         Components.box <| List.singleton <| Components.cols <|
           [ Components.col1 <| text submitted
-          , Components.col1 <| Components.button (RegisterUser pending) [Attr.class "button is-warning"] "Try Again"
+          , Components.col1 <| Components.button (RegisterUser pendingMember) [Attr.class "button is-warning"] "Try Again"
           ]
 
       Nothing -> 
-        cta pending UpdateName UpdateEmail (if pendingIsOK pending then RegisterUser pending else ClickedRegister) state.pendingError
+        cta pendingMember UpdateName UpdateEmail (if pendingMemberIsOK pendingMember then RegisterUser pendingMember else ClickedRegister) state.pendingMemberError
 
   else text ""
 
@@ -484,7 +485,7 @@ view state =
     [ Components.heading "Mini Song Maker"
     , Components.cols
         [ Components.col1 description ] 
-    , case state.pending of 
+    , case state.pendingMember of 
         Nothing -> text ""
         Just p -> showCta state p (RegisterUser p)
     , Playback.mini state.player UpdatePlayer state.tracks Download 
@@ -499,42 +500,42 @@ update msg model =
     CompletedReg response ->
       case response of 
         Ok message ->
-          ( { model | pending = Nothing
-            , pendingSubmitted = Just "Amazing fam. We sent you an email, make sure you open it" }, Cmd.none)
+          ( { model | pendingMember = Nothing
+            , pendingMemberSubmitted = Just "Amazing fam. We sent you an email, make sure you open it" }, Cmd.none)
 
         Err errr ->
           case errr of 
             Http.BadBody str -> 
               ({ model | status = Nothing
-               , pendingSubmitted = Just "Did you try to break something or was that us?"  }, Cmd.none)
+               , pendingMemberSubmitted = Just "Did you try to break something or was that us?"  }, Cmd.none)
  
             Http.BadUrl str -> 
               ({ model | status = Nothing
-               , pendingSubmitted = Just "Where did you get that URL?" }, Cmd.none)
+               , pendingMemberSubmitted = Just "Where did you get that URL?" }, Cmd.none)
 
             Http.BadStatus int -> 
               ({ model | status = Nothing
-               , pendingSubmitted = Just <| "The server looks like it had a problem. Here's a hint: " ++ String.fromInt int }, Cmd.none)
+               , pendingMemberSubmitted = Just <| "The server looks like it had a problem. Here's a hint: " ++ String.fromInt int }, Cmd.none)
 
             _ -> 
               ({ model | status = Nothing, error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }, Cmd.none)
 
     ClickedRegister ->
-     case model.pending of 
+     case model.pendingMember of 
         Nothing -> (model, Cmd.none) -- weird how did you get here
-        Just pending -> 
+        Just pendingMember -> 
          let
-           message = pendingErrMessage pending
+           message = pendingMemberErrMessage pendingMember
          in
          case message of 
           Nothing ->
-           update (RegisterUser pending) model
+           update (RegisterUser pendingMember) model
 
           Just error ->
-           ({ model | pendingError = Just error }, Cmd.none )
+           ({ model | pendingMemberError = Just error }, Cmd.none )
 
-    RegisterUser pending ->
-          (model, reqRegister pending)
+    RegisterUser pendingMember ->
+          (model, reqRegister pendingMember)
 
     Download url ->
       (model, Conf.download url)
@@ -544,40 +545,6 @@ update msg model =
 
     RolledCombo combo ->
       ({ model | status = Just "Writing a track for you!"}, reqTrack model.member.email model.member.uuid (Maybe.withDefault "" model.title) combo)
-
-    GotTrack response ->
-      case response of 
-        Ok track ->
-         let
-            newTracks = track :: model.tracks 
-            pending = case model.pending of 
-              Just p -> 
-                Just { p | tracks = List.map .id newTracks }
-              _ -> Nothing
-         in 
-          ({ model | status = Nothing
-          , tracks = newTracks
-          , pending = pending
-          , player = (Just track, Playback.Playing)}
-          , Cmd.batch 
-              [ Playback.trigger <| Playback.Load <|  Conf.hostname ++ track.filepath
-              , scroll "#mini-player"
-              ]
-          )
-
-        Err errr ->
-          case errr of 
-            Http.BadBody str -> 
-              ({ model | status = Nothing, error = Just "How did you post that body?"  }, Cmd.none)
- 
-            Http.BadUrl str -> 
-              ({ model | status = Nothing, error = Just "Where did you get that URL?" }, Cmd.none)
-
-            Http.BadStatus int -> 
-              ({ model | status = Nothing, error = Just <| "The server looks like it had a problem. Here's a hint: " ++ String.fromInt int }, Cmd.none)
-
-            _ -> 
-              ({ model | status = Nothing, error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }, Cmd.none)
 
     UpdatePlayer ((mTrack, playState) as player, pMsg) ->
       case mTrack of
@@ -602,6 +569,48 @@ update msg model =
 
     _ -> 
       (apply msg model, Cmd.none)
+
+
+updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
+updateWithStorage msg model =
+  case msg of 
+    GotTrack response ->
+      case response of 
+        Ok track ->
+         let
+            newTracks = track :: model.tracks 
+            pendingMember = case model.pendingMember of 
+              Just p ->  -- keep new track IDs to pass to new user registrations
+                Just { p | trackIDs = List.map .id newTracks }
+              _ -> Nothing
+         in 
+          ({ model | status = Nothing
+          , tracks = newTracks
+          , pendingMember = pendingMember
+          , player = (Just track, Playback.Playing)}
+          , Cmd.batch 
+              [ Playback.trigger <| Playback.Load <|  Conf.hostname ++ track.filepath
+              , scroll "#mini-player"
+              , setStorage ("trackIDs", (JE.ints <| List.map .id newTracks ))
+              ]
+          )
+
+        Err errr ->
+          case errr of 
+            Http.BadBody str -> 
+              ({ model | status = Nothing, error = Just "How did you post that body?"  }, Cmd.none)
+ 
+            Http.BadUrl str -> 
+              ({ model | status = Nothing, error = Just "Where did you get that URL?" }, Cmd.none)
+
+            Http.BadStatus int -> 
+              ({ model | status = Nothing, error = Just <| "The server looks like it had a problem. Here's a hint: " ++ String.fromInt int }, Cmd.none)
+
+            _ -> 
+              ({ model | status = Nothing, error = Just "Ran into a thing, it hurt a lot. Can you tell us about it?" }, Cmd.none)
+    _ -> 
+      update msg model
+
 
 
 main =  element 

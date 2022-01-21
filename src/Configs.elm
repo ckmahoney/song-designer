@@ -8,6 +8,7 @@ import Url.Builder as Url
 type alias RegEntry = 
   { email : String
   , name : String
+  , trackIDs : List Int
   , requestSrc : String
   }
 
@@ -20,9 +21,9 @@ regUrl =
   "members/api/send-magic-link/"
 
 
-regData : String -> String -> RegEntry
-regData email name =
-  RegEntry email name "minimaker"
+regData : String -> String -> List Int -> RegEntry
+regData email name ids  =
+  RegEntry email name ids "minimaker"
 
 
 hostname = 

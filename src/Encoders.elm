@@ -81,12 +81,18 @@ encodeMember member =
 
 
 encodeReqRegister : Conf.RegEntry -> Encode.Value
-encodeReqRegister {email, name, requestSrc}  =
+encodeReqRegister {email, name, trackIDs, requestSrc}  =
   Encode.object 
     [ ("email", Encode.string email)
     , ("name" , Encode.string name)
+    , ("trackIDs", Encode.list Encode.int trackIDs)
     , ("requestSrc", Encode.string requestSrc)
     ]
+
+
+ints : List Int -> Encode.Value
+ints ids =
+  Encode.list Encode.int ids
 
 
 main = text ""
