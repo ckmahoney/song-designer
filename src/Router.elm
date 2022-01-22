@@ -45,7 +45,7 @@ type Msg
   | SaveLayout (List Combo)
   | OpenLayoutEditor (List Combo)
   | UpdateEditor (Maybe LayoutEditor.Model)
-
+  | Download String
 
 type alias Model =
   { mailer : Posting
@@ -92,7 +92,7 @@ initEmpty =
     rec =   Model  Welcome  [] Nothing Playback.new Nothing [] Nothing "Adventure Sound" []
   in 
   -- rec 
-  { rec | member = Just Conf.anonMember }
+  { initTest | member = Just Conf.anonMember }
 
 
 initFromMember : GhostMember -> Model
@@ -175,6 +175,9 @@ encodeReqLoadSongs email uuid =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
+    Download url ->
+      (model, Conf.download url)
+
     Overview state ->
       (model, Cmd.none)
 
@@ -480,7 +483,7 @@ isActiveMember : Model -> Bool
 isActiveMember model =
   case model.member of 
     Nothing -> False
-    Just member -> 
+    Just  member -> 
       if member == Conf.anonMember then False
       else True
 
@@ -500,7 +503,7 @@ view model =
   let
     classname = if isActiveMember model
         then ""
-        else "disabled"
+        else "overlay-disabled"
   in 
     div [ class "section" ]
       [ if isActiveMember model
@@ -508,11 +511,11 @@ view model =
             Just m -> Html.h2 [class "subtitle"] [text ("Welcome back " ++ m.firstname)]
             _ -> text ""
           else 
-            joinCTA
+            div [class "my-6 has-text-centered is-size-3"] [text "Sign up to write complete new song with the Song Designer."]
       
       , div [class classname]
         [ if isActiveMember model 
-            then Playback.view model.playstate UpdatePlayer ReqAsset model.tracks
+            then Playback.view model.playstate UpdatePlayer ReqAsset model.tracks Download
             else text ""
         , case model.mailer of 
             Sending -> 

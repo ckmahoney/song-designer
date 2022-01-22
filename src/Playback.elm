@@ -251,12 +251,13 @@ listing ((selection, model) as p) signal track download =
        ]
 
 
-playlist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> Html msg
-playlist  ((selection, model) as p) signal tracks =
+playlist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> (String -> msg) -> Html msg
+playlist  ((selection, model) as p) signal tracks download =
   div [] 
    [ Html.h2 [Attr.class "title"] [text "My Songs"]
-   , Components.box <| List.singleton  <| Components.colsMulti <|
-   List.map (card p signal) tracks
+   , Components.box <| List.singleton  <|
+       actionlist p signal tracks download
+   -- List.map (card p signal) tracks
    ] 
 
 
@@ -277,12 +278,12 @@ clear  =
   ((apply (Select Nothing) (Nothing, Stopped)), Select Nothing)
 
 
-view : Player -> ((Player, Msg) -> msg) -> (Int -> Asset -> msg) -> List TrackMeta -> Html msg
-view ((selection, model) as p) signal req tracks =
+view : Player -> ((Player, Msg) -> msg) -> (Int -> Asset -> msg) -> List TrackMeta -> (String -> msg) -> Html msg
+view ((selection, model) as p) signal req tracks download =
   case selection of 
    Nothing ->
     Components.cols
-      [ Components.col1 <| playlist p signal tracks
+      [ Components.col1 <| playlist p signal tracks download
       ] 
 
    Just track ->
@@ -291,7 +292,7 @@ view ((selection, model) as p) signal req tracks =
     in
     Components.cols
       [ Components.colSize "is-one-third" <| feature track model change req
-      , Components.colSize "is-two-thirds" <| playlist p signal tracks
+      , Components.colSize "is-two-thirds" <| playlist p signal tracks download
       ] 
 
 
