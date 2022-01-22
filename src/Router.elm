@@ -88,7 +88,11 @@ initTest =
 
 initEmpty : Model
 initEmpty = 
-  Model  Welcome  [] Nothing Playback.new Nothing [] Nothing "Adventure Sound" []
+  let
+    rec =   Model  Welcome  [] Nothing Playback.new Nothing [] Nothing "Adventure Sound" []
+  in 
+  -- rec 
+  { rec | member = Just Conf.anonMember }
 
 
 initFromMember : GhostMember -> Model
@@ -472,19 +476,50 @@ templatePicker layouts =
     ]
 
 
+isActiveMember : Model -> Bool
+isActiveMember model =
+  case model.member of 
+    Nothing -> False
+    Just member -> 
+      if member == Conf.anonMember then False
+      else True
+
+
+joinCTA : Html msg
+joinCTA =
+  div [] 
+    [ div [class "notification is-warning is-light"]
+        [ text "Our song designer is for members only." ]
+    ,  div [class "notification is-success is-light"]
+        [ text  "Good news for you, joining is easy and free!"]
+    ]
+
+
 view : Model -> Html Msg
 view model =
+  let
+    classname = if isActiveMember model
+        then ""
+        else "disabled"
+  in 
     div [ class "section" ]
-      [ case model.member of 
-          Nothing -> text ""
-          Just m -> Html.h2 [class "subtitle"] [text ("Welcome back " ++ m.firstname)]
-
-      , Playback.view model.playstate UpdatePlayer ReqAsset model.tracks
-      , case model.mailer of 
-          Sending -> 
-            text "Working on that track for you!"
-          _ ->
-            songDesigner model 
+      [ if isActiveMember model
+          then case model.member of  
+            Just m -> Html.h2 [class "subtitle"] [text ("Welcome back " ++ m.firstname)]
+            _ -> text ""
+          else 
+            joinCTA
+      
+      , div [class classname]
+        [ if isActiveMember model 
+            then Playback.view model.playstate UpdatePlayer ReqAsset model.tracks
+            else text ""
+        , case model.mailer of 
+            Sending -> 
+              text "Working on that track for you!"
+            _ ->
+              songDesigner model 
+        ]
       ]
 
 

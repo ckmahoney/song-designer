@@ -138,21 +138,31 @@ assets track req  =
    , Components.header "Downloads"
    , Components.colsMulti
        [ Components.colHalf <| div [] 
-           [ Html.button [onClick (req MixLow)] [text "Mixdown mp3"]  
+           [ Html.button [onClick (req MixLow), Attr.class "is-success"] [text "Mixdown mp3"]  
            , Html.p [] [text "Low resolution master recording" ]
            ] 
        , Components.colHalf <| div [] 
-           [ Html.button [onClick (req MixHigh)] [text "Mixdown aiff"]
+           [ Html.button [onClick (req MixHigh), Attr.class "is-success"] [text "Mixdown aiff"]
            , Html.p [] [text "Original high resolution master recording" ]
            ]
-       -- , Components.colHalf <| div [] 
-           -- [ Html.button [onClick (req Midi)] [text "MIDI Stems"]
-           -- , Html.p [] [text "All the stems in MIDI format"]
-           -- ]
-       -- , Components.colHalf <| div [] 
-           -- [ Html.button [] [text "Sheet Music"]
-           -- , Html.p [] [text "Sheet Music in PDF"]
-           -- ]
+       , Components.colHalf <| div [] 
+           [ Components.buttonDisabled [Attr.class "is-success"] "MIDI Stems"
+           , Html.p [] [text "All the stems in MIDI format"]
+           , Html.p [] [text "Coming in version 0.5.0!"]
+           , Html.p [] [ text "Do you want MIDI stems sooner? Please support me "
+                       , Html.a [Attr.href "https://patreon.com/ckmahoney"] [text "on Patreon."]
+                       , text "It would really help a lot. Thank you!" 
+                       ]
+           ]
+       , Components.colHalf <| div [] 
+           [ Components.buttonDisabled [Attr.class "is-success"] "Sheet Music"
+           , Html.p [] [text "Sheet Music in PDF"]
+           , Html.p [] [text "Coming in version 0.6.0!"]
+           , Html.p [] [ text "Do you want Sheet Music sooner? Please support me "
+                       , Html.a [Attr.href "https://patreon.com/ckmahoney"] [text "on Patreon."]
+                       , text "It would really help a lot. Thank you!" 
+                       ]
+           ]
        -- , Components.colHalf <| div [] 
            -- [ Html.button [] [text "Stem Pack mp3"]
            -- , Html.p [] [text "Recordings required to create the mixdown, in low resolution format"]

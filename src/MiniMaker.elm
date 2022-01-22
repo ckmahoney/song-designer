@@ -195,7 +195,7 @@ initModel =
   , pendingMember = Nothing
   , pendingMemberError = Nothing
   , pendingMemberSubmitted = Nothing
-  , title = Just "testing playback"
+  , title = Just ""
   , speed = Medium
   , voices = [ Kick, Hat, Melody ]
   , tracks = []
@@ -457,7 +457,7 @@ showCta state pendingMember register =
   if state.member /= Conf.anonMember then 
     text ""
 
-  else if List.length state.tracks > 2 then 
+  else if List.length state.tracks > 1 then 
     case state.pendingMemberSubmitted of 
       Just submitted -> 
         Components.box <| List.singleton <| Components.cols <|
@@ -501,17 +501,17 @@ update msg model =
       case response of 
         Ok message ->
           ( { model | pendingMember = Nothing
-            , pendingMemberSubmitted = Just "Amazing fam. We sent you an email, make sure you open it" }, Cmd.none)
+            , pendingMemberSubmitted = Just "Amazing fam. We sent you an email, make sure you open it to join the future of music!" }, Cmd.none)
 
         Err errr ->
           case errr of 
             Http.BadBody str -> 
               ({ model | status = Nothing
-               , pendingMemberSubmitted = Just "Did you try to break something or was that us?"  }, Cmd.none)
+               , pendingMemberSubmitted = Just "Did we break something or did you hax us?"  }, Cmd.none)
  
             Http.BadUrl str -> 
               ({ model | status = Nothing
-               , pendingMemberSubmitted = Just "Where did you get that URL?" }, Cmd.none)
+               , pendingMemberSubmitted = Just "That request URL looks really strange to us." }, Cmd.none)
 
             Http.BadStatus int -> 
               ({ model | status = Nothing
@@ -573,7 +573,7 @@ update msg model =
 
 updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
 updateWithStorage msg model =
-  case Debug.log "updating message:" msg of 
+  case msg of 
     GotTrack response ->
       case response of 
         Ok track ->
