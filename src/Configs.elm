@@ -13,7 +13,9 @@ type alias RegEntry =
   }
 
 
-devMode = False
+devMode = True
+
+useLocal = False
 
  
 regUrl : String
@@ -27,8 +29,10 @@ regData email name ids  =
 
 
 hostname = 
-  if devMode then 
+  if useLocal then 
     "http://localhost:3000"
+  else if devMode then 
+    "https://recordrecorder.com"
   else 
     "https://synthony.app"
 

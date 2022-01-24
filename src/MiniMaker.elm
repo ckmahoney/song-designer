@@ -590,7 +590,7 @@ updateWithStorage msg model =
           , player = (Just track, Playback.Playing)
           }, Cmd.batch 
               [ Playback.trigger <| Playback.Load <|  Conf.hostname ++ track.filepath
-              , scroll "#mini-player"
+              , scroll "#minimaker"
               , setStorage ("trackIDs", (JE.ints <| List.map .id newTracks))
               ]
           )

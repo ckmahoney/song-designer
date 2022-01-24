@@ -31,6 +31,10 @@ port createSource : (String, String) -> Cmd msg
 port getAsset : String -> Cmd msg
 
 
+patreonLink =
+  "https://patreon.com/cortlandmahoney"
+
+
 type Model
  = Playing 
  | Paused
@@ -150,7 +154,7 @@ assets track req  =
            , Html.p [] [text "All the stems in MIDI format"]
            , Html.p [] [text "Coming in version 0.5.0!"]
            , Html.p [] [ text "Do you want MIDI stems sooner? Please support me "
-                       , Html.a [Attr.href "https://patreon.com/ckmahoney"] [text "on Patreon."]
+                       , Html.a [Attr.href patreonLink] [text "on Patreon."]
                        , text "It would really help a lot. Thank you!" 
                        ]
            ]
@@ -159,7 +163,7 @@ assets track req  =
            , Html.p [] [text "Sheet Music in PDF"]
            , Html.p [] [text "Coming in version 0.6.0!"]
            , Html.p [] [ text "Do you want Sheet Music sooner? Please support me "
-                       , Html.a [Attr.href "https://patreon.com/ckmahoney"] [text "on Patreon."]
+                       , Html.a [Attr.href patreonLink] [text "on Patreon."]
                        , text "It would really help a lot. Thank you!" 
                        ]
            ]
