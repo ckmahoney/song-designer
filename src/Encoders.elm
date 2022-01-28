@@ -6,7 +6,7 @@ import Types exposing (..)
 import Data
 import Json.Encode as Encode
 import Html exposing (text)
-
+import Url.Builder
 
 encodeScope : Scope -> Encode.Value
 encodeScope {label, cps, cpc, root, size} =
@@ -88,6 +88,18 @@ encodeReqRegister {email, name, trackIDs, requestSrc}  =
     , ("trackIDs", Encode.list Encode.int trackIDs)
     , ("requestSrc", Encode.string requestSrc)
     ]
+
+
+queryReqLead : String -> String -> List Int -> String -> String
+queryReqLead email name trackIDs requestSrc =
+  let  
+    ids : String
+    ids = List.foldl String.append ""  <| List.intersperse ","  <| List.map String.fromInt trackIDs
+  in 
+  Url.Builder.relative [Conf.leadUrl]
+    <| List.map2 Url.Builder.string 
+       [ "email", "name", "trackIDs", "requestSrc" ]
+       [ email, name,"[" ++  ids ++ "]", requestSrc ] 
 
 
 ints : List Int -> Encode.Value

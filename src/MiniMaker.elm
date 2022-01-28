@@ -24,6 +24,7 @@ import Tools
 
 port scrollTo : String -> Cmd msg
 
+
 port setStorage : (String, Encode.Value) -> Cmd msg
 
 
@@ -94,6 +95,7 @@ type Msg
   | RegisterUser PendingMember
 
   | Scroll String
+  | Noop (Result Http.Error String)
 
 miniMakerMember =
   { uuid = ""
@@ -181,6 +183,14 @@ reqRegister {email, name, trackIDs} =
     { url = Conf.regUrl
     , body = Http.jsonBody <| JE.encodeReqRegister <| Conf.regData email name trackIDs
     , expect = Http.expectString CompletedReg
+    }
+
+
+reqLead : PendingMember -> Cmd Msg
+reqLead {email, name, trackIDs} =
+  Http.get
+    { url = Conf.apiUrl <| JE.queryReqLead email name trackIDs "minimaker"
+    , expect = Http.expectString Noop
     }
 
 
@@ -300,14 +310,14 @@ voiceIconClass = Attr.class "is-flex is-flex-direction-column is-align-items-cen
 goButton : String -> msg -> Html msg
 goButton title msg = 
   if "" == title then 
-    Components.button msg [ Attr.class "is-primary is-focused is-fullwidth" ] "Write a Song"
+    Components.button msg [ Attr.class "is-primary is-focused is-fullwidth" ] "Make a Song"
   else 
-    Components.button msg [ Attr.class "is-primary is-focused is-fullwidth" ] ("Write \"" ++ title ++ "\"")
+    Components.button msg [ Attr.class "is-primary is-focused is-fullwidth" ] ("Make \"" ++ title ++ "\"")
 
 
 disabledGoButton : Html msg
 disabledGoButton =
-  Components.buttonDisabled [  Attr.class "is-primary is-fullwidth" ] "Write a Song"
+  Components.buttonDisabled [  Attr.class "is-primary is-fullwidth" ] "Make a Song"
 
 
 fireButton : Model -> msg ->  Html msg
@@ -457,7 +467,7 @@ showCta state pendingMember register =
   if state.member /= Conf.anonMember then 
     text ""
 
-  else if List.length state.tracks > 1 then 
+  else if List.length state.tracks > 0 then 
     case state.pendingMemberSubmitted of 
       Just submitted -> 
         Components.box <| List.singleton <| Components.cols <|
@@ -535,7 +545,12 @@ update msg model =
            ({ model | pendingMemberError = Just error }, Cmd.none )
 
     RegisterUser pendingMember ->
-          (model, reqRegister pendingMember)
+          ( model
+          , Cmd.batch 
+            [ reqRegister pendingMember
+            , reqLead pendingMember
+            ]
+          )
 
     Download url ->
       (model, Conf.download url)
@@ -544,7 +559,7 @@ update msg model =
       ({ model | status = Just "Rolling some dice..." }, modelToCombo (Maybe.withDefault "" model.title) model.speed model.voices)
 
     RolledCombo combo ->
-      ({ model | status = Just "Writing a track for you!"}, reqTrack model.member.email model.member.uuid (Maybe.withDefault "" model.title) combo)
+      ({ model | status = Just "Making a track for you!"}, reqTrack model.member.email model.member.uuid (Maybe.withDefault "" model.title) combo)
 
     UpdatePlayer ((mTrack, playState) as player, pMsg) ->
       case mTrack of

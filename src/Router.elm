@@ -423,7 +423,7 @@ requestSongButton model =
        template : Template
        template = ({meta | title = model.title},  model.layout)
     in  
-     Components.button (ReqTrack template) [ class "is-primary is-size-4 p-3"] ("Write A New Song: " ++ model.title )
+     Components.button (ReqTrack template) [ class "is-primary is-size-4 p-3"] ("Make A New Song: " ++ model.title )
 
 
 editLayoutButton : Model -> Html Msg
@@ -511,7 +511,7 @@ view model =
             Just m -> Html.h2 [class "subtitle"] [text ("Welcome back " ++ m.firstname)]
             _ -> text ""
           else 
-            div [class "my-6 has-text-centered is-size-3"] [text "Sign up to write complete new song with the Song Designer."]
+            div [class "my-6 has-text-centered is-size-3"] [text "Sign up to make new songs with the Song Designer."]
       
       , div [class classname]
         [ if isActiveMember model 
@@ -519,7 +519,7 @@ view model =
             else text ""
         , case model.mailer of 
             Sending -> 
-              text "Working on that track for you!"
+              text "Making that new music for you!"
             _ ->
               songDesigner model 
         ]

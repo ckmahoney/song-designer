@@ -13,14 +13,18 @@ type alias RegEntry =
   }
 
 
-devMode = True
-
+devMode = False
 useLocal = False
 
  
 regUrl : String
 regUrl = 
   "members/api/send-magic-link/"
+
+
+leadUrl : String
+leadUrl = 
+  "user/interested"
 
 
 regData : String -> String -> List Int -> RegEntry
