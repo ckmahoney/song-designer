@@ -97,6 +97,7 @@ type Msg
   | Scroll String
   | Noop (Result Http.Error String)
 
+
 miniMakerMember =
   { uuid = ""
   , email = ""
@@ -180,7 +181,7 @@ reqTrack email uuid title combo =
 reqRegister : PendingMember -> Cmd Msg
 reqRegister {email, name, trackIDs} =
   Http.post
-    { url = Conf.regUrl
+    { url = Conf.selfUrl Conf.regUrl
     , body = Http.jsonBody <| JE.encodeReqRegister <| Conf.regData email name trackIDs
     , expect = Http.expectString CompletedReg
     }

@@ -40,6 +40,10 @@ hostname =
   else 
     "https://synthony.app"
 
+selfUrl : String -> String
+selfUrl endpoint =
+  hostname ++ "/" ++ endpoint
+
 
 apiUrl : String -> String 
 apiUrl endpoint =
