@@ -28,7 +28,7 @@ type alias ID = Int
 
 
 type Msg 
-  = UpdatePlayer (Playback.Player, Playback.Msg)
+  = UpdatePlayer (Playback.Model, Playback.Msg)
   | SelectTemplate Int
  
   | GotTracks (Result Http.Error (List TrackMeta))
@@ -47,11 +47,12 @@ type Msg
   | UpdateEditor (Maybe LayoutEditor.Model)
   | Download String
 
+
 type alias Model =
   { mailer : Posting
   , tracks : List TrackMeta
   , selection : Maybe TrackMeta
-  , playstate : Playback.Player
+  , playstate : Playback.Model
   , member : Maybe GhostMember
   , layout : List Combo
   , layoutEditor : Maybe LayoutEditor.Model

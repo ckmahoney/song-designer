@@ -16,17 +16,26 @@ import Json.Encode as Encode
 import Configs as Conf
 
 
-port playMusic : String -> Cmd msg
+type alias NodeId = String
+type alias AudioSrc = String
+type alias NoArgs = String
 
-port pauseMusic : String -> Cmd msg
 
-port stopMusic : String -> Cmd msg
+port playMusic : NoArgs -> Cmd msg
 
-port setSource : String -> Cmd msg
+port pauseMusic : NoArgs -> Cmd msg
 
-port kill : String -> Cmd msg
+port stopMusic : NoArgs -> Cmd msg
 
-port createSource : (String, String) -> Cmd msg
+port setSource : AudioSrc -> Cmd msg
+
+port setAndPlaySource : AudioSrc -> Cmd msg
+
+port kill : NoArgs -> Cmd msg
+
+port createSource : (NodeId, AudioSrc) -> Cmd msg
+
+port createAndPlaySource : (NodeId, AudioSrc) -> Cmd msg
 
 port getAsset : String -> Cmd msg
 
@@ -35,7 +44,7 @@ patreonLink =
   "https://patreon.com/cortlandmahoney"
 
 
-type Model
+type State
  = Playing 
  | Paused
  | Stopped 
@@ -56,11 +65,11 @@ type Msg
   | Select (Maybe TrackMeta)
 
 
-type alias Player = 
-  (Maybe TrackMeta, Model)
+type alias Model = 
+  (Maybe TrackMeta, State)
 
 
-new : Player
+new : Model
 new = 
   (Nothing, Stopped)
 
@@ -92,7 +101,7 @@ trigger msg =
     Stop -> stopMusic ""
 
 
-apply : Msg -> Player -> Player
+apply : Msg -> Model -> Model
 apply msg ((track, model) as p) =
   case msg of  
     Select Nothing -> (Nothing, Stopped)
@@ -103,12 +112,12 @@ apply msg ((track, model) as p) =
     _ -> p
 
 
-update : Msg -> Player -> (Player, Msg)
+update : Msg -> Model -> (Model, Msg)
 update msg model =
   (apply msg model, msg)
 
 
-controls  : Model -> (Msg -> msg) -> Html msg
+controls  : State -> (Msg -> msg) -> Html msg
 controls model trig = 
   div [Attr.class "is-flex is-justify-content-space-around"] [ case model of 
       Playing -> 
@@ -203,21 +212,21 @@ face track model trig =
     ]
 
 
-feature : TrackMeta -> Model ->  (Msg -> msg) -> (Int -> Asset -> msg) -> Html msg 
-feature track model trig req =
+feature : TrackMeta -> State ->  (Msg -> msg) -> (Int -> Asset -> msg) -> Html msg 
+feature track state trig req =
   div []
-    [ face track model trig 
+    [ face track state trig 
     , meta track
     , assets track (req track.id)
     ]
 
 
-player : TrackMeta -> Model ->  (Msg -> msg) -> Html msg 
-player track model trig =
-  face track model trig 
+player : TrackMeta -> State ->  (Msg -> msg) -> Html msg 
+player track state trig =
+  face track state trig 
 
 
-card : Player -> ((Player, Msg) -> msg)-> TrackMeta -> Html msg
+card : Model -> ((Model, Msg) -> msg)-> TrackMeta -> Html msg
 card ((selection, model) as p) signal track = 
   let 
     change = (\msg -> signal <| update msg (Just track, model))
@@ -233,16 +242,16 @@ card ((selection, model) as p) signal track =
   Components.col [ Attr.class "is-half"] [ Components.songCard track.title <| List.singleton children]
 
 
-listing : Player -> ((Player, Msg) -> msg)-> TrackMeta -> (String -> msg) -> Html msg
-listing ((selection, model) as p) signal track download = 
+listing : Model -> ((Model, Msg) -> msg)-> TrackMeta -> (String -> msg) -> Html msg
+listing ((selection, state) as p) signal track download = 
   let 
-    change = (\msg -> signal <| update msg (Just track, model))
+    change = (\msg -> signal <| update msg (Just track, state))
     children = case selection of 
       Nothing -> 
          div [onClick <| change <| Select (Just track)] [Components.svg "play"]
       Just selected ->  
         if selected == track then 
-          selectPlay model change
+          selectPlay p change
         else 
           div [onClick <| change <| Select (Just track)] [Components.svg "play"]
 
@@ -250,12 +259,12 @@ listing ((selection, model) as p) signal track download =
   Components.colSize "is-full"
     <| Components.colsWith [Attr.class "is-vcentered"]
        [ Components.col1 <| Components.label track.title 
-       , Components.col1 <| selectPlay model change
+       , Components.col1 <| selectPlay p change
        , Components.col1 <| Components.button (download track.filepath) [] "Download"
        ]
 
 
-playlist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> (String -> msg) -> Html msg
+playlist : Model -> ((Model, Msg) -> msg) ->  List TrackMeta -> (String -> msg) -> Html msg
 playlist  ((selection, model) as p) signal tracks download =
   div [] 
    [ Html.h2 [Attr.class "title"] [text "My Songs"]
@@ -265,24 +274,24 @@ playlist  ((selection, model) as p) signal tracks download =
    ] 
 
 
-actionlist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> (String -> msg) -> Html msg
+actionlist : Model -> ((Model, Msg) -> msg) ->  List TrackMeta -> (String -> msg) -> Html msg
 actionlist  ((selection, model) as p) signal tracks download =
   Components.box <| List.singleton  <| Components.colsMulti <|
     List.map ((\x -> listing p signal x download)) tracks
 
 
-minilist : Player -> ((Player, Msg) -> msg) ->  List TrackMeta -> Html msg
+minilist : Model -> ((Model, Msg) -> msg) ->  List TrackMeta -> Html msg
 minilist  ((selection, model) as p) signal tracks =
   Components.box <| List.singleton <| Components.colsMulti <|
    List.map (card p signal) tracks
 
 
-clear : (Player, Msg)
+clear : (Model, Msg)
 clear  =
   ((apply (Select Nothing) (Nothing, Stopped)), Select Nothing)
 
 
-view : Player -> ((Player, Msg) -> msg) -> (Int -> Asset -> msg) -> List TrackMeta -> (String -> msg) -> Html msg
+view : Model -> ((Model, Msg) -> msg) -> (Int -> Asset -> msg) -> List TrackMeta -> (String -> msg) -> Html msg
 view ((selection, model) as p) signal req tracks download =
   case selection of 
    Nothing ->
@@ -300,7 +309,7 @@ view ((selection, model) as p) signal req tracks download =
       ] 
 
 
-mini : Player -> ((Player, Msg) -> msg) -> List TrackMeta -> (String -> msg) -> Html msg
+mini : Model -> ((Model, Msg) -> msg) -> List TrackMeta -> (String -> msg) -> Html msg
 mini ((selection, model) as p) signal tracks download =
   case selection of 
    Nothing ->

@@ -56,7 +56,7 @@ type alias Model =
   , tracks : List TrackMeta
   , error : Maybe String
   , status : Maybe String
-  , player : Playback.Player
+  , player : Playback.Model
   }
 
 
@@ -88,7 +88,7 @@ type Msg
   | RolledCombo Combo
 
   -- Sidefx things 
-  | UpdatePlayer (Playback.Player, Playback.Msg)
+  | UpdatePlayer (Playback.Model, Playback.Msg)
   | Download String
   | GotTrack (Result Http.Error TrackMeta)
   | CompletedReg (Result Http.Error String)
@@ -219,7 +219,7 @@ initModel =
 init : Maybe GhostMember -> (Model, Cmd Msg)
 init flags =
   case flags of 
-    Nothing -> -- use the anon member and open a  pending member
+    Nothing -> -- use the anon member and open a pending member
       ({ initModel | pendingMember = Just { name = "", email = "", trackIDs = [] } }, Cmd.none)
     
     Just member ->
