@@ -4,10 +4,12 @@
     "wavesurfer.js": "^5.2.0"
   },
   "scripts": {
-    "dev": "elm-live src/*.elm --start-page=elm-index.html -- --output=elm-out.js",
-    "dev-cors": "node_modules/.bin/elm-live src/*.elm --start-page=elm-index.html -- --output=elm-out.js"
+    "build": "babel assets/song-designer.js -d out && uglifyjs -c -m -o out/song-designer.min.js -- out/song-designer.js ",
+    "dev": "elm-live src/Main.elm src/Playback.elm --start-page=elm-dev.html -- --output=elm-dev-mode.js",
+    "prod-test": "elm-live src/*.elm --start-page=elm-index.html -- --output=assets/song-designer.js"
   },
   "devDependencies": {
-    "elm-live": "^4.0.2"
+    "elm-live": "^4.0.2",
+    "uglify-js": "^3.14.5"
   }
 }

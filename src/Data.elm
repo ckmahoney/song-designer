@@ -1098,21 +1098,21 @@ someTracks : List TrackMeta
 someTracks = 
   [ { id = 1
     , account_id = 1
-    , filepath = "localhost:3000/music/ecadef5f-da0f-41c9-9b7f-7d03d3e9b569/mixes/song.mp3"
+    , filepath = "http://localhost:3000/music/ecadef5f-da0f-41c9-9b7f-7d03d3e9b569/mixes/song.mp3"
     , title = "song"
     , size_bytes = 100
     , duration_seconds = 20
     }
   , { id = 2
     , account_id = 1
-    , filepath = "localhost:3000/music/ecadef5f-da0f-41c9-9b7f-7d03d3e9b569/mixes/song-1.mp3"
+    , filepath = "http://localhost:3000/music/ecadef5f-da0f-41c9-9b7f-7d03d3e9b569/mixes/song-1.mp3"
     , title = "song 1"
     , size_bytes = 100
     , duration_seconds = 30
     }
   , { id = 3
     , account_id = 1
-    , filepath = "localhost:3000/music/ecadef5f-da0f-41c9-9b7f-7d03d3e9b569/mixes/song-2.mp3"
+    , filepath = "http://localhost:3000/music/ecadef5f-da0f-41c9-9b7f-7d03d3e9b569/mixes/song-2.mp3"
     , title = "song 2"
     , size_bytes = 100
     , duration_seconds = 11
@@ -1123,7 +1123,7 @@ someTracks =
 firstTrack =
    { id = 1
     , account_id = 1
-    , filepath = "localhost:3000/music/ecadef5f-da0f-41c9-9b7f-7d03d3e9b569/mixes/song.mp3"
+    , filepath = "http://localhost:3000/music/ecadef5f-da0f-41c9-9b7f-7d03d3e9b569/mixes/song.mp3"
     , title = "song"
     , size_bytes = 100
     , duration_seconds = 20

@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -e
+
+css="syn-bulma.css"
+cssmin="syn-bulma.min.css"
+
+cd ~/syn-bulma;
+npm run css-build;
+
+cp css/syn-bulma.css ~/song-designer/$css;
+cd ~/song-designer;
+
+
+echo "Building uncompressed styles"
+
+
+mv $css assets/$css;
+mv $cssmin assets/$cssmin;
