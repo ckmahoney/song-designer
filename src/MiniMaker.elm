@@ -56,7 +56,7 @@ type alias Model =
   , tracks : List TrackMeta
   , error : Maybe String
   , status : Maybe String
-  , player : Playback.Model
+  , playback : Playback.Model
   }
 
 
@@ -212,7 +212,7 @@ initModel =
   , tracks = []
   , error = Nothing
   , status = Nothing
-  , player = Playback.new
+  , playback = Playback.new
   }
 
 
@@ -499,7 +499,7 @@ view state =
     , case state.pendingMember of 
         Nothing -> text ""
         Just p -> showCta state p (RegisterUser p)
-    , Playback.mini state.player UpdatePlayer state.tracks Download 
+    , Playback.mini state.playback UpdatePlayer state.tracks Download 
     , makerBoxes state butt
     ]
 
@@ -562,29 +562,22 @@ update msg model =
     RolledCombo combo ->
       ({ model | status = Just "Making a track for you!"}, reqTrack model.member.email model.member.uuid (Maybe.withDefault "" model.title) combo)
 
-    UpdatePlayer ((mTrack, playState) as player, pMsg) ->
-      case mTrack of
+    UpdatePlayer (playback, pMsg) ->
+      let
+        ((updated, pMsg_) as result) = Playback.update pMsg playback
+        next = { model | playback = updated }
+      in 
+              
+      case Tuple.first updated of
         Nothing ->
-         ({ model | player = Playback.new}, Playback.stopMusic "")
+         ( next, Playback.trigger pMsg_ )
 
-        Just t ->
-           case pMsg  of 
-            Playback.Load path ->
-              ( { model | player = player }
-              , Playback.trigger <| Playback.Load <|  Conf.hostname ++ path
-              )
-
-            Playback.Select (Just track) ->    
-              ( { model | player = player }
-              , Playback.trigger <| Playback.Select (Just track)) -- fixes the missing hostname on getSongs
-
-            _ ->
-             ( { model | player = player }
-             , Playback.trigger pMsg )
+        Just track ->
+         ( next, Playback.trigger pMsg_ )
 
 
     _ -> 
-      (apply msg model, Cmd.none)
+      Debug.log "unkown update message weird" (apply msg model, Cmd.none)
 
 
 updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
@@ -603,7 +596,7 @@ updateWithStorage msg model =
           ({ model | status = Nothing
           , tracks = newTracks
           , pendingMember = pendingMember
-          , player = (Just track, Playback.Playing)
+          , playback = (Just track, Playback.Playing)
           }, Cmd.batch 
               [ Playback.trigger <| Playback.Load <|  Conf.hostname ++ track.filepath
               , scroll "#minimaker"

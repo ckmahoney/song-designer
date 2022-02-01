@@ -48,7 +48,7 @@ type State
  = Playing 
  | Paused
  | Stopped 
-
+ | Empty
 
 type Asset
   = MixHigh
@@ -58,11 +58,13 @@ type Asset
 
 
 type Msg
-  = Load String
+  = Cue String
+  | Load String
   | Play 
   | Pause
   | Stop
   | Select (Maybe TrackMeta)
+  | CreateAndPlay (NodeId, AudioSrc)
 
 
 type alias Model = 
@@ -71,7 +73,7 @@ type alias Model =
 
 new : Model
 new = 
-  (Nothing, Stopped)
+  (Nothing, Empty)
 
 
 assetName : Asset -> String
@@ -90,21 +92,24 @@ assetName kind =
       "midi-pack"
 
 
+-- Executes sidefx for audio controls
 trigger : Msg -> Cmd msg
 trigger msg =
   case msg of 
-    Load filepath -> setSource filepath
+    Cue filepath -> setSource filepath
+    Load filepath -> setAndPlaySource filepath
     Select Nothing -> kill ""
     Select (Just track) -> createSource ("#the-player", track.filepath)
     Play -> playMusic ""
     Pause -> pauseMusic ""
     Stop -> stopMusic ""
+    CreateAndPlay (nodeId, src) -> createAndPlaySource(nodeId, src)
 
 
 apply : Msg -> Model -> Model
 apply msg ((track, model) as p) =
   case msg of  
-    Select Nothing -> (Nothing, Stopped)
+    Select Nothing -> new
     Select next -> (next, Paused)
     Play ->  (track, Playing)
     Pause -> (track, Paused)
@@ -117,9 +122,9 @@ update msg model =
   (apply msg model, msg)
 
 
-controls  : State -> (Msg -> msg) -> Html msg
-controls model trig = 
-  div [Attr.class "is-flex is-justify-content-space-around"] [ case model of 
+controls  : State -> TrackMeta -> (Msg -> msg) -> Html msg
+controls state track trig = 
+  div [Attr.class "is-flex is-justify-content-space-around"] [ case state of 
       Playing -> 
         div [onClick <| trig Pause] [Components.svg "pause"] 
 
@@ -127,9 +132,12 @@ controls model trig =
         div [onClick <| trig Play] [Components.svg "play"] 
 
       Stopped ->
-        div [onClick <| trig Play] [Components.svg "play"] 
+        div [onClick <| trig <| Load track.filepath] [Components.svg "play"] 
 
-  , case model of 
+      Empty -> 
+        emptyMessage
+
+  , case state of 
       Stopped ->
         text ""
       _ -> div [onClick <| trig Stop] [Components.svg "stop"]
@@ -137,10 +145,10 @@ controls model trig =
 
 
 -- A button to change current selection and begin playback immediately
-selectPlay  : Model -> (Msg -> msg) -> Html msg
-selectPlay model trig = 
+selectPlay : TrackMeta -> (Msg -> msg) -> Html msg
+selectPlay track trig = 
   div [ Attr.class "is-flex is-justify-content-space-around"]  
-      [ div [onClick <| trig Play] [Components.svg "play"] 
+      [ div [onClick <| trig (Load track.filepath)] [Components.svg "play"] 
       ]
 
 
@@ -188,6 +196,7 @@ assets track req  =
    ]
 
 
+meta : TrackMeta -> Html msg
 meta track =
   Components.box <|List.singleton <| Components.colsMulti 
     [ Components.colFull <| Components.header "Metadata"
@@ -197,7 +206,8 @@ meta track =
 
 
 -- the mini player
-face track model trig =
+face : TrackMeta -> State ->  (Msg -> msg) -> Html msg 
+face track state trig =
   Components.box
     [ Components.cols 
        [ Components.colHalf <| Components.label "Artist"
@@ -208,7 +218,7 @@ face track model trig =
        [ Components.colHalf <| Components.label "0:00"
        , Components.colHalf <| Components.label <| View.timeString track.duration_seconds
        ]
-    , controls model trig
+    , controls state track trig
     ]
 
 
@@ -227,17 +237,17 @@ player track state trig =
 
 
 card : Model -> ((Model, Msg) -> msg)-> TrackMeta -> Html msg
-card ((selection, model) as p) signal track = 
+card ((selection, state) as p) signal track = 
   let 
-    change = (\msg -> signal <| update msg (Just track, model))
+    change = (\msg -> signal <| update msg (Just track, state))
     children = case selection of 
       Nothing -> 
-         div [onClick <| change <| Select (Just track)] [Components.svg "play"]
+         div [onClick <| change <| Load track.filepath] [Components.svg "play"]
       Just selected ->  
         if selected == track then 
-          controls model change
+          controls state track change
         else 
-          div [onClick <| change <| Select (Just track)] [Components.svg "play"]
+          div [onClick <| change <| Load track.filepath] [Components.svg "play"]
   in
   Components.col [ Attr.class "is-half"] [ Components.songCard track.title <| List.singleton children]
 
@@ -248,18 +258,18 @@ listing ((selection, state) as p) signal track download =
     change = (\msg -> signal <| update msg (Just track, state))
     children = case selection of 
       Nothing -> 
-         div [onClick <| change <| Select (Just track)] [Components.svg "play"]
+         div [onClick <| change <| Load track.filepath] [Components.svg "play"]
       Just selected ->  
         if selected == track then 
-          selectPlay p change
+          selectPlay track change
         else 
-          div [onClick <| change <| Select (Just track)] [Components.svg "play"]
+          div [onClick <| change <| Load track.filepath] [Components.svg "play"]
 
   in
   Components.colSize "is-full"
     <| Components.colsWith [Attr.class "is-vcentered"]
        [ Components.col1 <| Components.label track.title 
-       , Components.col1 <| selectPlay p change
+       , Components.col1 <| selectPlay track change
        , Components.col1 <| Components.button (download track.filepath) [] "Download"
        ]
 
@@ -313,17 +323,23 @@ mini : Model -> ((Model, Msg) -> msg) -> List TrackMeta -> (String -> msg) -> Ht
 mini ((selection, model) as p) signal tracks download =
   case selection of 
    Nothing ->
-    text ""
+    Components.box 
+      [ emptyMessage ]
+
 
    Just track ->
     let
-       change = (\msg -> signal <| update msg (Just track, model))
+       change = (\msg -> signal <| update (Debug.log "msg" msg) p)
     in
     div [Attr.id "mini-player"] <| List.singleton <|
      Components.cols
-      [ Components.colSize "is-one-half" <| player track model change
+      [ Components.colSize "is-one-half" <| face track model change
       , Components.colSize "is-two-thirds" <| actionlist p signal tracks download
       ] 
+
+emptyMessage : Html msg
+emptyMessage =
+  Components.paragraph "Select any song to start playing."
 
 
 main = Html.text ""

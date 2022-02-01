@@ -521,6 +521,12 @@ songCard title icons =
   div []
     ([ text title ] ++ icons)
 
+
+paragraph : String -> Html msg
+paragraph c =
+  Html.p [ class "content" ] [ text c ] 
+  
+
 main = 
   Html.text ""
 

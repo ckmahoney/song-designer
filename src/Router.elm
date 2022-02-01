@@ -52,7 +52,7 @@ type alias Model =
   { mailer : Posting
   , tracks : List TrackMeta
   , selection : Maybe TrackMeta
-  , playstate : Playback.Model
+  , playback : Playback.Model
   , member : Maybe GhostMember
   , layout : List Combo
   , layoutEditor : Maybe LayoutEditor.Model
@@ -82,8 +82,21 @@ initFrom v s l t m =
   Model  Welcome  [] Nothing Playback.new m layout  Nothing (Tuple.first template).title Data.templates
 
 
-initTest : Model
-initTest = 
+initTest : Maybe GhostMember -> (Model, Cmd msg)
+initTest flags = 
+  let
+    rec = Debug.log "Got this init result:" <| initFrom [Data.p1, Data.p2] [] [] [] (Just Data.testMember)
+  in 
+    ({ rec
+    | tracks = Data.someTracks
+    , member = Just Conf.anonMember
+    },
+    Cmd.none
+    )
+
+
+initWithDefaults : Model
+initWithDefaults = 
   initFrom [Data.p1, Data.p2] [] [] [] (Just Data.testMember) 
 
 
@@ -93,7 +106,7 @@ initEmpty =
     rec =   Model  Welcome  [] Nothing Playback.new Nothing [] Nothing "Adventure Sound" []
   in 
   -- rec 
-  { initTest | member = Just Conf.anonMember }
+  { initWithDefaults | member = Just Conf.anonMember }
 
 
 initFromMember : GhostMember -> Model
@@ -101,7 +114,7 @@ initFromMember member =
   let
     rec = { initEmpty | member = Just member }
   in 
-  { initTest | member = Just member }
+  { initWithDefaults | member = Just member }
 
 
 init : Maybe GhostMember -> (Model, Cmd Msg)
@@ -200,30 +213,27 @@ update msg model =
     SaveLayout layout ->
       ({ model | layout = layout }, Cmd.none)
 
-    UpdatePlayer ((mTrack, pstate) as playstate, pCmd) ->
-      case mTrack of
+    UpdatePlayer (playback, pMsg) ->
+      let
+        ((updated, pMsg_) as result) = Playback.update pMsg playback
+        next = { model | playback = updated }
+        y = Debug.log "using next message:" pMsg_
+      in 
+              
+      case Tuple.first updated of
         Nothing ->
-         ( { model | playstate = Playback.new}
-         , Playback.stopMusic ""
+         ( { next
+           | selection = Nothing
+           }
+         , Playback.trigger pMsg_
          )
 
-        Just t ->
-           case pCmd of 
-            Playback.Load path -> 
-              ( { model | playstate = playstate }
-              , Playback.trigger <| Playback.Load <| Conf.hostname ++ path
-              )
-
-            Playback.Select (Just track) ->    
-             ( { model | playstate = playstate }
-             , Playback.trigger <| Playback.Load <|  Conf.hostname ++ track.filepath
-             ) 
-
-
-            _ ->
-             ( { model | playstate = playstate }
-             , Playback.trigger pCmd
-             )
+        Just track ->
+         ( { next
+           | selection = Just track
+           }
+         , Playback.trigger pMsg_
+         )
 
     GotTracks response ->
       case response of 
@@ -250,9 +260,10 @@ update msg model =
           ( { model 
             | tracks = track :: model.tracks
             , selection = (Just track)
-            , playstate = (Just track, Playback.Playing)
+            , playback = (Just track, Playback.Playing)
             , mailer = Received 
-            }, Playback.trigger <| Playback.Load <|  Conf.hostname ++ track.filepath 
+            }
+            , Playback.trigger <| Playback.Load <|  Conf.hostname ++ track.filepath 
             )
 
         Err errr ->
@@ -482,6 +493,7 @@ templatePicker layouts =
 
 isActiveMember : Model -> Bool
 isActiveMember model =
+  if Conf.devMode then True else 
   case model.member of 
     Nothing -> False
     Just  member -> 
@@ -516,8 +528,8 @@ view model =
       
       , div [class classname]
         [ if isActiveMember model 
-            then Playback.view model.playstate UpdatePlayer ReqAsset model.tracks Download
-            else text ""
+            then Playback.view model.playback UpdatePlayer ReqAsset model.tracks Download
+            else Components.paragraph "Log in to load your Song Bank."
         , case model.mailer of 
             Sending -> 
               text "Making that new music for you!"
@@ -528,7 +540,7 @@ view model =
 
 
 main =  Browser.element 
-  { init = init
+  { init = initTest
   , update = update
   , view = view
   , subscriptions = subscriptions
