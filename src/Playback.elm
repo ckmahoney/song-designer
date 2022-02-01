@@ -27,9 +27,9 @@ port pauseMusic : NoArgs -> Cmd msg
 
 port stopMusic : NoArgs -> Cmd msg
 
-port setSource : AudioSrc -> Cmd msg
+port setSource : (NodeId, AudioSrc) -> Cmd msg
 
-port setAndPlaySource : AudioSrc -> Cmd msg
+port setAndPlaySource : (NodeId, AudioSrc) -> Cmd msg
 
 port kill : NoArgs -> Cmd msg
 
@@ -49,6 +49,7 @@ type State
  | Paused
  | Stopped 
  | Empty
+
 
 type Asset
   = MixHigh
@@ -96,25 +97,28 @@ assetName kind =
 trigger : Msg -> Cmd msg
 trigger msg =
   case msg of 
-    Cue filepath -> setSource filepath
-    Load filepath -> setAndPlaySource filepath
+    Cue filepath -> setSource ("#the-player", filepath)
+    Load filepath -> setAndPlaySource ("#the-player", filepath)
     Select Nothing -> kill ""
     Select (Just track) -> createSource ("#the-player", track.filepath)
     Play -> playMusic ""
     Pause -> pauseMusic ""
     Stop -> stopMusic ""
-    CreateAndPlay (nodeId, src) -> createAndPlaySource(nodeId, src)
+    CreateAndPlay (nodeId, src) -> createAndPlaySource (nodeId, src)
 
 
 apply : Msg -> Model -> Model
 apply msg ((track, model) as p) =
   case msg of  
     Select Nothing -> new
-    Select next -> (next, Paused)
     Play ->  (track, Playing)
     Pause -> (track, Paused)
     Stop -> (track, Stopped)
-    _ -> p
+    Cue src -> (track, Stopped)
+    Load src -> (track, Playing)
+    Select next -> (next, Stopped)
+    CreateAndPlay (nodeId, src) -> (track, Playing)
+
 
 
 update : Msg -> Model -> (Model, Msg)
@@ -132,7 +136,7 @@ controls state track trig =
         div [onClick <| trig Play] [Components.svg "play"] 
 
       Stopped ->
-        div [onClick <| trig <| Load track.filepath] [Components.svg "play"] 
+        div [onClick <| trig <| Load track.filepath] [Components.svg "play"]
 
       Empty -> 
         emptyMessage
@@ -140,6 +144,7 @@ controls state track trig =
   , case state of 
       Stopped ->
         text ""
+
       _ -> div [onClick <| trig Stop] [Components.svg "stop"]
   ]
 
