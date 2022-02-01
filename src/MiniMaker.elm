@@ -57,6 +57,7 @@ type alias Model =
   , error : Maybe String
   , status : Maybe String
   , playback : Playback.Model
+  , helpTexts : List SynthRole
   }
 
 
@@ -78,6 +79,7 @@ type Msg
   = SetTitle String
   | SetSpeed Speed
   | ToggleVoice SynthRole
+  | ToggleHelp SynthRole
   | PushedButton
   | UpdateName String
   | UpdateEmail String
@@ -213,6 +215,7 @@ initModel =
   , error = Nothing
   , status = Nothing
   , playback = Playback.new
+  , helpTexts = []
   }
 
 
@@ -273,7 +276,11 @@ apply msg model =
       { model | speed = next }
 
     ToggleVoice voice ->
-      { model | voices = Tools.toggleElement voice model.voices }    
+      { model 
+      | voices = Tools.toggleElement voice model.voices }    
+
+    ToggleHelp voice ->
+      { model | helpTexts = Tools.toggleElement voice model.helpTexts }    
 
     _ ->
       model
@@ -359,12 +366,14 @@ availableIconOld role toggle =
       , p [toggle] [text <| Data.roleName role ] ]
 
 
-availableIcon role click = 
-   div [voiceIconClass]
-     [ View.synthIconHelp role click ]
+availableIcon : SynthRole -> (SynthRole -> msg) -> Bool -> (SynthRole -> msg) -> Html msg
+availableIcon role click showHelp toggleHelp = 
+   div [ voiceIconClass ]
+     [ View.synthIconHelp role click showHelp toggleHelp ]
 
-voiceBox : (List SynthRole) -> (SynthRole -> msg) -> Html msg
-voiceBox current change =
+
+voiceBox : (List SynthRole) -> (SynthRole -> msg) -> (List SynthRole) -> (SynthRole -> msg) -> Html msg
+voiceBox current change helps showHelp =
  div [ Attr.class "my-6"]
     [ p [Attr.class "mt-3"] [ text "Which voices should we put in it?" ]
     , p [Attr.class "mb-3"] [ text "Pick up to 4 voices." ]
@@ -372,7 +381,7 @@ voiceBox current change =
        if List.member r current then 
          selectedIcon r (onClick <| change r) 
        else if 4 > List.length current then
-         availableIcon r (change r) 
+         availableIcon r change (List.member r helps) showHelp
        else
          disabledIcon r )  Data.synthRolesAlt
     ]
@@ -428,7 +437,7 @@ makerBoxes state button =
     [ div [Attr.class class]
       [ titleBox state.title SetTitle
       , speedBox state.speed SetSpeed
-      , voiceBox state.voices ToggleVoice
+      , voiceBox state.voices ToggleVoice state.helpTexts ToggleHelp
       ]
       , button 
     ]

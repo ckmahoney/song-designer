@@ -609,21 +609,23 @@ voiceIcon voice =
     ]
 
 
-synthIconHelp : T.SynthRole  -> msg -> Html msg
-synthIconHelp role click =
+synthIconHelp : T.SynthRole ->  (T.SynthRole -> msg)  -> Bool -> (T.SynthRole -> msg) -> Html msg
+synthIconHelp role click showHelp toggleHelp =
   div [] 
-    [ div [class "is-flex"] 
-       [ div [class "box mb-0", onClick click ] [ roleIcon role ]
-       , synthDrawer role
+    [ div [class "voice-help content", class <| if showHelp then "visible" else "hidden"] 
+        [text <| D.synthHelp role] 
+    , div [class "is-flex"] 
+       [ div [class "box mb-0", onClick (click role) ] [ roleIcon role ]
+       , synthDrawer role showHelp (toggleHelp role)
        ]
-    , p [ class "has-text-centered"] [ text <| D.roleName role ]
+    , p [ class "mt-2 has-text-centered"] [ text <| D.roleName role ]
     ]
 
 
-synthDrawer : T.SynthRole -> Html msg
-synthDrawer role =
+synthDrawer : T.SynthRole -> Bool -> msg -> Html msg
+synthDrawer role showHelp toggleHelp =
   div [ Components.flexColumn, class "px-5 mb-0 is-justify-content-space-around is-clickable" ]
-    [ Components.icon "question-mark"
+    [ div [onClick toggleHelp] [ Components.icon "question-mark"]
     , Components.icon "speaker" 
     ]
 
