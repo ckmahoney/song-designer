@@ -609,6 +609,25 @@ voiceIcon voice =
     ]
 
 
+synthIconHelp : T.SynthRole  -> msg -> Html msg
+synthIconHelp role click =
+  div [] 
+    [ div [class "is-flex"] 
+       [ div [class "box mb-0", onClick click ] [ roleIcon role ]
+       , synthDrawer role
+       ]
+    , p [ class "has-text-centered"] [ text <| D.roleName role ]
+    ]
+
+
+synthDrawer : T.SynthRole -> Html msg
+synthDrawer role =
+  div [ Components.flexColumn, class "px-5 mb-0 is-justify-content-space-around is-clickable" ]
+    [ Components.icon "question-mark"
+    , Components.icon "speaker" 
+    ]
+
+
 layoutIcon : T.Layout -> Html msg
 layoutIcon  scopes = 
   div [ class "box" ] 

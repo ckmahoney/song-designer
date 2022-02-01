@@ -208,7 +208,7 @@ initModel =
   , pendingMemberSubmitted = Nothing
   , title = Just ""
   , speed = Medium
-  , voices = [ Kick, Hat, Melody ]
+  , voices = [ ]
   , tracks = []
   , error = Nothing
   , status = Nothing
@@ -353,11 +353,15 @@ selectedIcon role toggle =
       , p [toggle] [text <| Data.roleName role ] ]
 
 
-availableIcon role toggle =
+availableIconOld role toggle =
     div [voiceIconClass ] 
       [ Components.box <| List.singleton <| div [toggle] [View.roleIcon role]
       , p [toggle] [text <| Data.roleName role ] ]
 
+
+availableIcon role click = 
+   div [voiceIconClass]
+     [ View.synthIconHelp role click ]
 
 voiceBox : (List SynthRole) -> (SynthRole -> msg) -> Html msg
 voiceBox current change =
@@ -368,9 +372,9 @@ voiceBox current change =
        if List.member r current then 
          selectedIcon r (onClick <| change r) 
        else if 4 > List.length current then
-         availableIcon r (onClick <| change r) 
+         availableIcon r (change r) 
        else
-         disabledIcon r )  synthRoles 
+         disabledIcon r )  Data.synthRolesAlt
     ]
 
 

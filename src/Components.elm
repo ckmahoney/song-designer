@@ -38,18 +38,25 @@ desktop attrs =
   div (attrs ++ [ class "is-hidden-touch" ])
 
 
+
+flexColumn = class "is-flex is-flex-direction-column"
+
+
 heading : String -> Html msg
 heading content =
   Html.h2 [class "title"] [text content]
 
 
 sectionHeading : String -> Slug -> String -> List (Html msg) -> Html msg
-sectionHeading icon slug title buttons =
+sectionHeading _ slug title buttons =
   div [class "column is-full columns"]
    [ colHalf <| heading title
    , div [class " column is-half has-text-right is-flex is-justify-content-space-between columns is-multiline"] <| 
        List.map col1 (howtoButton title slug :: buttons)
    ]
+
+
+
 
 
 invertColor : Html msg -> Html msg
@@ -80,11 +87,11 @@ modal state content close =
 
 
 pickerCell : Maybe a -> (a -> Html msg) -> Html msg  -> Html msg
-pickerCell el icon html =
+pickerCell el pic html =
   let 
     content = case el of
       Nothing -> text "no item"
-      Just x -> icon x 
+      Just x -> pic x 
 
   in 
   div [ class "box has-background-primary" ] [
@@ -116,6 +123,11 @@ svg name =
   Html.img [ width 50
       , height 50
       , src <| "/assets/svg/" ++ name ++ ".svg"] []
+
+
+icon : String -> Html msg
+icon name =
+  Html.span [ class "icon" ] [ Html.img [ src <| "/assets/svg/" ++ name ++ ".svg"] [] ]
 
 
 svgClick : String -> msg -> Html msg
@@ -201,12 +213,12 @@ keyPicker useSharps val toMsg =
 
 
 viewList : List a -> (a -> Html msg) -> Html msg
-viewList xs icon =
+viewList xs pic =
   box <|
     [ div [ class "columns is-mobile is-multiline" ] <| 
         List.map (\el -> 
           div [ class "column has-text-centered" ]
-           [ icon el ]) xs]
+           [ pic el ]) xs]
 
 
 
@@ -423,53 +435,53 @@ editToggle name (x, labelX) (y, labelY) curr toMsg =
 
 
 picker : List a -> (a -> Html msg) -> (Int -> msg) -> Html msg
-picker things icon select = 
+picker things pic select = 
   div [ class "columns is-multiline level is-vcentered" ] <|
      List.indexedMap (\i thing ->
        div [ class "column is-vcentered has-text-centered", onClick (select i) ]
-         [ icon thing ]) things
+         [ pic thing ]) things
 
 
 pickerSelected : List a -> (a -> Html msg) -> (Int -> msg) -> a -> Html msg
-pickerSelected things icon select current = 
+pickerSelected things pic select current = 
   div [ class "columns is-multiline level is-vcentered" ] <|
      List.indexedMap (\i thing ->
        div [ class <|if thing == current then "chosen" else "", class "column is-vcentered has-text-centered", onClick (select i) ]
-         [ icon thing ]) things
+         [ pic thing ]) things
 
 
 killer : List a -> (a -> Html msg) -> (Int -> msg) -> Html msg
-killer things icon kill = 
+killer things pic kill = 
   div [ class "columns is-multiline level is-vcentered" ] <|
      (List.indexedMap (\i thing ->
        div [ class "column is-flex is-flex-direction-column is-align-items-center is-justify-content-center" ]
-         [ col [ class "is-full has-text-centered" ] [(icon thing)]
+         [ col [ class "is-full has-text-centered" ] [(pic thing)]
          , col [ class "is-full has-text-centered" ] [(deleteIcon (kill i))] ] ) things)
 
 
 pickerAnd : List a -> (Html  msg) -> (a -> Html msg) -> (Int -> msg) ->  Html msg
-pickerAnd things more icon select = 
+pickerAnd things more pic select = 
   div [ class "columns is-multiline level is-vcentered" ] <|
      (List.indexedMap (\i thing ->
        div [ class "column is-vcentered has-text-centered", onClick (select i) ]
-         [ icon thing ] ) things) ++ [more]
+         [ pic thing ] ) things) ++ [more]
 
 
 pickerKiller : List a -> (a -> Html msg) -> (Int -> msg) ->  (Int -> msg) -> Html msg
-pickerKiller things icon select kill = 
+pickerKiller things pic select kill = 
   div [ class "columns is-multiline level is-vcentered" ] <|
      (List.indexedMap (\i thing ->
        div [ class "column is-flex is-flex-direction-column is-align-items-center is-justify-content-center" ]
-         [ col [ class "is-full has-text-centered", onClick (select i) ] [(icon thing)]
+         [ col [ class "is-full has-text-centered", onClick (select i) ] [(pic thing)]
          , col [ class "is-full has-text-centered" ] [(deleteIcon (kill i))] ] ) things)
 
 
 pickerKillerAnother : List a -> (Html  msg) -> (a -> Html msg) -> (Int -> msg) ->  (Int -> msg) -> Html msg
-pickerKillerAnother things more icon select kill = 
+pickerKillerAnother things more pic select kill = 
   div [ class "columns is-multiline level is-vcentered" ] <|
      (List.indexedMap (\i thing ->
        div [ class "column is-flex is-flex-direction-column is-align-items-center is-justify-content-center" ]
-         [ col [ class "is-full has-text-centered", onClick (select i) ] [(icon thing)]
+         [ col [ class "is-full has-text-centered", onClick (select i) ] [(pic thing)]
          , col [ class "is-full has-text-centered" ] [(deleteIcon (kill i))] ] ) things) ++ [more]
 
 

@@ -13,6 +13,10 @@ synthRoles : List SynthRole
 synthRoles =
   [Kick, Perc, Hat, Bass, Chords, Melody]
 
+synthRolesAlt : List SynthRole
+synthRolesAlt =
+  [Kick, Bass, Perc, Chords, Hat, Melody]
+
 
 minDensity : Int
 minDensity = 1
@@ -1154,8 +1158,6 @@ helpLinks =
   }
 
 
-
-
 type HelpItem 
   = Combo_Help
   | Ensemble_Help
@@ -1184,3 +1186,45 @@ helpLink role =
 
    _ ->
      ""
+
+
+instrumental : List SynthRole
+instrumental =
+  [Bass, Chords, Melody]
+
+
+beat : List SynthRole
+beat =
+  [Kick, Perc, Hat]
+
+
+trio : List SynthRole
+trio =
+  [Kick, Chords, Melody]
+
+
+quartet : List SynthRole
+quartet =
+  [Bass, Perc, Melody, Hat]
+
+
+synthHelp : SynthRole -> String
+synthHelp role =
+  case role of
+    Kick -> 
+      "The lowest beat. Deep and full, gives oomph to a song."
+ 
+    Perc ->
+      "The middle beat. Punchy , things like claps, snare drums."
+
+    Hat ->
+      "The highest beat. Bright and pingy, like a bell."
+
+    Bass ->
+      "The lowest instrumental. Simple yet powerful."
+
+    Chords ->
+      "Middle or high instrumental. Tells a story through changing harmony."
+
+    Melody ->
+      "Middle or high instrumental. Melodies that you can sing."
