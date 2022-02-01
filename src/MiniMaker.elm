@@ -577,7 +577,7 @@ update msg model =
 
 
     _ -> 
-      Debug.log "unkown update message weird" (apply msg model, Cmd.none)
+      (apply msg model, Cmd.none)
 
 
 updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )

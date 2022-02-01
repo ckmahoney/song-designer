@@ -329,13 +329,33 @@ mini ((selection, model) as p) signal tracks download =
 
    Just track ->
     let
-       change = (\msg -> signal <| update (Debug.log "msg" msg) p)
+       change = (\msg -> signal <| update msg p)
     in
     div [Attr.id "mini-player"] <| List.singleton <|
      Components.cols
       [ Components.colSize "is-one-half" <| face track model change
       , Components.colSize "is-two-thirds" <| actionlist p signal tracks download
       ] 
+
+
+bottomPlayer : (Maybe TrackMeta) -> Html msg -> Html msg
+bottomPlayer selection audio =
+  let
+    visiblity = case selection of 
+      Nothing -> "hidden"
+      Just track -> "visible"
+  in 
+  div [ Attr.class "bottom-player", Attr.class visiblity ] 
+   [ Components.label "artist"
+   , Components.label "title"
+   , Components.buttonDisabled [] "Options"
+   , Components.buttonDisabled [] "Volume"
+   , Components.buttonDisabled [] "PlayPause"
+   , audio
+   , text "3:24"
+   ]
+
+
 
 emptyMessage : Html msg
 emptyMessage =

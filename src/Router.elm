@@ -85,7 +85,7 @@ initFrom v s l t m =
 initTest : Maybe GhostMember -> (Model, Cmd msg)
 initTest flags = 
   let
-    rec = Debug.log "Got this init result:" <| initFrom [Data.p1, Data.p2] [] [] [] (Just Data.testMember)
+    rec = initFrom [Data.p1, Data.p2] [] [] [] (Just Data.testMember)
   in 
     ({ rec
     | tracks = Data.someTracks
@@ -217,7 +217,6 @@ update msg model =
       let
         ((updated, pMsg_) as result) = Playback.update pMsg playback
         next = { model | playback = updated }
-        y = Debug.log "using next message:" pMsg_
       in 
               
       case Tuple.first updated of
