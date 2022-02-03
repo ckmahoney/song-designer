@@ -539,7 +539,7 @@ view model =
 
 
 main =  Browser.element 
-  { init = initTest
+  { init = init
   , update = update
   , view = view
   , subscriptions = subscriptions
