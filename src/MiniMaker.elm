@@ -406,7 +406,7 @@ voiceBox current change helps showHelp playSample clearSample sample =
          availableIcon r change (List.member r helps) showHelp toggleSample
        else
          disabledIcon r )  Data.synthRoles
-    , Html.small [] [ text "Want more voices? Use the ", Html.a [Attr.href "/song-designer"] [text "Song Designer"], text " for unlimited voices and sections." ]
+    , Html.small [Attr.class "is-block has-text-centered"] [ text "Want more voices? Use the ", Html.a [Attr.href "/song-designer"] [text "Song Designer"], text " for unlimited voices and sections." ]
     ]
 
 
@@ -517,7 +517,7 @@ sampleBox role close =
         -- , Attr.style "margin-top" <| String.fromInt <| if Tools.isNothing mRole then Embeds.scEmbedHeight else 0 
         -- , Attr.class <| if Tools.isNothing mRole then "hidden" else "visible" 
         ]
-      [ Embeds.soundcloud role]
+      [ Embeds.soundcloud role ]
   ]
   
 
