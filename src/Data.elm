@@ -1212,16 +1212,16 @@ synthHelp : SynthRole -> String
 synthHelp role =
   case role of
     Kick -> 
-      "The lowest beat. Deep and full, gives oomph to a song."
+      "The lowest beat. Deep and full, gives structure to a song."
  
     Perc ->
-      "The middle beat. Punchy , things like claps, snare drums."
+      "The middle beat. Punchy, things like claps, snare drums."
 
     Hat ->
       "The highest beat. Bright and pingy, like a bell."
 
     Bass ->
-      "The lowest instrumental. Simple yet powerful."
+      "The lowest instrumental. Simple yet powerful foundation."
 
     Chords ->
       "Middle or high instrumental. Tells a story through changing harmony."

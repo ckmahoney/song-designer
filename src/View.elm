@@ -614,10 +614,10 @@ synthIconHelpMobile role click showHelp toggleHelp playSample =
     [ div [class "voice-help content", class <| if showHelp then "visible" else "hidden"] 
         [text <| D.synthHelp role] 
     , div [class "is-block"] 
-       [ div [class "box mb-0", onClick (click role) ] [ roleIcon role ]
-       , synthDrawerMobile role showHelp (toggleHelp role) playSample
+       [ div [class "box mb-0 mx-3", onClick (click role) ] [ roleIcon role ]
+       , p [ class "mt-2 has-text-centered"] [ text <| D.roleName role ]
        ]
-    , p [ class "mt-2 has-text-centered"] [ text <| D.roleName role ]
+       , synthDrawerMobile role showHelp (toggleHelp role) playSample
     ]
   
 synthIconHelpDesktop : T.SynthRole ->  (T.SynthRole -> msg)  -> Bool -> (T.SynthRole -> msg) -> msg -> Html msg

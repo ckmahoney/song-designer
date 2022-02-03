@@ -378,9 +378,11 @@ availableIcon role click showHelp toggleHelp toggleSample =
 
 voiceBox : (List SynthRole) -> (SynthRole -> msg) -> (List SynthRole) -> (SynthRole -> msg) -> (SynthRole -> msg) -> msg -> (Maybe SynthRole) -> Html msg
 voiceBox current change helps showHelp playSample clearSample sample =
- div [ Attr.class "my-6"]
-    [ p [Attr.class "mt-3"] [ text "Which voices should we put in it?" ]
-    , p [Attr.class "mb-3"] [ text "Pick up to 4 voices." ]
+ div [ Attr.id "voice-box", Attr.class "my-6"]
+    [ div [Attr.class "content"]
+      [ p [Attr.class "mt-3"] [ text "Which voices should we put in it? Pick up to 4." ]
+      , Html.small [Attr.class "mb-3 is-inline"] [ text "Want more voices? Use the ", Html.a [Attr.href "/song-designer"] [text "Song Designer"], text " for unlimited voices and sections." ]
+      ]
     , div [ Attr.class "my-3 columns is-multiline is-mobile is-tablet is-desktop" ]  <| List.map (\r -> 
        if List.member r current then 
          selectedIcon r (onClick <| change r) 
@@ -392,7 +394,7 @@ voiceBox current change helps showHelp playSample clearSample sample =
         in 
          availableIcon r change (List.member r helps) showHelp toggleSample
        else
-         disabledIcon r )  Data.synthRolesAlt
+         disabledIcon r )  Data.synthRoles
     ]
 
 
@@ -506,10 +508,10 @@ showCta state pendingMember register =
 
 sampleBox : SynthRole -> msg -> Html msg
 sampleBox role close =
-  div [] 
+  div [ Attr.id "sample-box" ] 
   [ Components.colsWith [ Attr.class "is-justify-content-space-between" ]
     [ Components.col1 <| Components.paragraph <| "This sample demonstrates what " ++ Data.roleName role ++ " sounds like."
-    , Components.col1 <| div [ Attr.class "is-flex is-justify-content-flex-end is-align-items-center"] [ Html.span [Attr.class "content mb-0 mr-3"] [text "close sample"], Components.closeButton close ]
+    , Components.col1 <| div [ Attr.class "is-flex is-justify-content-flex-end is-align-items-center"] [ Html.span [onClick close, Attr.class "content mb-0 mr-3 is-clickable"] [text "Close sample to make a song."], Components.closeButton close ]
     ]
   , div [ Attr.class "slide-in-out"
         -- , Attr.style "margin-top" <| String.fromInt <| if Tools.isNothing mRole then Embeds.scEmbedHeight else 0 
@@ -550,17 +552,17 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of  
     CloseSample -> 
-        ( { model | showSample = Nothing }, Cmd.none ) 
+        ( { model | showSample = Nothing }, scroll "#voice-box" ) 
       
     PlaySample role ->
       case Debug.log "sample" model.showSample of 
         Nothing -> 
-           ( { model | showSample = Just role }, Cmd.none ) 
+           ( { model | showSample = Just role }, scroll "#sample-box" ) 
 
         Just prev -> 
           if role == prev then 
-           ( { model | showSample = Nothing }, Cmd.none ) 
-          else ( { model | showSample = Just role }, Cmd.none )
+           ( { model | showSample = Nothing }, scroll "#voice-box" ) 
+          else ( { model | showSample = Just role }, scroll "#sample-box" ) 
 
     CompletedReg response ->
       case response of 
