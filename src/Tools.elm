@@ -126,6 +126,13 @@ unMaybe xs def =
         x)
 
 
+isNothing : Maybe a -> Bool
+isNothing x =
+  case x of 
+    Nothing -> True
+    Just y -> False
+
+
 replaceAt : Int -> a -> List a -> List a
 replaceAt index el els =
   Array.set index el (Array.fromList els)

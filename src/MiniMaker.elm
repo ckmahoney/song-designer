@@ -20,7 +20,7 @@ import Components
 import Playback
 import View
 import Tools
-
+import Embeds
 
 port scrollTo : String -> Cmd msg
 
@@ -58,6 +58,7 @@ type alias Model =
   , status : Maybe String
   , playback : Playback.Model
   , helpTexts : List SynthRole
+  , showSample : Maybe SynthRole
   }
 
 
@@ -84,6 +85,8 @@ type Msg
   | UpdateName String
   | UpdateEmail String
   | ClickedRegister
+  | PlaySample SynthRole
+  | CloseSample
 
   -- Random generators
   | RollForTrack
@@ -216,6 +219,7 @@ initModel =
   , status = Nothing
   , playback = Playback.new
   , helpTexts = []
+  , showSample = Nothing
   }
 
 
@@ -366,14 +370,14 @@ availableIconOld role toggle =
       , p [toggle] [text <| Data.roleName role ] ]
 
 
-availableIcon : SynthRole -> (SynthRole -> msg) -> Bool -> (SynthRole -> msg) -> Html msg
-availableIcon role click showHelp toggleHelp = 
+availableIcon : SynthRole -> (SynthRole -> msg) -> Bool -> (SynthRole -> msg) -> msg -> Html msg
+availableIcon role click showHelp toggleHelp toggleSample = 
    div [ voiceIconClass ]
-     [ View.synthIconHelp role click showHelp toggleHelp ]
+     [ View.synthIconHelp role click showHelp toggleHelp toggleSample ]
 
 
-voiceBox : (List SynthRole) -> (SynthRole -> msg) -> (List SynthRole) -> (SynthRole -> msg) -> Html msg
-voiceBox current change helps showHelp =
+voiceBox : (List SynthRole) -> (SynthRole -> msg) -> (List SynthRole) -> (SynthRole -> msg) -> (SynthRole -> msg) -> msg -> (Maybe SynthRole) -> Html msg
+voiceBox current change helps showHelp playSample clearSample sample =
  div [ Attr.class "my-6"]
     [ p [Attr.class "mt-3"] [ text "Which voices should we put in it?" ]
     , p [Attr.class "mb-3"] [ text "Pick up to 4 voices." ]
@@ -381,7 +385,12 @@ voiceBox current change helps showHelp =
        if List.member r current then 
          selectedIcon r (onClick <| change r) 
        else if 4 > List.length current then
-         availableIcon r change (List.member r helps) showHelp
+        let
+         toggleSample = case sample of 
+           Nothing -> playSample r
+           Just samp -> if samp == r then clearSample else playSample r
+        in 
+         availableIcon r change (List.member r helps) showHelp toggleSample
        else
          disabledIcon r )  Data.synthRolesAlt
     ]
@@ -437,7 +446,7 @@ makerBoxes state button =
     [ div [Attr.class class]
       [ titleBox state.title SetTitle
       , speedBox state.speed SetSpeed
-      , voiceBox state.voices ToggleVoice state.helpTexts ToggleHelp
+      , voiceBox state.voices ToggleVoice state.helpTexts ToggleHelp PlaySample CloseSample state.showSample
       ]
       , button 
     ]
@@ -495,25 +504,34 @@ showCta state pendingMember register =
   else text ""
 
 
+sampleBox : (Maybe SynthRole) -> Html msg
+sampleBox mRole =
+  div [ Attr.class "slide-in-out"
+      , Attr.style "margin-top" <| String.fromInt <| if Tools.isNothing mRole then Embeds.scEmbedHeight else 0 
+      , Attr.class <| if Tools.isNothing mRole then "hidden" else "visible" ]
+    [ Embeds.soundcloud ]
+  
+
 view : Model -> Html Msg
-view state =
+view model =
  let 
-  cb = (if validReq state then RollForTrack else PushedButton)
-  butt =   case (state.status, state.error) of 
+  cb = (if validReq model then RollForTrack else PushedButton)
+  butt = case (model.status, model.error) of 
     (Nothing, Nothing) ->
-      Components.col1 <| fireButton state cb
+      Components.col1 <| fireButton model cb
     _ ->
-      postBox state
+      postBox model
  in 
   Components.box
     [ Components.heading "Mini Song Maker"
+    , sampleBox model.showSample
     , Components.cols
         [ Components.col1 description ] 
-    , case state.pendingMember of 
+    , case model.pendingMember of 
         Nothing -> text ""
-        Just p -> showCta state p (RegisterUser p)
-    , Playback.mini state.playback UpdatePlayer state.tracks Download 
-    , makerBoxes state butt
+        Just p -> showCta model p (RegisterUser p)
+    , Playback.mini model.playback UpdatePlayer model.tracks Download 
+    , makerBoxes model butt
     ]
 
 
@@ -521,6 +539,19 @@ view state =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of  
+    CloseSample -> 
+        ( { model | showSample = Nothing }, Cmd.none ) 
+      
+    PlaySample role ->
+      case Debug.log "sample" model.showSample of 
+        Nothing -> 
+           ( { model | showSample = Just role }, Cmd.none ) 
+
+        Just prev -> 
+          if role == prev then 
+           ( { model | showSample = Nothing }, Cmd.none ) 
+          else ( { model | showSample = Just role }, Cmd.none )
+
     CompletedReg response ->
       case response of 
         Ok message ->
