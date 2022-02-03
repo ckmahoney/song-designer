@@ -507,9 +507,9 @@ showCta state pendingMember register =
 sampleBox : SynthRole -> msg -> Html msg
 sampleBox role close =
   div [] 
-  [ Components.colsWith [ Attr.class "is-justify-content-space-between is-align-items-center" ]
+  [ Components.colsWith [ Attr.class "is-justify-content-space-between" ]
     [ Components.col1 <| Components.paragraph <| "This sample demonstrates what " ++ Data.roleName role ++ " sounds like."
-    , Components.col1 <| div [ Attr.class "is-flex is-justify-content-flex-end"] [ Html.span [Attr.class "content mb-0 mr-3"] [text "close sample"], Components.closeButton close ]
+    , Components.col1 <| div [ Attr.class "is-flex is-justify-content-flex-end is-align-items-center"] [ Html.span [Attr.class "content mb-0 mr-3"] [text "close sample"], Components.closeButton close ]
     ]
   , div [ Attr.class "slide-in-out"
         -- , Attr.style "margin-top" <| String.fromInt <| if Tools.isNothing mRole then Embeds.scEmbedHeight else 0 

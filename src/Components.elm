@@ -14,13 +14,14 @@ type Modal
   | Showing
 
 
-
+mobileOnlyClass = class "is-hidden-tablet"
+mobileNotClass = class "is-hidden-mobile is-hidden-touch"
 
 mobileOnly child =
-  div [ class "is-hidden-tablet" ] [ child ]
+  div [ mobileOnlyClass ] [ child ]
 
 mobileNot child =
-  div [ class "is-hidden-mobile is-hidden-touch" ] [ child ]
+  div [ mobileNotClass ] [ child ]
 
 tabletOnly child =
   div [ class "is-hidden-mobile is-hidden-desktop" ] [ child ]
@@ -38,6 +39,10 @@ desktop attrs =
   div (attrs ++ [ class "is-hidden-touch" ])
 
 
+
+
+
+flexRow = class "is-flex is-flex-direction-row"
 
 flexColumn = class "is-flex is-flex-direction-column"
 
