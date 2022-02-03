@@ -20,7 +20,7 @@ import Components
 import Playback
 import View
 import Tools
-
+import Embeds
 
 port scrollTo : String -> Cmd msg
 
@@ -58,6 +58,7 @@ type alias Model =
   , status : Maybe String
   , playback : Playback.Model
   , helpTexts : List SynthRole
+  , showSample : Maybe SynthRole
   }
 
 
@@ -84,6 +85,8 @@ type Msg
   | UpdateName String
   | UpdateEmail String
   | ClickedRegister
+  | PlaySample SynthRole
+  | CloseSample
 
   -- Random generators
   | RollForTrack
@@ -210,12 +213,13 @@ initModel =
   , pendingMemberSubmitted = Nothing
   , title = Just ""
   , speed = Medium
-  , voices = [ ]
+  , voices = []
   , tracks = []
   , error = Nothing
   , status = Nothing
   , playback = Playback.new
   , helpTexts = []
+  , showSample = Nothing
   }
 
 
@@ -229,6 +233,7 @@ init flags =
       ({ initModel | member =  member }, Cmd.none)
 
 
+-- Checks that the config made in the Mini Maker has the minimum requirements for a song.
 validReq : Model -> Bool
 validReq state = 
   case state.title of 
@@ -262,12 +267,18 @@ apply msg model =
        Just p -> { model | pendingMember = Just <| updatePendingMember p "email" email }
 
     PushedButton ->
-      case model.title of 
+      if List.length model.voices == 0 then 
+        { model | error = Just "Click on a voice to add it to your song." } 
+
+      else case model.title of 
         Just "" -> 
-         { model | title = Nothing }
+         { model | error = Just "Your song needs a name, can you give it one before we write it?" }
+ 
+        Nothing -> 
+         { model | error = Just "Your song needs a name, can you give it one before we write it?" }
  
         _ -> 
-         model
+         { model | error = Nothing }
 
     SetTitle next ->
       { model | title = Just next }
@@ -277,7 +288,8 @@ apply msg model =
 
     ToggleVoice voice ->
       { model 
-      | voices = Tools.toggleElement voice model.voices }    
+      | voices = Tools.toggleElement voice model.voices
+      , error = Nothing }    
 
     ToggleHelp voice ->
       { model | helpTexts = Tools.toggleElement voice model.helpTexts }    
@@ -328,22 +340,25 @@ disabledGoButton =
   Components.buttonDisabled [  Attr.class "is-primary is-fullwidth" ] "Make a Song"
 
 
+unfoundBugAsk : Html msg
+unfoundBugAsk =
+  Html.a [Attr.href "/contact"] [ text "Super weird bug! We didn't think this could happen. Can you tell us about it?" ]
+
+
 fireButton : Model -> msg ->  Html msg
 fireButton state msg =
-  if List.length state.voices == 0 then
-    div [ ]
-      [ disabledGoButton 
-      , p [ Attr.class "my-3 has-text-danger" ] [ text "Add at least one voice to write a song." ]
-      ] 
-  else 
-    case state.title of
-       Nothing ->
-         div [ ]
-           [ disabledGoButton 
-           , p [ Attr.class "my-3 has-text-danger" ] [ text "Your song needs a name, can you give it one before we write it?" ]
-           ]  
-       Just title -> 
+  case state.error of 
+    Just message ->
+      div []
+        [ disabledGoButton 
+        , p [ Attr.class "my-3 has-text-danger" ] [ text message ]
+        ]
+    Nothing ->
+      case state.title of 
+        Just title -> 
          goButton title msg
+        Nothing ->
+         unfoundBugAsk
 
 
 disabledIcon : SynthRole -> Html msg
@@ -366,24 +381,32 @@ availableIconOld role toggle =
       , p [toggle] [text <| Data.roleName role ] ]
 
 
-availableIcon : SynthRole -> (SynthRole -> msg) -> Bool -> (SynthRole -> msg) -> Html msg
-availableIcon role click showHelp toggleHelp = 
+availableIcon : SynthRole -> (SynthRole -> msg) -> Bool -> (SynthRole -> msg) -> msg -> Html msg
+availableIcon role click showHelp toggleHelp toggleSample = 
    div [ voiceIconClass ]
-     [ View.synthIconHelp role click showHelp toggleHelp ]
+     [ View.synthIconHelp role click showHelp toggleHelp toggleSample ]
 
 
-voiceBox : (List SynthRole) -> (SynthRole -> msg) -> (List SynthRole) -> (SynthRole -> msg) -> Html msg
-voiceBox current change helps showHelp =
- div [ Attr.class "my-6"]
-    [ p [Attr.class "mt-3"] [ text "Which voices should we put in it?" ]
-    , p [Attr.class "mb-3"] [ text "Pick up to 4 voices." ]
-    , div [ Attr.class "my-3 columns is-multiline is-mobile is-tablet is-desktop" ]  <| List.map (\r -> 
+voiceBox : (List SynthRole) -> (SynthRole -> msg) -> (List SynthRole) -> (SynthRole -> msg) -> (SynthRole -> msg) -> msg -> (Maybe SynthRole) -> Html msg
+voiceBox current change helps showHelp playSample clearSample sample =
+ div [ Attr.id "voice-box"]
+    [ div [Attr.class "content"]
+      [ p [Attr.class "mt-3"] [ text "Which voices should we put in it?" ]
+      , p [] [ text "Pick up to 4." ]
+      ]
+    , div [ Attr.class "mb-3 columns is-multiline is-mobile is-tablet is-desktop" ]  <| List.map (\r -> 
        if List.member r current then 
          selectedIcon r (onClick <| change r) 
        else if 4 > List.length current then
-         availableIcon r change (List.member r helps) showHelp
+        let
+         toggleSample = case sample of 
+           Nothing -> playSample r
+           Just samp -> if samp == r then clearSample else playSample r
+        in 
+         availableIcon r change (List.member r helps) showHelp toggleSample
        else
-         disabledIcon r )  Data.synthRolesAlt
+         disabledIcon r )  Data.synthRoles
+    , Html.small [] [ text "Want more voices? Use the ", Html.a [Attr.href "/song-designer"] [text "Song Designer"], text " for unlimited voices and sections." ]
     ]
 
 
@@ -404,32 +427,20 @@ errorBox str =
         [ p [] [text message] ]
 
 
-statusBox : (Maybe String) -> Html msg
-statusBox str =
-  case str of 
-    Nothing -> text ""
-    Just message ->
-      div [Attr.class "notification is-success is-light"]
-        [ p [] [text message] ]
-
-
-postBox : Model -> Html msg
-postBox state =
-  case (state.status, state.error) of 
-    (Nothing, Nothing) -> text ""
-    _ -> 
-      Components.box
-          [ errorBox state.error
-          , statusBox state.status
-          ]
+postBox : String -> Html msg
+postBox status =
+  Components.box 
+  [ div [Attr.class "notification is-success is-light"]
+    [ p [] [ text status] ]
+  ]
 
 
 -- Controls for the MiniMaker 
 makerBoxes : Model -> (Html Msg) -> Html Msg
 makerBoxes state button = 
   let
-    class = case (state.status, state.error) of 
-      (Nothing, Nothing) -> ""
+    class = case (state.status) of 
+      Nothing -> ""
       _ -> "overlay-disabled"
 
   in 
@@ -437,7 +448,7 @@ makerBoxes state button =
     [ div [Attr.class class]
       [ titleBox state.title SetTitle
       , speedBox state.speed SetSpeed
-      , voiceBox state.voices ToggleVoice state.helpTexts ToggleHelp
+      , voiceBox state.voices ToggleVoice state.helpTexts ToggleHelp PlaySample CloseSample state.showSample
       ]
       , button 
     ]
@@ -495,25 +506,43 @@ showCta state pendingMember register =
   else text ""
 
 
+sampleBox : SynthRole -> msg -> Html msg
+sampleBox role close =
+  div [ Attr.id "sample-box" ] 
+  [ Components.colsWith [ Attr.class "is-justify-content-space-between" ]
+    [ Components.col1 <| Components.paragraph <| "This sample demonstrates what " ++ Data.roleName role ++ " sounds like."
+    , Components.col1 <| div [ Attr.class "is-flex is-justify-content-flex-end is-align-items-center"] [ Html.span [onClick close, Attr.class "content mb-0 mr-3 is-clickable"] [text "Close sample to make a song."], Components.closeButton close ]
+    ]
+  , div [ Attr.class "slide-in-out"
+        -- , Attr.style "margin-top" <| String.fromInt <| if Tools.isNothing mRole then Embeds.scEmbedHeight else 0 
+        -- , Attr.class <| if Tools.isNothing mRole then "hidden" else "visible" 
+        ]
+      [ Embeds.soundcloud ]
+  ]
+  
+
 view : Model -> Html Msg
-view state =
+view model =
  let 
-  cb = (if validReq state then RollForTrack else PushedButton)
-  butt =   case (state.status, state.error) of 
-    (Nothing, Nothing) ->
-      Components.col1 <| fireButton state cb
-    _ ->
-      postBox state
+  butt = case model.status of 
+    Nothing ->
+      Components.col1 <| case model.showSample of 
+        Nothing -> 
+         fireButton model (if validReq model then RollForTrack else PushedButton )
+        Just role -> 
+         sampleBox role CloseSample
+    Just status ->
+      postBox status
  in 
   Components.box
     [ Components.heading "Mini Song Maker"
     , Components.cols
         [ Components.col1 description ] 
-    , case state.pendingMember of 
+    , case model.pendingMember of 
         Nothing -> text ""
-        Just p -> showCta state p (RegisterUser p)
-    , Playback.mini state.playback UpdatePlayer state.tracks Download 
-    , makerBoxes state butt
+        Just p -> showCta model p (RegisterUser p)
+    , Playback.mini model.playback UpdatePlayer model.tracks Download 
+    , makerBoxes model butt
     ]
 
 
@@ -521,6 +550,19 @@ view state =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of  
+    CloseSample -> 
+        ( { model | showSample = Nothing }, scroll "#voice-box" ) 
+      
+    PlaySample role ->
+      case Debug.log "sample" model.showSample of 
+        Nothing -> 
+           ( { model | showSample = Just role }, scroll "#sample-box" ) 
+
+        Just prev -> 
+          if role == prev then 
+           ( { model | showSample = Nothing }, scroll "#voice-box" ) 
+          else ( { model | showSample = Just role }, scroll "#sample-box" ) 
+
     CompletedReg response ->
       case response of 
         Ok message ->
@@ -570,10 +612,14 @@ update msg model =
       (model, Conf.download url)
 
     RollForTrack ->
-      ({ model | status = Just "Rolling some dice..." }, modelToCombo (Maybe.withDefault "" model.title) model.speed model.voices)
+      ( { model | status = Just "Rolling some dice..." }
+      , modelToCombo (Maybe.withDefault "" model.title) model.speed model.voices
+      )
 
     RolledCombo combo ->
-      ({ model | status = Just "Making a track for you!"}, reqTrack model.member.email model.member.uuid (Maybe.withDefault "" model.title) combo)
+      ( { model | status = Just "Making a track for you!" }
+      , reqTrack model.member.email model.member.uuid (Maybe.withDefault "" model.title) combo
+      )
 
     UpdatePlayer (playback, pMsg) ->
       let
@@ -606,7 +652,8 @@ updateWithStorage msg model =
                 Just { p | trackIDs = List.map .id newTracks }
               _ -> Nothing
          in 
-          ({ model | status = Nothing
+          ({ model 
+          | status = Nothing
           , tracks = newTracks
           , pendingMember = pendingMember
           , playback = (Just track, Playback.Playing)

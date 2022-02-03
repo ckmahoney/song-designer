@@ -14,13 +14,14 @@ type Modal
   | Showing
 
 
-
+mobileOnlyClass = class "is-hidden-tablet"
+mobileNotClass = class "is-hidden-mobile is-hidden-touch"
 
 mobileOnly child =
-  div [ class "is-hidden-tablet" ] [ child ]
+  div [ mobileOnlyClass ] [ child ]
 
 mobileNot child =
-  div [ class "is-hidden-mobile is-hidden-touch" ] [ child ]
+  div [ mobileNotClass ] [ child ]
 
 tabletOnly child =
   div [ class "is-hidden-mobile is-hidden-desktop" ] [ child ]
@@ -38,6 +39,10 @@ desktop attrs =
   div (attrs ++ [ class "is-hidden-touch" ])
 
 
+
+
+
+flexRow = class "is-flex is-flex-direction-row"
 
 flexColumn = class "is-flex is-flex-direction-column"
 
@@ -172,6 +177,10 @@ deleteIcon click =
 deleteButton : msg -> Html msg
 deleteButton click =
   Html.button [ class "button is-fullwidth has-background-danger has-text-weight-bold ", onClick click ] [text "Delete"]
+
+closeButton : msg -> Html msg
+closeButton click =
+  Html.button [ class "delete", onClick click ] []
 
 
 keyButtonMobile : String -> Int -> (Int -> msg) -> Int -> Html msg

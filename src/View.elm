@@ -608,26 +608,73 @@ voiceIcon voice =
     , p [ class "content" ] [ text (Tuple.first <| D.roleLabel voice.role) ]
     ]
 
-
-synthIconHelp : T.SynthRole ->  (T.SynthRole -> msg)  -> Bool -> (T.SynthRole -> msg) -> Html msg
-synthIconHelp role click showHelp toggleHelp =
+synthIconHelpMobile : T.SynthRole ->  (T.SynthRole -> msg)  -> Bool -> (T.SynthRole -> msg) -> msg -> Html msg
+synthIconHelpMobile role click showHelp toggleHelp playSample =
   div [] 
     [ div [class "voice-help content", class <| if showHelp then "visible" else "hidden"] 
         [text <| D.synthHelp role] 
+    , div [class "is-block"] 
+       [ div [class "box mb-0 mx-3", onClick (click role) ] [ roleIcon role ]
+       , p [ class "mt-2 has-text-centered"] [ text <| D.roleName role ]
+       ]
+       , synthDrawerMobile role showHelp (toggleHelp role) playSample
+    ]
+  
+synthIconHelpDesktop : T.SynthRole ->  (T.SynthRole -> msg)  -> Bool -> (T.SynthRole -> msg) -> msg -> Html msg
+synthIconHelpDesktop role click showHelp toggleHelp playSample =
+  div [] 
+    [ div [class "voice-help content", class <| if showHelp then "visible" else "hidden"] 
+        [ text <| D.synthHelp role ] 
     , div [class "is-flex"] 
        [ div [class "box mb-0", onClick (click role) ] [ roleIcon role ]
-       , synthDrawer role showHelp (toggleHelp role)
+       , synthDrawerDesktop role showHelp (toggleHelp role) playSample
        ]
     , p [ class "mt-2 has-text-centered"] [ text <| D.roleName role ]
     ]
+  
 
-
-synthDrawer : T.SynthRole -> Bool -> msg -> Html msg
-synthDrawer role showHelp toggleHelp =
-  div [ Components.flexColumn, class "px-5 mb-0 is-justify-content-space-around is-clickable" ]
-    [ div [onClick toggleHelp] [ Components.icon "question-mark"]
-    , Components.icon "speaker" 
+synthIconHelp : T.SynthRole ->  (T.SynthRole -> msg)  -> Bool -> (T.SynthRole -> msg) -> msg -> Html msg
+synthIconHelp role click showHelp toggleHelp playSample =
+  div [] 
+    [ Components.mobileOnly <| synthIconHelpMobile role click showHelp toggleHelp playSample 
+    , Components.desktopOnly <| synthIconHelpDesktop role click showHelp toggleHelp playSample 
     ]
+
+synthDrawerMobile : T.SynthRole -> Bool -> msg -> msg -> Html msg
+synthDrawerMobile role showHelp toggleHelp toggleSample =
+ let
+  children = 
+    [ div [onClick toggleHelp] [ Components.icon "question-mark"]
+    , div [onClick toggleSample] [ Components.icon "speaker" ]
+    ]
+ in 
+  div [Components.flexRow, class "px-5 mb-0 is-justify-content-space-around is-clickable" ] children
+
+
+synthDrawerDesktop : T.SynthRole -> Bool -> msg -> msg -> Html msg
+synthDrawerDesktop role showHelp toggleHelp toggleSample =
+ let
+  children = 
+    [ div [onClick toggleHelp] [ Components.icon "question-mark"]
+    , div [onClick toggleSample] [ Components.icon "speaker" ]
+    ]
+ in 
+ div [ Components.mobileNotClass, Components.flexColumn, class "px-5 mb-0 is-justify-content-space-around is-clickable" ] children
+
+
+
+synthDrawer : T.SynthRole -> Bool -> msg -> msg -> Html msg
+synthDrawer role showHelp toggleHelp toggleSample =
+ let
+  children = 
+    [ div [onClick toggleHelp] [ Components.icon "question-mark"]
+    , div [onClick toggleSample] [ Components.icon "speaker" ]
+    ]
+ in 
+  div []
+    [ div [ Components.mobileOnlyClass, Components.flexRow, class "px-5 mb-0 is-justify-content-space-around is-clickable" ] children
+    , div [ Components.mobileNotClass, Components.flexColumn, class "px-5 mb-0 is-justify-content-space-around is-clickable" ] children
+   ]
 
 
 layoutIcon : T.Layout -> Html msg
