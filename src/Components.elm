@@ -134,6 +134,10 @@ icon : String -> Html msg
 icon name =
   Html.span [ class "icon" ] [ Html.img [ src <| "/assets/svg/" ++ name ++ ".svg"] [] ]
 
+iconWith : String -> String -> Html msg
+iconWith className name =
+  Html.span [ class "icon", class className ] [ Html.img [ src <| "/assets/svg/" ++ name ++ ".svg"] [] ]
+
 
 svgClick : String -> msg -> Html msg
 svgClick name click =

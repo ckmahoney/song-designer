@@ -77,9 +77,9 @@ soundcloud role =
     [ iframe [ widthCustom "100%", height scEmbedHeight, scrolling "no", frameborder "no", allow "autoplay", src (sampleEmbedUrl role)] []
     , div [ styleCss scStyle ] 
         [ a [ href "https://soundcloud.com/synthonysound", title "Synthony Sound", target "_blank", styleCss "color: #cccccc: text-decoration: none;"]
-          [ text "Synthony Sound", text " ."]
+          [ text "Synthony Sound", text " "]
         , a [ href (sampleLink role), title "synthuary 1 - minimal", target "_blank", styleCss "color: #cccccc; text-decoration: none;" ] 
-          [ text "Sample - Kick Drum" ]
+          [ text "Sample Pack" ]
         ]
     ]
 
