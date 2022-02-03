@@ -173,6 +173,10 @@ deleteButton : msg -> Html msg
 deleteButton click =
   Html.button [ class "button is-fullwidth has-background-danger has-text-weight-bold ", onClick click ] [text "Delete"]
 
+closeButton : msg -> Html msg
+closeButton click =
+  Html.button [ class "delete", onClick click ] []
+
 
 keyButtonMobile : String -> Int -> (Int -> msg) -> Int -> Html msg
 keyButtonMobile name curr toMsg val =

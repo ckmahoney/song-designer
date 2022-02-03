@@ -219,7 +219,7 @@ initModel =
   , status = Nothing
   , playback = Playback.new
   , helpTexts = []
-  , showSample = Nothing
+  , showSample = Just Kick
   }
 
 
@@ -504,12 +504,19 @@ showCta state pendingMember register =
   else text ""
 
 
-sampleBox : (Maybe SynthRole) -> Html msg
-sampleBox mRole =
-  div [ Attr.class "slide-in-out"
-      , Attr.style "margin-top" <| String.fromInt <| if Tools.isNothing mRole then Embeds.scEmbedHeight else 0 
-      , Attr.class <| if Tools.isNothing mRole then "hidden" else "visible" ]
-    [ Embeds.soundcloud ]
+sampleBox : SynthRole -> msg -> Html msg
+sampleBox role close =
+  div [] 
+  [ Components.colsWith [ Attr.class "is-justify-content-space-between is-align-items-center" ]
+    [ Components.col1 <| Components.paragraph <| "This sample demonstrates what " ++ Data.roleName role ++ " sounds like."
+    , Components.col1 <| div [ Attr.class "is-flex is-justify-content-flex-end"] [ Html.span [Attr.class "content mb-0 mr-3"] [text "close sample"], Components.closeButton close ]
+    ]
+  , div [ Attr.class "slide-in-out"
+        -- , Attr.style "margin-top" <| String.fromInt <| if Tools.isNothing mRole then Embeds.scEmbedHeight else 0 
+        -- , Attr.class <| if Tools.isNothing mRole then "hidden" else "visible" 
+        ]
+      [ Embeds.soundcloud ]
+  ]
   
 
 view : Model -> Html Msg
@@ -518,13 +525,16 @@ view model =
   cb = (if validReq model then RollForTrack else PushedButton)
   butt = case (model.status, model.error) of 
     (Nothing, Nothing) ->
-      Components.col1 <| fireButton model cb
+      Components.col1 <| case model.showSample of 
+        Nothing -> 
+         fireButton model cb
+        Just role -> 
+          sampleBox role CloseSample
     _ ->
       postBox model
  in 
   Components.box
     [ Components.heading "Mini Song Maker"
-    , sampleBox model.showSample
     , Components.cols
         [ Components.col1 description ] 
     , case model.pendingMember of 
