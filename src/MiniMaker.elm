@@ -517,7 +517,7 @@ sampleBox role close =
         -- , Attr.style "margin-top" <| String.fromInt <| if Tools.isNothing mRole then Embeds.scEmbedHeight else 0 
         -- , Attr.class <| if Tools.isNothing mRole then "hidden" else "visible" 
         ]
-      [ Embeds.soundcloud ]
+      [ Embeds.soundcloud role]
   ]
   
 
