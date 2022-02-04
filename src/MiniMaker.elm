@@ -281,7 +281,7 @@ apply msg model =
          { model | error = Nothing }
 
     SetTitle next ->
-      { model | title = Just next }
+      { model | title = Just next, error = Nothing }
 
     SetSpeed next ->
       { model | speed = next }
@@ -330,14 +330,14 @@ voiceIconClass = Attr.class "is-flex is-flex-direction-column is-align-items-cen
 goButton : String -> msg -> Html msg
 goButton title msg = 
   if "" == title then 
-    Components.button msg [ Attr.class "is-primary is-focused is-fullwidth" ] "Make a Song"
+    Components.button msg [ Attr.class "is-success is-focused is-fullwidth" ] "Make a Song"
   else 
-    Components.button msg [ Attr.class "is-primary is-focused is-fullwidth" ] ("Make \"" ++ title ++ "\"")
+    Components.button msg [ Attr.class "is-success is-focused is-fullwidth" ] ("Make \"" ++ title ++ "\"")
 
 
 disabledGoButton : Html msg
 disabledGoButton =
-  Components.buttonDisabled [  Attr.class "is-primary is-fullwidth" ] "Make a Song"
+  Components.buttonDisabled [  Attr.class "is-success is-fullwidth" ] "Make a Song"
 
 
 unfoundBugAsk : Html msg
@@ -391,7 +391,9 @@ voiceBox : (List SynthRole) -> (SynthRole -> msg) -> (List SynthRole) -> (SynthR
 voiceBox current change helps showHelp playSample clearSample sample =
  div [ Attr.id "voice-box", Attr.class " mb-6"]
     [ div [Attr.class "content"]
-      [ p [Attr.class "mt-3"] [ text "Which voices should we put in it? Pick up to 4." ] ]
+      [ p [Attr.class "mt-3"] [ text "Which voices should we put in it? Pick up to 4." ] 
+      , Html.small [Attr.class "is-block has-text-centered"] [ text "Not sure which voices to pick? Read the ", Html.a [ Attr.href "/articles/quickstart", Attr.target "_blank" ] [ text "Quickstart" ], text " for some tips!" ]
+      ]
     , div [ Attr.class "mb-3 columns is-multiline is-mobile is-tablet is-desktop" ]  <| List.map (\r -> 
        if List.member r current then 
          selectedIcon r (onClick <| change r) 
@@ -478,7 +480,7 @@ cta pendingMember uName uEmail register maybeError =
     , Components.textEditor "Name" pendingMember.name uName
     , Components.label "Email" 
     , Components.textEditor "Email" pendingMember.email uEmail
-    , Components.button register [Attr.class "button is-primary"]  "Join Synthony!"
+    , Components.button register [Attr.class "button is-success"]  "Join Synthony!"
     , case maybeError of 
         Nothing -> text ""
         Just msg -> p [Attr.class "has-text-danger"] [text msg]
@@ -509,7 +511,9 @@ sampleBox role close =
   div [ Attr.id "sample-box" ] 
   [ Components.colsWith [ Attr.class "is-justify-content-space-between" ]
     [ Components.col1 <| Components.paragraph <| "This sample demonstrates what " ++ Data.roleName role ++ " sounds like."
-    , Components.col1 <| div [ Attr.class "is-flex is-justify-content-flex-end is-align-items-center"] [ Html.span [onClick close, Attr.class "content mb-0 mr-3 is-clickable"] [text "Close sample to make a song."], Components.closeButton close ]
+    , Components.col1 <| div [ Attr.class "is-flex is-justify-content-flex-end is-align-items-center"] 
+        [ Components.button close [ Attr.class "is-success is-focused" ] "Close Sample to Make a Song"
+        ]
     ]
   , div [ Attr.class "slide-in-out"
         -- , Attr.style "margin-top" <| String.fromInt <| if Tools.isNothing mRole then Embeds.scEmbedHeight else 0 

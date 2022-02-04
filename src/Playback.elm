@@ -129,17 +129,17 @@ update msg model =
 controls  : State -> TrackMeta -> (Msg -> msg) -> Html msg
 controls state track trig = 
   div [Attr.class "is-flex is-justify-content-space-around"] [ case state of 
-      Playing -> 
-        div [onClick <| trig Pause] [Components.svg "pause"] 
+    Playing ->
+      div [onClick <| trig Pause] [Components.svg "pause"] 
 
-      Paused -> 
-        div [onClick <| trig Play] [Components.svg "play"] 
+    Paused ->
+      div [onClick <| trig Play] [Components.svg "play"] 
 
-      Stopped ->
-        div [onClick <| trig <| Load track.filepath] [Components.svg "play"]
+    Stopped ->
+      div [onClick <| trig <| Load track.filepath] [Components.svg "play"]
 
-      Empty -> 
-        emptyMessage
+    Empty ->
+      emptyMessage
 
   , case state of 
       Stopped ->
@@ -285,7 +285,6 @@ playlist  ((selection, model) as p) signal tracks download =
    [ Html.h2 [Attr.class "title"] [text "My Songs"]
    , Components.box <| List.singleton  <|
        actionlist p signal tracks download
-   -- List.map (card p signal) tracks
    ] 
 
 
@@ -328,8 +327,9 @@ mini : Model -> ((Model, Msg) -> msg) -> List TrackMeta -> (String -> msg) -> Ht
 mini ((selection, model) as p) signal tracks download =
   case selection of 
    Nothing ->
-    Components.box 
-      [ emptyMessage ]
+    if List.length tracks > 0 then 
+      Components.box [ emptyMessage ]
+    else text ""
 
 
    Just track ->
@@ -359,7 +359,6 @@ bottomPlayer selection audio =
    , audio
    , text "3:24"
    ]
-
 
 
 emptyMessage : Html msg
