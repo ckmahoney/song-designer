@@ -633,7 +633,7 @@ synthIconHelpDesktop role click showHelp toggleHelp playSample =
     ]
   
 
-synthIconHelp : T.SynthRole ->  (T.SynthRole -> msg)  -> Bool -> (T.SynthRole -> msg) -> msg -> Html msg
+synthIconHelp : T.SynthRole -> (T.SynthRole -> msg) -> Bool -> (T.SynthRole -> msg) -> msg -> Html msg
 synthIconHelp role click showHelp toggleHelp playSample =
   div [] 
     [ Components.mobileOnly <| synthIconHelpMobile role click showHelp toggleHelp playSample 
@@ -644,7 +644,7 @@ synthDrawerMobile : T.SynthRole -> Bool -> msg -> msg -> Html msg
 synthDrawerMobile role showHelp toggleHelp toggleSample =
  let
   children = 
-    [ div [onClick toggleHelp] [ Components.icon "question-mark"]
+    [ div [onClick toggleHelp] [ Components.iconWith "bg-info" "question-mark"]
     , div [onClick toggleSample] [ Components.icon "speaker" ]
     ]
  in 
@@ -655,7 +655,7 @@ synthDrawerDesktop : T.SynthRole -> Bool -> msg -> msg -> Html msg
 synthDrawerDesktop role showHelp toggleHelp toggleSample =
  let
   children = 
-    [ div [onClick toggleHelp] [ Components.icon "question-mark"]
+    [ div [onClick toggleHelp] [ Components.iconWith "bg-info" "question-mark"]
     , div [onClick toggleSample] [ Components.icon "speaker" ]
     ]
  in 

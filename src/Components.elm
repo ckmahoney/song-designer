@@ -105,8 +105,6 @@ pickerCell el pic html =
   ] 
 
 
-
-
 keys : Bool -> List (Int, String)
 keys useSharps = 
   (if useSharps then D.indexedSharps else D.indexedFlats)
@@ -123,6 +121,7 @@ keyMessage useSharps root =
 centerText =
  class "has-text-centered"
 
+
 svg : String -> Html msg
 svg name = 
   Html.img [ width 50
@@ -135,8 +134,8 @@ icon name =
   Html.span [ class "icon" ] [ Html.img [ src <| "/assets/svg/" ++ name ++ ".svg"] [] ]
 
 iconWith : String -> String -> Html msg
-iconWith className name =
-  Html.span [ class "icon", class className ] [ Html.img [ src <| "/assets/svg/" ++ name ++ ".svg"] [] ]
+iconWith classes name =
+  Html.span [ class "icon", class classes ] [ Html.img [ src <| "/assets/svg/" ++ name ++ ".svg"] [] ]
 
 
 svgClick : String -> msg -> Html msg
