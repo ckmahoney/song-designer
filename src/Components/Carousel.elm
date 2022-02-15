@@ -80,6 +80,7 @@ itemId : Int -> String
 itemId index =
   "carousel-item-" ++ String.fromInt index
 
+
 isFocused : Int -> Int -> Int -> Bool
 isFocused count index offset =
   let
@@ -93,27 +94,31 @@ maxWidth widths =
   List.foldl (\prev next ->
     if prev > next then prev else next) 0 widths
 
+modPercent : Int -> Int -> Float
+modPercent count index =
+  1.0 - (toFloat (modBy count index)/ toFloat count)
+
 
 item : Int -> Int -> Int -> Float -> Html msg -> Html Msg
 item count index offset width thing =
   let
-    focused = isFocused count index offset
+    hasFocus = isFocused count index offset
     deg = (toFloat (index + offset)) * (360.0 / (toFloat count))
-    rotate = "rotateY(" ++ String.fromFloat deg  ++ "deg) translateZ(" ++ String.fromFloat (2 * width) ++ "px)"
-    zIndex = if focused then Attr.style "z-index" "2" else Attr.style "" ""
+    rotate = "rotateY(" ++ String.fromFloat deg  ++ "deg) translateZ(" ++ String.fromFloat (3 * width) ++ "px)"
+    zIndex = if hasFocus then Attr.style "z-index" "2" else Attr.style "" ""
+    opacity = Attr.style "opacity" <| if hasFocus then "1" else String.fromFloat <| modPercent count (offset + index)
   in 
   Html.map (\_ -> Content) <| 
-    div [zIndex, Attr.id <| itemId offset, Attr.class "item", Attr.style "transform" rotate] [ thing ]
+    div [zIndex, opacity, Attr.id <| itemId offset, Attr.class "item", Attr.style "transform" rotate] [ thing ]
 
 
 
 view : (Model (Html msg)) -> Msg -> Msg -> Html Msg
 view (index, (widths, items)) left right = 
   Components.box <|
-  [ Components.label <| String.fromInt index
-  , Components.cols 
-    [ Components.col1 <| Components.button left [] "Left"
-    , Components.col1 <| Components.button right [] "Right"
+  [ div [Attr.class "is-flex is-justify-content-space-around"]
+    [ Components.svgClick "arrow-left" left
+    , Components.svgClick "arrow-right" right
     ]
   , div [Attr.class "carousel"] <| 
       List.map3 (\i width x -> item (List.length items) index i (maxWidth widths) x) 
