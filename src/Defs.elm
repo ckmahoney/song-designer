@@ -56,7 +56,7 @@ type Relation
   | Source
   | Variation Sketch
   | Clone Sketch
-  | Connect (Sketch, Sketch)
+  -- | Connect (Sketch, Sketch)
 
 -- References to relations that may take parametrs.
 type RelationRef 
@@ -79,7 +79,7 @@ relationLabel relation =
     Source -> "Original source material"
     Variation sketch -> "Variation of a previous section"
     Clone sketch -> "Copy of a previous section"
-    Connect (sketch1, sketch2) -> "Connector between two sections"
+    -- Connect (sketch1, sketch2) -> "Connector between two sections"
 
 relationLabelJ : RelationRef -> String
 relationLabelJ ref =
@@ -98,7 +98,7 @@ relationDescr relation =
     Source -> "An interesting section that should be used and used again. Like a verse - it's changing a little each time. Can be referenced by Variation and Clone."
     Variation _ -> "Given a section, borrows beats or melodies from that section but changes other aspects of it. Like the verse of a verse-chorus song, it will add unity to the layout. Must reference a Unique or Source."
     Clone _ -> "An exact copy of a song. Like the chorus in a verse-chorus song, it is repeated the same way each time."
-    Connect _ -> "A bridge between two sections. It gets you from point A to point B, borrowing elements from both sides to make a bridge."
+    -- Connect _ -> "A bridge between two sections. It gets you from point A to point B, borrowing elements from both sides to make a bridge."
 
 
 -- Arbitrary values that have greater affect on variation than quality.

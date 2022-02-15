@@ -7,8 +7,6 @@ import Html.Events as Events exposing (onClick, onInput)
 
 import Defs exposing (Sketch, Duty(..), Relation(..), RelationRef(..))
 import View 
-import Elements
-import Tools
 import Components
 
 type alias Original = Sketch
@@ -23,7 +21,7 @@ type Change
   | Edit Sketch
   | DoneEditing Sketch
   | NeedsTarget RelationRef
-  | NeedsManyTargets RelationRef (List Sketch)
+  | SelectTarget RelationRef Sketch
   | CancelTargets
   | DiscardChanges
 
@@ -32,19 +30,22 @@ type Msg
   = View
   | Update Change
 
+type WithPending 
+  = PickTarget RelationRef
+  | SelectedTarget Sketch
 
-type Editor 
+type Editor pending
   = Viewing Viewer
-  | Changing Changer
+  | Changing Changer (Maybe pending)
 
 
 -- Defaults to a view to select a sketch to view/edit. 
-newEditor : Editor
+newEditor : Editor WithPending
 newEditor = 
   Viewing (someSketches, Nothing)
 
 
-init : (Maybe Int) -> (Editor, Cmd msg)
+init : (Maybe Int) -> (Editor WithPending, Cmd msg)
 init flags =
   case flags of 
     _ -> (newEditor, Cmd.none)
@@ -55,47 +56,61 @@ someSketches =
   let
     ref = Defs.emptySketch
   in 
-  [ { ref | label = "sketch1"}, { ref | label="sketch2"} ]
+  [ { ref | label = "sketch 1", duty = Structure}, { ref | label="sketch2", duty = Open } , { ref | label="sketch 3"} ]
   
 
-applyChange : Change -> (List Sketch, (Sketch, Sketch)) -> Editor
-applyChange msg (all, (orig, changes)) =
+applyChange : Change -> (Maybe WithPending) -> (List Sketch, (Sketch, Sketch)) -> Editor WithPending
+applyChange msg status (all, (orig, changes)) =
   case msg of 
-    Edit next -> Changing (all, (orig, next))
+    Edit next -> Changing (all, (orig, next)) Nothing
     DoneEditing final -> Viewing (all, Just final)
+
     NeedsTarget relationRef -> 
       case relationRef of 
-        JUnique -> Changing (all, (orig, { changes | relation = Unique }))
-        JSource -> Changing (all, (orig, { changes | relation = Source }))
-        _ -> Changing (all, (orig, changes))
+        JUnique -> Changing (all, (orig, { changes | relation = Unique })) Nothing
+        JSource -> Changing (all, (orig, { changes | relation = Source })) Nothing   
+        JVariation -> 
+          case status of 
+            Just (SelectedTarget sketch) -> Changing (all, (orig, { changes | relation = Variation sketch })) Nothing
+            _ -> Changing (all, (orig, changes)) (Just <| PickTarget JVariation)
 
-    -- NeedsManyTargets relationRef selections ->
-    CancelTargets -> Changing (all, (orig, changes))
-    DiscardChanges -> Viewing (all, Just orig)
-    _ -> Debug.log "Bug found, needs to apply changes for leftover Changing messages." <| Changing (all, (orig, changes))
+        JClone -> 
+          case status of 
+            Just (SelectedTarget sketch) -> Changing (all, (orig, { changes | relation = Clone sketch })) Nothing
+            _ -> Changing (all, (orig, changes)) (Just <| PickTarget JClone)
+
+    SelectTarget ref sketch ->
+      case ref of 
+        JVariation ->  Changing (all, (orig, { changes | relation = Variation sketch })) Nothing
+        JClone ->  Changing (all, (orig, { changes | relation = Clone sketch })) Nothing
+        _ -> Changing (all, (orig, changes)) Nothing
+
+    CancelTargets -> Changing (all, (orig, changes)) Nothing
+    DiscardChanges -> Viewing (all, Just orig) 
+    _ -> Debug.log "Bug found, needs to apply changes for leftover Changing messages." <| Changing (all, (orig, changes)) Nothing
 
 
-apply : Msg -> Editor -> Editor
+apply : Msg -> Editor WithPending -> Editor WithPending
 apply msg editor =
   case msg of 
     View -> 
      case editor of 
        Viewing (all, Nothing)->  Viewing (all, Nothing)
        Viewing (all, Just sketch)->  Viewing (all, Just sketch)
-       Changing (all, (orig, changes)) -> Viewing (all, Just changes)
+       Changing (all, (orig, changes)) _ -> Viewing (all, Just changes) 
 
     Update change  -> 
       case editor of 
         Viewing (all, Nothing) -> 
           case change of 
-            Select sketch -> Changing (all, (sketch, sketch))
+            Select sketch -> Changing (all, (sketch, sketch)) Nothing
             _ -> Debug.log "Bug found, case change -> viewing -> no selection" <| Viewing (all, Nothing)
 
-        Viewing (all, Just sketch) -> applyChange change (all, (sketch, sketch))
-        Changing (all, (orig, changes)) -> applyChange change (all, (orig, changes))
+        Viewing (all, Just sketch) -> applyChange change Nothing (all, (sketch, sketch))
+        Changing (all, (orig, changes)) status -> applyChange change status (all, (orig, changes)) 
 
 
-update : Msg -> Editor -> (Editor, Cmd msg)
+update : Msg -> Editor WithPending -> (Editor WithPending, Cmd msg)
 update msg editor =
   (apply msg editor, Cmd.none)
 
@@ -167,12 +182,12 @@ matchesRelation relation ref =
     Source -> ref == JSource
     Variation _ -> ref == JVariation
     Clone _ -> ref == JClone
-    _ -> False
+    -- _ -> False
     -- Connect _ -> ref == JConnect
 
 
-editRelation : Relation -> (RelationRef -> msg) -> Html msg
-editRelation current change =  
+editRelation : Relation -> (RelationRef -> msg) -> (Sketch -> msg) -> Html msg
+editRelation current needOne pickOne =  
   let
     options = Defs.coreRelations
   in 
@@ -183,7 +198,7 @@ editRelation current change =
        let
          class = if matchesRelation current ref then "is-success" else "" 
        in 
-       Components.button (change ref) [Attr.class class,  Attr.class "has-text-centered"] (Defs.relationLabelJ ref)) options
+       Components.button (needOne ref) [Attr.class class,  Attr.class "has-text-centered"] (Defs.relationLabelJ ref)) options
   , case current of 
       Variation target -> 
         div [] 
@@ -200,10 +215,17 @@ editRelation current change =
 
       Source ->
         Components.paragraph "This sketch is a source that can provide Variations and Clones." 
-
-      _ -> 
-        Components.paragraph "This sketch makes a bridget between these other skethes:"
   ]
+
+
+pickTarget : Sketch -> List Sketch -> RelationRef -> (Sketch -> msg) -> Html msg
+pickTarget current sketches relationRef pick =
+  Components.box <| 
+    [ Components.label "Pick a target for this relation" ] ++  
+    List.map (\sketch -> 
+      if current == sketch then text "" else 
+      div [onClick (pick sketch)]  [info sketch]) sketches
+  
 
 
 pickSketch : List Sketch -> RelationRef -> Sketch -> (Sketch -> msg) -> msg -> Html msg
@@ -223,8 +245,8 @@ pickSketch sketches ref current doEdit cancel =
       div [onClick (elect sketch)] [info sketch]) sketches
    
 
-editOld : Sketch -> Sketch -> (Sketch -> msg) -> (RelationRef -> msg) -> msg -> msg -> Html msg
-editOld original changes change pick save discard =
+edit : Sketch -> (Sketch -> msg) -> msg -> msg -> (RelationRef -> msg) -> (Sketch -> msg) -> Html msg
+edit changes change save discard needOne pickOne =
   let
     uLabel = (\label -> change { changes | label = label })
     uDuty = (\duty -> change { changes | duty = duty })
@@ -234,24 +256,7 @@ editOld original changes change pick save discard =
         [ Components.col1 <| Components.editText "Label" (text "") changes.label uLabel
         ]
     , editDuty changes.duty uDuty
-    , editRelation changes.relation pick
-    , Components.col1 <| Components.button save [] "Save changes"
-      , Components.col1 <| Components.button discard []  "Discard changes"
-    ]
-
-
-edit : Sketch -> (Sketch -> msg) -> msg -> msg -> Html msg
-edit changes change save discard =
-  let
-    uLabel = (\label -> change { changes | label = label })
-    uDuty = (\duty -> change { changes | duty = duty })
-  in 
-  div [Attr.class "box"] 
-    [ Components.cols 
-        [ Components.col1 <| Components.editText "Label" (text "") changes.label uLabel
-        ]
-    , editDuty changes.duty uDuty
-    -- , editRelation changes.relation pick
+    , editRelation changes.relation needOne pickOne
     , Components.col1 <| Components.button save [] "Save Changes"
       , Components.col1 <| Components.button discard []  "Discard Changes"
     ]
@@ -266,23 +271,32 @@ sketchPicker sketches select =
 
 
 -- Generic view for seeing and editing a Sketch
-view : Editor -> (Sketch -> msg) -> (Sketch -> msg) ->  msg -> msg -> Html msg
-view editor select change save discard = 
+view : Editor WithPending -> (Sketch -> msg) -> (Sketch -> msg) -> msg -> msg -> (RelationRef -> msg) -> (Sketch -> msg) -> Html msg
+view editor select change save discard needOne pickOne =
   case editor of 
     Viewing (sketches, Nothing) -> sketchPicker sketches select
     Viewing (sketches, Just sketch) -> infoEdit sketch (change sketch)
-    Changing (all, (orig, current)) -> edit orig change save discard
+    Changing (all, (orig, current)) (Just (PickTarget ref)) -> pickTarget orig all ref pickOne
+    Changing (all, (orig, current)) _ -> edit current change save discard needOne pickOne
 
 
-viewTest : Editor -> Html Msg
+viewTest : Editor WithPending -> Html Msg
 viewTest editor =
   let
     select = Update << Select
     change = Update << Edit 
+    needOne = Update << NeedsTarget
+    pickOne = Update << case editor of 
+      Changing _ (Just pending) -> 
+        case pending of 
+          PickTarget ref ->  SelectTarget ref
+          _ -> SelectTarget JVariation
+      _ -> SelectTarget JVariation
+
     save = View
     discard = Update DiscardChanges
   in 
-  view editor select change save discard
+  view editor select change save discard needOne pickOne
 
 
 main = Browser.element 

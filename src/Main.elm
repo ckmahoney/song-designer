@@ -14,7 +14,7 @@ import Types as T
 import Data exposing (p1, p2, p3, p4)
 import View 
 import Router 
-
+import Editor.SketchEditor
 
 
 
@@ -41,5 +41,6 @@ mainApp =
                   }
 
 
+
 main = 
-  Router.main
+  Editor.SketchEditor.main
