@@ -94,7 +94,7 @@ relationLabelJ ref =
 relationDescr : Relation -> String
 relationDescr relation =
   case relation of 
-    Unique -> "A speical section that should get special attention. Beats and melodies in here can not be used anywhere else in the song."
+    Unique -> "A special section that should get special attention. Beats and melodies in here can not be used anywhere else in the song."
     Source -> "An interesting section that should be used and used again. Like a verse - it's changing a little each time. Can be referenced by Variation and Clone."
     Variation _ -> "Given a section, borrows beats or melodies from that section but changes other aspects of it. Like the verse of a verse-chorus song, it will add unity to the layout. Must reference a Unique or Source."
     Clone _ -> "An exact copy of a song. Like the chorus in a verse-chorus song, it is repeated the same way each time."
