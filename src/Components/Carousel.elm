@@ -1,9 +1,12 @@
 module Components.Carousel exposing (..)
 
 import Browser
+import Browser.Dom
 import Html exposing (Html, button, div, text, label, p, input,b)
 import Html.Attributes as Attr
 import Html.Events as Events exposing (onClick, onInput)
+import Task
+import Tools
 
 import Components
 
@@ -11,65 +14,110 @@ import Components
 type alias Index = Int
 
 
-type alias Model a = (Index, List a)
+type alias Model a = (Index, (List Float, List a))
 
 
 type Msg 
   = RotateRight
   | RotateLeft
   | Content
+  | GotElement Index (Result Browser.Dom.Error Browser.Dom.Element)
+
+
+getWidth : Int -> Cmd Msg
+getWidth index =
+  Browser.Dom.getElement (itemId index) |> Task.attempt (GotElement index)
 
 
 newModel : Model (Html msg)
 newModel = 
-  (0, someItems)
+  (0, ((List.map (\_ ->  0.0) someItems), someItems))
 
 
-init : Maybe Int -> (Model (Html msg), Cmd msg)
+init : Maybe Int -> (Model (Html msg), Cmd Msg)
 init x =
-  (newModel, Cmd.none)
+  let  
+    ids = Debug.log "ids" (List.range 0 <| List.length someItems)
+    cmds = List.map getWidth (List.range 0 <| List.length someItems)
+  in 
+  (newModel, Cmd.batch <| cmds)
 
 
 someItems : List (Html msg)
 someItems = 
-  [ Components.box <| [Components.label "First thing"]
-  , Components.box <| [Components.label "Second thing"]
-  , Components.box <| [Components.label "Third thing"]
+  [ Components.box <| [Components.label "A"]
+  , Components.box <| [Components.label "B"]
+  , Components.box <| [Components.label "C"]
+  , Components.box <| [Components.label "D"]
+  , Components.box <| [Components.label "E"]
   ]
 
 
 apply : Msg -> Model (Html msg) -> Model (Html msg)
-apply msg (index, items) = 
+apply msg ((index, (widths, items) as data) as model) = 
   case msg of
-    RotateRight -> (index + 1, items)
-    RotateLeft -> (index - 1, items)
-    _ -> (index, items)
+    RotateRight -> (index - 1, data)
+    RotateLeft -> (index + 1, data)
+    _ -> (index, data)
+
 
 
 update : Msg -> Model (Html msg) -> (Model (Html msg), Cmd msg)
-update msg model = 
-  (apply msg model, Cmd.none)
+update msg ((index, (widths, items)) as model) = 
+  case msg of 
+    GotElement _ (Err err) -> (model, Cmd.none)
+    GotElement i (Ok element) -> 
+     let
+       width = element.element.width
+       widths_ = Tools.replaceAt i width (Tuple.first (Tuple.second model)) 
+     in 
+     ((index, (widths_, items)), Cmd.none)
+
+    _ -> (apply msg model, Cmd.none)
 
 
-item : Int -> Int -> Int -> Html msg -> Html Msg
-item count index offset thing =
+itemId : Int -> String
+itemId index =
+  "carousel-item-" ++ String.fromInt index
+
+isFocused : Int -> Int -> Int -> Bool
+isFocused count index offset =
   let
-    deg = Debug.log "has degree;" <| (toFloat (index + offset)) * (360.0 / (toFloat count))
-    rotate = "rotateY(" ++ String.fromFloat deg  ++ "deg) translateZ(150px)"
+    curr = abs (modBy count index)
+  in 
+  curr == offset
+
+
+maxWidth : List Float -> Float
+maxWidth widths =
+  List.foldl (\prev next ->
+    if prev > next then prev else next) 0 widths
+
+
+item : Int -> Int -> Int -> Float -> Html msg -> Html Msg
+item count index offset width thing =
+  let
+    focused = isFocused count index offset
+    deg = (toFloat (index + offset)) * (360.0 / (toFloat count))
+    rotate = "rotateY(" ++ String.fromFloat deg  ++ "deg) translateZ(" ++ String.fromFloat (2 * width) ++ "px)"
+    zIndex = if focused then Attr.style "z-index" "2" else Attr.style "" ""
   in 
   Html.map (\_ -> Content) <| 
-    div [Attr.class "item", Attr.style "transform" rotate] [ thing ]
+    div [zIndex, Attr.id <| itemId offset, Attr.class "item", Attr.style "transform" rotate] [ thing ]
+
 
 
 view : (Model (Html msg)) -> Msg -> Msg -> Html Msg
-view (index, items) left right = 
+view (index, (widths, items)) left right = 
   Components.box <|
   [ Components.label <| String.fromInt index
   , Components.cols 
     [ Components.col1 <| Components.button left [] "Left"
     , Components.col1 <| Components.button right [] "Right"
     ]
-  , div [Attr.class "carousel"] <| List.indexedMap (\i x -> item (List.length items) index i x) items
+  , div [Attr.class "carousel"] <| 
+      List.map3 (\i width x -> item (List.length items) index i (maxWidth widths) x) 
+        (List.range 0 (List.length items)) widths items 
   ]
 
 
