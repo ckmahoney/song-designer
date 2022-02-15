@@ -415,7 +415,7 @@ view title  model forward updateTitle save close  =
         continue = forward << edit state (Edit index (curr state index))
         swap = (\c ->  Tools.replaceAt index c state)
         keep =  (\combo -> forward <| (update (Save <| swap combo) state))
-        exit =  forward <| Overview state
+        exit =  (\combo -> forward <| (update (Save <| swap combo) state))
       in 
       ComboEditor.thumbEdit mod continue keep exit
 

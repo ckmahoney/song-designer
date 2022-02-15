@@ -32,8 +32,6 @@ type Model
   | Ensemble State EnsembleEditor.Model
 
 
-
-
 withScope : State -> Scope -> State
 withScope (_, ensemble) scope =
   (scope, ensemble)
@@ -99,7 +97,7 @@ initModel combos index =
   Overview <| Tools.getOr index combos Data.emptyCombo
 
 
-thumbEdit : Model -> (Model -> msg) -> (Combo -> msg) -> msg ->  Html msg
+thumbEdit : Model -> (Model -> msg) -> (Combo -> msg) -> (Combo -> msg) ->  Html msg
 thumbEdit model forward up close =
   case model of 
     Overview ((scope, ensemble) as state) -> 
@@ -109,7 +107,7 @@ thumbEdit model forward up close =
      in
       Components.colsMulti <| 
         [ Components.colFull <|
-              Components.sectionHeading "combo" (Data.helpLink "combo") "Combo Designer" <| List.singleton <| Components.saveButton close "Save Combo"
+              Components.sectionHeading "combo" (Data.helpLink "combo") "Combo Designer" <| List.singleton <| Components.saveButton (close state) "Save Combo"
         , Components.colHalf <|
               ScopeEditor.brief scope pickScope
         , Components.colHalf <|
