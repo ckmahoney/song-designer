@@ -969,6 +969,11 @@ templateBanger =
   (a,b)
 
 
+templateEmpty : Template
+templateEmpty = 
+  (newScoreMeta, [])
+
+
 ens1 =
   ("Beat", kitBeat)
 
@@ -1011,6 +1016,9 @@ emptyScore =
 
 emptyScoreMeta =
   ScoreMeta "" 1 1 1
+
+newScoreMeta =
+  ScoreMeta "Blank" 1 1 1
 
 
 someLayout : Layout
@@ -1063,6 +1071,7 @@ coreScores =
 templates = [ templateBright
             , templateBallad
             , templateBanger
+            , templateEmpty
             ]
 
 
