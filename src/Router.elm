@@ -448,15 +448,13 @@ songDesigner model =
    [ case model.layoutEditor of 
       Nothing -> 
        div []
-         [ Components.cols <| 
+         [ Html.h2 [class "title"] [text "Song Designer"]
+         , templatePicker model.templates 
+         , div [class " box is-block has-text-centered" ] [text "Current template:", Html.h2 [class "is-size-1"] [text model.title]  ]
+         , Components.colsWith [class "is-mobile"] <| 
              [ Components.col1 <| editLayoutButton model
              , Components.col1 <| requestSongButton model
              ]
-         , Html.h2 [class "title"] [text "Song Designer"]
-         , Components.desktopOnly <| templatePicker model.templates 
-         , Components.mobileOnly <| templatePicker model.templates 
-         , Components.tabletOnly <| templatePicker model.templates 
-         , div [class " box is-block has-text-centered" ] [text "Current template:", Html.h2 [class "is-size-1"] [text model.title]  ]
          , Components.colsMulti <| LayoutEditor.look model.layout
          ]
 
@@ -483,8 +481,8 @@ templateIcon pick ((meta, lay) as template)  =
 templatePicker : List Template -> Html Msg
 templatePicker layouts = 
   Components.colsMulti <|
-    [ Components.colFull <| Html.h3 [class "is-size-3"] [text "Select a Preset"]
-    , Components.colFull <| Components.colsMulti <| 
+    [ Components.colFull <| Html.h3 [class "is-size-5"] [text "Choose a Preset"]
+    , Components.colFull <| Components.colsWith [class "is-mobile"] <| 
       List.indexedMap (\i template -> 
         Components.col [onClick (SelectTemplate i), Components.centerText] [templateIcon (SelectTemplate i) template]) layouts
     ]
