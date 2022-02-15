@@ -48,7 +48,8 @@ ensembleThumb : T.Ensemble -> Html msg
 ensembleThumb state =
    div []   <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-mobile"]
      <| if List.length state == 0 then 
-       [ text "No voices in this ensemble." ] else 
+       [ Components.paragraph "They say silence is golden. You'll get a lot of gold with no voices."
+       , Components.paragraph " Click the Settings icon to add your first voice to this ensemble." ] else 
        List.map (\{role} ->       
          div [ class "column is-one-third is-flex is-justify-content-center"
              , style "background" (D.roleColor role)]
@@ -824,12 +825,9 @@ viewCombo  (({cpc,cps,size} as scope), ensemble)  =
  let
   nVoices = List.length ensemble
  in 
-  Components.colsWith [Attr.class "thumb-combo-horizontal"]
+  Components.colsWith [Attr.class "thumb-combo-horizontal"] 
     [ Components.col ((Attr.class "is-half" :: (border "right"))++  (border "left")) [ scopePeek scope ]
-
-    , Components.col ((Attr.class "is-half" :: (border "left"))  ++ (border "right")) [ if nVoices == 0 then text "No voices"  else 
-        ensembleThumb ensemble ]
-
+    , Components.col ((Attr.class "is-half" :: (border "left"))  ++ (border "right")) [ ensembleThumb ensemble ]
     ]
        
 viewComboVertical : T.Combo -> Html msg
@@ -839,9 +837,7 @@ viewComboVertical  (({cpc,cps,size} as scope), ensemble)  =
  in 
   Components.colsWith [Attr.class "thumb-combo-vertical is-flex-direction-column columns"]
     [ Components.col ( (border "right")++  (border "left")) [ scopePeek scope ]
-
-    , Components.col ( (border "left")  ++ (border "right")) [ if nVoices == 0 then text "No voices"  else 
-        ensembleThumb ensemble ]
+    , Components.col ( (border "left")  ++ (border "right")) [ ensembleThumb ensemble ]
     ]
        
 

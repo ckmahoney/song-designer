@@ -62,31 +62,24 @@ update msg state =
       Overview  (Tools.removeAt index state) Nothing
 
 
--- picker : State -> (Int -> msg) -> Html msg
--- picker state click =
-   -- Components.box <| List.singleton <| Components.colsWith [Attr.class "is-multiline is-mobile"]
-     -- <| if List.length state == 0 then 
-       -- [ text "No voices in this ensemble." ] else 
-       -- List.indexedMap (\i {role} -> Components.col [onClick (click i), Attr.class "is-one-quarter"] <| List.singleton <| Components.svg  (Tuple.first <| Data.roleLabel role)) state
-
-
 brief : State -> msg -> Html msg
 brief state open =
  let 
-  child = Components.cols 
+  child = Components.cols <| if List.length state == 0 then 
+    [ text "No voices in this ensemble. Click the settings icon to add a voice." ] else 
          [ Components.col [Attr.class "is-multiline columns is-mobile"] <| 
            List.map (\{role} -> Components.colSize "is-one-third is-flex is-justify-content-center" <| View.roleIconColored role) state
 
          ]
  in 
-  Components.box <| if List.length state == 0 then 
-    [ text "No voices in this ensemble." ] else 
-     [ Components.colsWith [Attr.class "is-mobile"] <|
-              [ Components.col1 <| Components.label "Ensemble"
-              , Components.colSize "is-one-quarter" <| Components.svgButtonClass "settings" "has-background-primary" open ]
-     , Components.mobile [] <| List.singleton <| child
-     , Components.tablet [] <| List.singleton <| child
-     , Components.desktop [] <| List.singleton <| child
+  Components.box <|
+    [ Components.colsWith [Attr.class "is-mobile"] <|
+      [ Components.col1 <| Components.label "Ensemble"
+      , Components.colSize "is-one-quarter" <| Components.svgButtonClass "settings" "has-background-primary" open 
+      ]
+    , Components.mobile [] <| List.singleton <| child
+    , Components.tablet [] <| List.singleton <| child
+    , Components.desktop [] <| List.singleton <| child
     ]
 
 
@@ -104,7 +97,10 @@ thumb state  =
          ]
  in 
   Components.box <| if List.length state == 0 then 
-    [ text "No voices in this ensemble." ] else 
+    [ div [] [ text "They say silence is golden. You'll get a lot of gold with no voices here." ]
+    , child
+    ]
+    else 
      [ Components.mobile [] <| List.singleton <| child
      , Components.tablet [] <| List.singleton <| child
      , Components.desktop [] <| List.singleton <| child

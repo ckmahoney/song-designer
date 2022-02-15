@@ -260,7 +260,11 @@ picker things icon select kill clone add =
     List.append 
      (List.indexedMap (\i thing ->
        (comboCard icon thing i (select i) (kill i) (clone i))) things)
-      [ if 4 > List.length things then 
+      [ if 0 == List.length things then 
+         div [] [ Components.paragraph "No combos here yet. Add one now to start making music."
+                , Components.col1 <| Components.plusButton add
+                ] 
+        else if 4 > List.length things then 
           Components.col1 <| Components.plusButton add
         else text ""
       ]

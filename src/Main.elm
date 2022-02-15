@@ -17,7 +17,6 @@ import Router
 import Editor.SketchEditor
 
 
-
 type alias User = 
   { username : String
   , token : Bool
@@ -43,4 +42,5 @@ mainApp =
 
 
 main = 
-  Editor.SketchEditor.main
+  Router.main
+
