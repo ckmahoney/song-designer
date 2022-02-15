@@ -56,7 +56,7 @@ someSketches =
   let
     ref = Defs.emptySketch
   in 
-  [ { ref | label = "sketch 1", duty = Structure}, { ref | label="sketch2", duty = Open } , { ref | label="sketch 3"} ]
+  [ { ref | id = 0, label = "sketch 1", duty = Structure}, { ref | id = 1, label="sketch2", duty = Open } , { ref | id = 2, label="sketch 3"} ]
   
 
 applyChange : Change -> (Maybe WithPending) -> (List Sketch, (Sketch, Sketch)) -> Editor WithPending
@@ -223,7 +223,7 @@ pickTarget current sketches relationRef pick =
   Components.box <| 
     [ Components.label "Pick a target for this relation" ] ++  
     List.map (\sketch -> 
-      if current == sketch then text "" else 
+      if current.id == sketch.id then text "" else 
       div [onClick (pick sketch)]  [info sketch]) sketches
   
 

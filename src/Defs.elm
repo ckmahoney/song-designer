@@ -112,7 +112,8 @@ type alias TemplateConfig =
 
 -- Parameters for a section of music.
 type alias Sketch =
-  { label : String
+  { id : Int
+  , label : String
   , duty : Duty 
   , relation : Relation
   , size : Int
@@ -120,7 +121,8 @@ type alias Sketch =
 
 emptySketch : Sketch 
 emptySketch =
-  { label = ""
+  { id = -1
+  , label = ""
   , duty = Paint
   , relation = Unique
   , size = 1
