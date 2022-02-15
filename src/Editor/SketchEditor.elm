@@ -14,21 +14,40 @@ import Components
 type alias Original = Sketch
 type alias Updating = Sketch
 
-type alias Model = (Original, Maybe Updating)
+type alias Viewer  = (List Original, Maybe Original)
+type alias Changer = (List Original, (Original, Updating))
 
 
-type Msg 
-  = PickRelation RelationRef
-  | CancelPick
+type Change
+  = Select Sketch
   | Edit Sketch
-  | Save
-  | Discard
+  | DoneEditing Sketch
+  | NeedsTarget RelationRef
+  | NeedsManyTargets RelationRef (List Sketch)
+  | CancelTargets
+  | DiscardChanges
+
+
+type Msg
+  = View
+  | Update Change
 
 
 type Editor 
-  = View Model
-  | Editing Model
-  | PickingSketch (List Sketch) RelationRef Model 
+  = Viewing Viewer
+  | Changing Changer
+
+
+-- Defaults to a view to select a sketch to view/edit. 
+newEditor : Editor
+newEditor = 
+  Viewing (someSketches, Nothing)
+
+
+init : (Maybe Int) -> (Editor, Cmd msg)
+init flags =
+  case flags of 
+    _ -> (newEditor, Cmd.none)
 
 
 someSketches : List Sketch
@@ -39,71 +58,46 @@ someSketches =
   [ { ref | label = "sketch1"}, { ref | label="sketch2"} ]
   
 
--- Pure update given a Msg and Sketch
-apply : Msg -> Sketch -> Sketch
-apply msg sketch =
+applyChange : Change -> (List Sketch, (Sketch, Sketch)) -> Editor
+applyChange msg (all, (orig, changes)) =
   case msg of 
-    Edit next -> next
-    _ -> sketch
+    Edit next -> Changing (all, (orig, next))
+    DoneEditing final -> Viewing (all, Just final)
+    NeedsTarget relationRef -> 
+      case relationRef of 
+        JUnique -> Changing (all, (orig, { changes | relation = Unique }))
+        JSource -> Changing (all, (orig, { changes | relation = Source }))
+        _ -> Changing (all, (orig, changes))
+
+    -- NeedsManyTargets relationRef selections ->
+    CancelTargets -> Changing (all, (orig, changes))
+    DiscardChanges -> Viewing (all, Just orig)
+    _ -> Debug.log "Bug found, needs to apply changes for leftover Changing messages." <| Changing (all, (orig, changes))
 
 
--- Updates that close the editor and save a final copy of Sketch, or initialize edit state
-upView : Msg -> Sketch -> (Editor, Cmd msg)
-upView msg sketch =
+apply : Msg -> Editor -> Editor
+apply msg editor =
   case msg of 
-    Edit _ -> (Editing (sketch, Just sketch), Cmd.none)
+    View -> 
+     case editor of 
+       Viewing (all, Nothing)->  Viewing (all, Nothing)
+       Viewing (all, Just sketch)->  Viewing (all, Just sketch)
+       Changing (all, (orig, changes)) -> Viewing (all, Just changes)
 
-    _ -> (View (sketch, Nothing), Cmd.none)
+    Update change  -> 
+      case editor of 
+        Viewing (all, Nothing) -> 
+          case change of 
+            Select sketch -> Changing (all, (sketch, sketch))
+            _ -> Debug.log "Bug found, case change -> viewing -> no selection" <| Viewing (all, Nothing)
 
--- Updates with an open editor and reference to before/after changes
-upEditing : Msg -> (Sketch, Sketch) -> (Editor, Cmd msg)
-upEditing msg (orig, changes) =
-  case msg of   
-    PickRelation ref -> 
-      case ref of 
-        JUnique -> (Editing (orig, Just { changes | relation = Unique }), Cmd.none)
-        JSource -> (Editing (orig, Just { changes | relation = Source }), Cmd.none)
-        _ -> 
-         (PickingSketch someSketches ref (orig, Just changes), Cmd.none)
-
-    Save -> (View (changes, Nothing), Cmd.none)
-    Discard -> (View (orig, Nothing), Cmd.none)
-
-    _ -> (Editing (orig, Just <| apply msg changes), Cmd.none)
+        Viewing (all, Just sketch) -> applyChange change (all, (sketch, sketch))
+        Changing (all, (orig, changes)) -> applyChange change (all, (orig, changes))
 
 
-upPicking : Msg -> RelationRef -> (Sketch, Sketch) -> (Editor, Cmd msg)
-upPicking msg ref (orig, changes) =
-  case msg of 
-    CancelPick -> 
-      (Editing  (orig, Just changes), Cmd.none)
-
-    Edit sketch -> 
-      (Editing (orig, Just sketch), Cmd.none)
-
-    _ ->       (Editing  (orig, Just changes), Cmd.none)
-
-
-
-
--- Update with possible side effects. Defaults to a pure update.
 update : Msg -> Editor -> (Editor, Cmd msg)
 update msg editor =
-  case editor of 
-    View (sketch, _) -> upView msg sketch
-    Editing (orig, Just changes) -> upEditing msg (orig, changes)
-    PickingSketch _ ref (orig, Just changes) -> upPicking msg ref (orig, changes)
-    _ -> (editor, Cmd.none)
-
-
-initEditor : Editor
-initEditor = 
-  View (Sketch "New Sketch" Declare Source 2, Nothing)
-
-
-init : (Maybe Int) -> (Editor, Cmd msg)
-init flags =
-  (initEditor, Cmd.none)
+  (apply msg editor, Cmd.none)
 
 
 dutyInfo : Duty -> Html msg
@@ -227,11 +221,10 @@ pickSketch sketches ref current doEdit cancel =
     List.map (\sketch -> 
       if sketch == current then (text "not this one") else  
       div [onClick (elect sketch)] [info sketch]) sketches
-     
+   
 
-
-edit : Sketch -> Sketch -> (Sketch -> msg) -> (RelationRef -> msg) -> msg -> msg -> Html msg
-edit original changes change pick save discard =
+editOld : Sketch -> Sketch -> (Sketch -> msg) -> (RelationRef -> msg) -> msg -> msg -> Html msg
+editOld original changes change pick save discard =
   let
     uLabel = (\label -> change { changes | label = label })
     uDuty = (\duty -> change { changes | duty = duty })
@@ -247,26 +240,49 @@ edit original changes change pick save discard =
     ]
 
 
--- Generic view for editing a sketch
-view : Editor ->  (Sketch -> msg) -> msg -> msg -> (RelationRef -> msg) -> msg -> Html msg
-view model doEdit doSave doDiscard doPick doCancel = 
-  case model of 
-    View (orig, Nothing) -> infoEdit orig (doEdit orig)
-    Editing (orig, Just changes) -> edit orig changes doEdit doPick doSave doDiscard
-    PickingSketch sketches ref (orig, Just changes) -> pickSketch sketches ref changes doEdit doCancel 
-    _ -> text "unhandled view"
-
--- View with local messages provided
-viewTest : Editor -> Html Msg
-viewTest model =
+edit : Sketch -> (Sketch -> msg) -> msg -> msg -> Html msg
+edit changes change save discard =
   let
-    doEdit = Edit
-    doSave = Save
-    doDiscard = Discard
-    doPick = PickRelation
-    cancel = CancelPick
+    uLabel = (\label -> change { changes | label = label })
+    uDuty = (\duty -> change { changes | duty = duty })
   in 
-  view model doEdit doSave doDiscard doPick cancel
+  div [Attr.class "box"] 
+    [ Components.cols 
+        [ Components.col1 <| Components.editText "Label" (text "") changes.label uLabel
+        ]
+    , editDuty changes.duty uDuty
+    -- , editRelation changes.relation pick
+    , Components.col1 <| Components.button save [] "Save Changes"
+      , Components.col1 <| Components.button discard []  "Discard Changes"
+    ]
+
+
+sketchPicker : List Sketch -> (Sketch -> msg) -> Html msg
+sketchPicker sketches select =
+  div [Attr.class "box"] <|
+    [ Components.label "Select a Sketch" ] ++
+    List.map (\sketch -> 
+      div [onClick (select sketch)] [info sketch]) sketches
+
+
+-- Generic view for seeing and editing a Sketch
+view : Editor -> (Sketch -> msg) -> (Sketch -> msg) ->  msg -> msg -> Html msg
+view editor select change save discard = 
+  case editor of 
+    Viewing (sketches, Nothing) -> sketchPicker sketches select
+    Viewing (sketches, Just sketch) -> infoEdit sketch (change sketch)
+    Changing (all, (orig, current)) -> edit orig change save discard
+
+
+viewTest : Editor -> Html Msg
+viewTest editor =
+  let
+    select = Update << Select
+    change = Update << Edit 
+    save = View
+    discard = Update DiscardChanges
+  in 
+  view editor select change save discard
 
 
 main = Browser.element 
