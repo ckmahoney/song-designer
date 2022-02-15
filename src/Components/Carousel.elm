@@ -13,8 +13,10 @@ import Components
 
 type alias Index = Int
 
+type alias Dimensions = (List Float, List Float)
 
-type alias Model a = (Index, (List Float, List a))
+
+type alias Model a = (Index, (Dimensions, List a))
 
 
 type Msg 
@@ -31,7 +33,10 @@ getWidth index =
 
 newModel : Model (Html msg)
 newModel = 
-  (0, ((List.map (\_ ->  0.0) someItems), someItems))
+ let 
+  zeros = (List.map (\_ ->  0.0) someItems)
+ in 
+ (0, ((zeros, zeros), someItems))
 
 
 init : Maybe Int -> (Model (Html msg), Cmd Msg)
@@ -54,7 +59,7 @@ someItems =
 
 
 apply : Msg -> Model (Html msg) -> Model (Html msg)
-apply msg ((index, (widths, items) as data) as model) = 
+apply msg ((index, ((widths, heights), items) as data) as model) = 
   case msg of
     RotateRight -> (index - 1, data)
     RotateLeft -> (index + 1, data)
@@ -63,15 +68,15 @@ apply msg ((index, (widths, items) as data) as model) =
 
 
 update : Msg -> Model (Html msg) -> (Model (Html msg), Cmd msg)
-update msg ((index, (widths, items)) as model) = 
+update msg ((index, ((widths, heights), items)) as model) = 
   case msg of 
     GotElement _ (Err err) -> (model, Cmd.none)
     GotElement i (Ok element) -> 
      let
-       width = element.element.width
-       widths_ = Tools.replaceAt i width (Tuple.first (Tuple.second model)) 
+       widths_ = Tools.replaceAt i element.element.width widths
+       heights_ = Tools.replaceAt i element.element.height heights
      in 
-     ((index, (widths_, items)), Cmd.none)
+     ((index, ((widths_, heights_), items)), Cmd.none)
 
     _ -> (apply msg model, Cmd.none)
 
@@ -94,6 +99,7 @@ maxWidth widths =
   List.foldl (\prev next ->
     if prev > next then prev else next) 0 widths
 
+
 modPercent : Int -> Int -> Float
 modPercent count index =
   1.0 - (toFloat (modBy count index)/ toFloat count)
@@ -114,15 +120,19 @@ item count index offset width thing =
 
 
 view : (Model (Html msg)) -> Msg -> Msg -> Html Msg
-view (index, (widths, items)) left right = 
+view (index, ((widths, heights), items)) left right = 
+  let
+    height = maxWidth heights
+  in 
   Components.box <|
-  [ div [Attr.class "is-flex is-justify-content-space-around"]
+  [ div [Attr.class "carousel is-flex is-align-items-center", Attr.style "min-height" <| String.fromFloat (2 * height) ++ "px"] <| 
+      List.map3 (\i width x -> item (List.length items) index i (maxWidth widths) x) 
+        (List.range 0 (List.length items)) widths items 
+  , div [Attr.class "is-relative is-flex is-justify-content-space-around"
+        , Attr.style "margin-top" <| "-" ++ String.fromFloat (height / 2) ++ "px" ]
     [ Components.svgClick "arrow-left" left
     , Components.svgClick "arrow-right" right
     ]
-  , div [Attr.class "carousel"] <| 
-      List.map3 (\i width x -> item (List.length items) index i (maxWidth widths) x) 
-        (List.range 0 (List.length items)) widths items 
   ]
 
 
