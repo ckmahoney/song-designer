@@ -44,9 +44,9 @@ type alias Item =
   }
 
 type Msg 
-  = InitEdits Item
-  | SaveEdits Item
-  | KillEdits Item  
+  = InitEdits
+  | SaveEdits
+  | KillEdits  
 
   | SetTitle String
   | SetSize Int
@@ -91,20 +91,34 @@ styleInfo style =
     Instrumental -> "Mostly instruments with kick or hats"
     Abstract -> "Just instruments, less clear rhythms"
 
+edit : Msg -> Item -> Item
+edit msg item = 
+  case msg of 
+    SetTitle title -> {item | title = title}
+    SetSize size -> item
+    SetTempo cps -> item
+    SetKey index -> item
+    SetStyle style -> item
+    _ -> item
+
+    -- KillEdits _ 
 
 update : Msg -> Model -> (Model, Cmd msg) 
-update msg model =
-  case msg of 
-    SetTitle title -> (model, Cmd.none)
-    SetSize size -> (model, Cmd.none)
-    SetTempo cps -> (model, Cmd.none)
-    SetKey index -> (model, Cmd.none)
-    SetStyle style -> (model, Cmd.none)
-    _ -> (model, Cmd.none)
+update msg state =
+  case state of 
+    Editing item next -> 
+      case msg of 
+        SaveEdits -> (Viewing next, Cmd.none)
+        _ -> (Editing item <| edit msg next, Cmd.none)
+
+    Viewing model -> 
+      case msg of 
+       InitEdits -> (Editing model model, Cmd.none)
+       _ -> (Viewing model, Cmd.none)
 
 
-view : Model -> (String -> msg) -> (Float -> msg) -> (Int -> msg) -> (Style -> msg) -> Html msg
-view model xTitle xTempo xKey xStyle =
+view : Model -> msg -> msg -> (String -> msg) -> (Float -> msg) -> (Int -> msg) -> (Style -> msg) -> Html msg
+view model start finish xTitle xTempo xKey xStyle =
   let keys = [Beat, Groove, Mix, Instrumental, Abstract ] 
       select = (\i -> xStyle <| Tools.getOr i keys Mix) 
   in
@@ -115,9 +129,13 @@ view model xTitle xTempo xKey xStyle =
         , Components.editRange "BPM" (text "") (cpsMin, cpsMax) item.cps xTempo
         , Components.keyPicker useSharps item.key xKey
         , text <| Components.keyMessage useSharps item.key
+        , Components.button start [] "Edit Arc"
         ]
     Editing orig next ->
-        Components.pickerSelected keys (text << styleLabel) select next.style
+      Components.box 
+        [ Components.pickerSelected keys (text << styleLabel) select next.style
+        , Components.button finish  [] "Save Arc"
+        ]
 
 
 init : Maybe Int -> (Model, Cmd msg)
@@ -125,12 +143,9 @@ init flag =
   (Viewing new, Cmd.none)
 
 
-
-
-
 main = 
   Browser.element { init = init
                   , update = update
-                  , view = (\model -> view model SetTitle SetTempo SetKey SetStyle)
+                  , view = (\model -> view model InitEdits SaveEdits SetTitle SetTempo SetKey SetStyle)
                   , subscriptions = (\_ -> Sub.none)
                   }
