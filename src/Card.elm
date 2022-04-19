@@ -101,24 +101,23 @@ edit msg item =
     SetStyle style -> item
     _ -> item
 
-    -- KillEdits _ 
-
 update : Msg -> Model -> (Model, Cmd msg) 
 update msg state =
   case state of 
-    Editing item next -> 
+    Editing orig next -> 
       case msg of 
         SaveEdits -> (Viewing next, Cmd.none)
-        _ -> (Editing item <| edit msg next, Cmd.none)
+        KillEdits -> (Viewing orig, Cmd.none)
+        _ -> (Editing orig <| edit msg next, Cmd.none)
 
-    Viewing model -> 
+    Viewing item -> 
       case msg of 
-       InitEdits -> (Editing model model, Cmd.none)
-       _ -> (Viewing model, Cmd.none)
+       InitEdits -> (Editing item item, Cmd.none)
+       _ -> (Viewing item, Cmd.none)
 
 
-view : Model -> msg -> msg -> (String -> msg) -> (Float -> msg) -> (Int -> msg) -> (Style -> msg) -> Html msg
-view model start finish xTitle xTempo xKey xStyle =
+view : Model -> msg -> msg -> msg -> (String -> msg) -> (Float -> msg) -> (Int -> msg) -> (Style -> msg) -> Html msg
+view model start finish cancel xTitle xTempo xKey xStyle =
   let keys = [Beat, Groove, Mix, Instrumental, Abstract ] 
       select = (\i -> xStyle <| Tools.getOr i keys Mix) 
   in
@@ -131,10 +130,12 @@ view model start finish xTitle xTempo xKey xStyle =
         , text <| Components.keyMessage useSharps item.key
         , Components.button start [] "Edit Arc"
         ]
+
     Editing orig next ->
       Components.box 
         [ Components.pickerSelected keys (text << styleLabel) select next.style
         , Components.button finish  [] "Save Arc"
+        , Components.button finish  [] "Cancel Changes"
         ]
 
 
@@ -146,6 +147,6 @@ init flag =
 main = 
   Browser.element { init = init
                   , update = update
-                  , view = (\model -> view model InitEdits SaveEdits SetTitle SetTempo SetKey SetStyle)
+                  , view = (\model -> view model InitEdits SaveEdits KillEdits SetTitle SetTempo SetKey SetStyle)
                   , subscriptions = (\_ -> Sub.none)
                   }
