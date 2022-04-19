@@ -27,7 +27,9 @@ type alias Title = String
 type alias Key = Int
 type alias Tempo = Float
 
-type Sway
+useSharps = False
+
+type Style
   = Beat
   | Groove
   | Mix
@@ -36,9 +38,9 @@ type Sway
 
 type alias Item =
   { title : String
-  , tempo : Tempo
+  , cps : Tempo
   , key : Key
-  , mix : Sway
+  , style : Style
   }
 
 type Msg 
@@ -49,13 +51,16 @@ type Msg
   | SetTitle String
   | SetSize Int
   | SetTempo Float
-  | SetKey Float
-  | SetEnsemble Sway
+  | SetKey Int
+  | SetStyle Style
 
 
 type Model 
   = Viewing Item 
   | Editing Item Item
+
+cpsMin = 11/15
+cpsMax = 90/15
 
 new : Item
 new = 
@@ -67,9 +72,9 @@ new2 =
   Item "New Arc 2" 2.8 -1 Beat
 
 
-swayStr : Sway -> String
-swayStr sway = 
-  case sway of 
+styleLabel : Style -> String
+styleLabel style = 
+  case style of 
     Beat -> "Beat"
     Groove -> "Groove"
     Mix -> "Mix"
@@ -77,9 +82,9 @@ swayStr sway =
     Abstract -> "Abstract"
 
 
-swayPip : Sway -> String
-swayPip sway = 
-  case sway of
+styleInfo : Style -> String
+styleInfo style = 
+  case style of
     Beat -> "Just percussive parts, less clear harmony or melody"
     Groove -> "Mostly percussion with some bass or chords"
     Mix -> "All parts evenly balanaced"
@@ -94,21 +99,25 @@ update msg model =
     SetSize size -> (model, Cmd.none)
     SetTempo cps -> (model, Cmd.none)
     SetKey index -> (model, Cmd.none)
-    SetEnsemble sway -> (model, Cmd.none)
+    SetStyle style -> (model, Cmd.none)
     _ -> (model, Cmd.none)
 
-view : Model -> (String -> msg) -> Html msg
-view model xTitle = 
+
+view : Model -> (String -> msg) -> (Float -> msg) -> (Int -> msg) -> (Style -> msg) -> Html msg
+view model xTitle xTempo xKey xStyle =
+  let keys = [Beat, Groove, Mix, Instrumental, Abstract ] 
+      select = (\i -> xStyle <| Tools.getOr i keys Mix) 
+  in
   case model of 
     Viewing item -> 
       Components.box 
         [ Components.editText "Title" (text "") item.title xTitle
-        , p [] [text "size"]
-        , p [] [text "key"]
-        , p [] [text "style"]
+        , Components.editRange "BPM" (text "") (cpsMin, cpsMax) item.cps xTempo
+        , Components.keyPicker useSharps item.key xKey
+        , text <| Components.keyMessage useSharps item.key
         ]
     Editing orig next ->
-      text "Editing the thing"
+        Components.pickerSelected keys (text << styleLabel) select next.style
 
 
 init : Maybe Int -> (Model, Cmd msg)
@@ -122,6 +131,6 @@ init flag =
 main = 
   Browser.element { init = init
                   , update = update
-                  , view = (\model -> view model SetTitle)
+                  , view = (\model -> view model SetTitle SetTempo SetKey SetStyle)
                   , subscriptions = (\_ -> Sub.none)
                   }
