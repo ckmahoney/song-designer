@@ -58,9 +58,9 @@ update msg state =
         ViewCard card -> 
           let
              index = Debug.log "Editing card at index" <| Tools.findIndex card (Tuple.second group)
-             group2 = Group.by index (Tuple.second group)
+             newGroup = Group.by index (Tuple.second group)
           in 
-          (Editing group2 <| Card.editCard card, Cmd.none)
+          (Editing newGroup <| Card.editCard card, Cmd.none)
         _ -> (state, Cmd.none)
 
     Editing ((index, cards) as group) cardState -> 
@@ -70,11 +70,10 @@ update msg state =
 
         SaveCard next -> 
           let
-            u = Debug.log" using provided index"  index
-            i = Debug.log "called to save the card at " <| Maybe.withDefault -2  index
-            group2 = (Just i, Tools.replaceAt i next cards)
+            i = Maybe.withDefault -1 index
+            newGroup = (Just i, Tools.replaceAt i next cards)
           in
-          (Viewing group2, Cmd.none)
+          (Viewing newGroup, Cmd.none)
 
         CloseCard -> 
           (Viewing group, Cmd.none)
@@ -82,11 +81,11 @@ update msg state =
         EditCard card -> 
           let
             i = Debug.log "Editing the card at " Tools.findIndex card cards
-            group2 = (Just i, cards)
+            newGroup = (Just i, cards)
           in
-          (Editing group2 <| Card.Editing card card, Cmd.none)
+          (Editing newGroup <| Card.Editing card card, Cmd.none)
 
-        _ -> (Debug.log "Third party state" state, Cmd.none)
+        _ -> (state, Cmd.none)
 
 
 viewCard : Card.State -> msg -> msg -> msg -> Html msg
