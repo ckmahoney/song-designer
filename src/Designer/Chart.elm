@@ -26,6 +26,8 @@ type Msg
   | CloseCard
   | UpdateCard Card.Msg
 
+  | CreateCard
+  | EditGroup (Group.Msg Card.Model)
 
 type State 
   = Viewing (Group.Model Card.Model)
@@ -55,12 +57,21 @@ update msg state =
   case state of 
     Viewing group -> 
       case msg of  
+        CreateCard -> 
+          (Viewing (Tuple.first group, List.append (Tuple.second group) [Card.create]), Cmd.none)
+
         ViewCard card -> 
           let
              index = Debug.log "Editing card at index" <| Tools.findIndex card (Tuple.second group)
              newGroup = Group.by index (Tuple.second group)
           in 
           (Editing newGroup <| Card.editCard card, Cmd.none)
+
+        EditGroup gMsg -> 
+          let
+            group2 = Group.apply gMsg group
+          in
+          (Viewing group2, Cmd.none)
         _ -> (state, Cmd.none)
 
     Editing ((index, cards) as group) cardState -> 
@@ -71,7 +82,7 @@ update msg state =
         SaveCard next -> 
           let
             i = Maybe.withDefault -1 index
-            newGroup = (Just i, Tools.replaceAt i next cards)
+            newGroup = (Nothing, Tools.replaceAt i next cards)
           in
           (Viewing newGroup, Cmd.none)
 
@@ -93,11 +104,11 @@ viewCard state start save cancel  =
   Card.viewSlim state start save cancel
 
 
-view : State -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> Html msg
-view state open edit change save cancel = 
+view : State -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) -> Html msg
+view state open edit change save cancel createCard editGroup = 
   case state of
     Viewing group ->
-      Group.view group (\c -> Card.stub c (open c))
+      Group.view group (\c -> Card.stub c (open c)) editGroup createCard
 
     Editing group cardState -> 
       case cardState of 
@@ -109,6 +120,6 @@ main =
   Browser.element 
     { init = init
     , update = update
-    , view = (\state -> view state ViewCard EditCard UpdateCard SaveCard CloseCard)
+    , view = (\state -> view state ViewCard EditCard UpdateCard SaveCard CloseCard CreateCard EditGroup)
     , subscriptions = (\_ -> Sub.none)
     }

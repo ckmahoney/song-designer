@@ -84,6 +84,10 @@ new3 : Model
 new3 = 
   Model "Break" 3 0 Beat
 
+create : Model
+create = 
+  Model "New Arc" 0 0 Mix
+
 stateFrom : Model -> State
 stateFrom card = 
   Viewing card
