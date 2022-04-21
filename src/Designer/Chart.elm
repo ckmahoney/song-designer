@@ -103,8 +103,8 @@ update msg state =
 view : State -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) -> Html msg
 view state open edit change save cancel createCard editGroup = 
   case state of
-    Viewing group ->
-      Group.view group (\c -> Card.stub c (open c)) editGroup createCard
+    Viewing (mIndex, children) ->
+      Group.view children (\i c -> Card.stub c (open c)) editGroup createCard
 
     Editing group cardState -> 
       case cardState of 

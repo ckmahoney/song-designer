@@ -86,22 +86,20 @@ update msg state =
     _ -> (state, Cmd.none)
 
 
-show : (a -> Html msg) -> List a -> Html msg
-show thumb things =
-  div [] <| List.map thumb things
+overview : (Msg a -> msg) -> msg -> (Int -> a -> Html msg) -> List a -> Html msg
+overview revise create thumb things =
+  let
+    withDelete = (\i el -> 
+      div [] [ thumb i el, Components.button (revise <| Delete i) [] "Delete Arc" ] )
+  in 
+  div [] <| 
+    (List.indexedMap withDelete things)
+    ++ [(Components.button create [] "+")]
 
 
-overview : msg -> (a -> Html msg) -> List a -> Html msg
-overview create thumb things =
-  div [] <| (List.map thumb things ++ [(Components.button create [] "+")])
-
-
-view : Model a -> (a -> Html msg) -> (Msg a -> msg) -> msg -> Html msg
-view model thumb revise create = 
-  case model of 
-    (Nothing, children) -> overview create thumb children
-    (Just index, children) -> show thumb children
-
+view : List a -> (Int -> a -> Html msg) -> (Msg a -> msg) -> msg -> Html msg
+view children thumb revise create = 
+  overview revise create thumb children
 
 main = text ""
 
