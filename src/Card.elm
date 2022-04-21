@@ -158,6 +158,9 @@ stub : Model -> msg -> Html msg
 stub { title, key, style, size } click = 
   Components.box
    [ Components.label title
+   , p [] [ text <| Components.keyMessage useSharps key ]
+   , p [] [ text <| styleLabel style ]
+   , p [] [ text <| "Size " ++ (String.fromInt size) ]
    , Components.button click [] "View Arc"
    ]
 
@@ -215,18 +218,26 @@ viewSlim state start finish cancel =
         ]
 
   
-readonly : Model -> msg -> Html msg
-readonly card done = 
+readonly : Model -> msg -> msg -> Html msg
+readonly card revise done = 
   Components.box
     [ Components.label card.title
+    , Components.button revise [] "Edit"
     , Components.button done [] "Return"
     ]
 
-editor : Model -> (Msg -> msg) -> msg -> Html msg
-editor card change cancel = 
+editor : Model -> (Msg -> msg) -> msg -> msg -> Html msg
+editor card change save cancel = 
   Components.box
     [ text <|  "Editing the card " ++ card.title
-    , Components.button cancel [] "Cancel changes" 
+    , Components.editText "Title" (text "") card.title (\title -> (change <| SetTitle title))
+    , Components.button save [] "Save changes" 
+    , Components.button cancel [] "Cancel" 
+
+
+    -- , Components.pickerSelected sizes (text << sizeLabel) selectSize next.size
+    -- , Components.keyPickerFull useSharps next.key xKey
+    -- , Components.pickerSelected keys (text << styleLabel) select next.style
     ]
   
 main = text ""
