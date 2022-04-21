@@ -177,27 +177,6 @@ styles : List Style
 styles = [Beat, Groove, Mix, Instrumental, Abstract ] 
 
 
-view : State -> msg -> msg -> msg -> (String -> msg) -> (Int -> msg) -> (Int -> msg) -> (Style -> msg) -> Html msg
-view model start finish cancel xTitle xSize xKey xStyle =
-  let 
-      select = (\i -> xStyle <| Tools.getOr i styles Mix) 
-      selectSize = (\i -> xSize <| Tools.getOr i sizes 6)
-  in
-  case model of 
-    Viewing item -> 
-      Components.box 
-        [ stub item start
-        ]
-
-    Editing orig next ->
-      Components.box 
-        [ Components.editText "Title" (text "") next.title xTitle
-        , Components.pickerSelected sizes (text << sizeLabel) selectSize next.size
-        , Components.keyPickerFull useSharps next.key xKey
-        , Components.pickerSelected styles (text << styleLabel) select next.style
-        , Components.button finish  [] "Save Arc"
-        , Components.button cancel  [] "Cancel Changes"
-        ]
 
 
 initState : State
@@ -209,21 +188,6 @@ init flag =
   -- (Viewing new, Cmd.none)
   (initState, Cmd.none)
 
-
-viewSlim : State -> msg -> msg -> msg -> Html msg
-viewSlim state start finish cancel = 
-  case state of 
-    Viewing item -> 
-      Components.box 
-        [ stub item start
-        ]
-
-    Editing orig next ->
-      Components.box 
-        [ text next.title
-        , Components.button finish  [] "Save Arc"
-        , Components.button cancel  [] "Cancel Changes"
-        ]
 
   
 readonly : Model -> msg -> msg -> Html msg

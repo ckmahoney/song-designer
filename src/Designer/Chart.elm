@@ -99,10 +99,6 @@ update msg state =
         _ -> (state, Cmd.none)
 
 
-viewCard : Card.State -> msg -> msg -> msg -> Html msg
-viewCard state start save cancel  =
-  Card.viewSlim state start save cancel
-
 
 view : State -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) -> Html msg
 view state open edit change save cancel createCard editGroup = 
