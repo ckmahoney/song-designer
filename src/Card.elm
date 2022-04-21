@@ -88,6 +88,14 @@ new3 : Model
 new3 = 
   Model "Break" 3 1 Beat
 
+stateFrom : Model -> State
+stateFrom card = 
+  Viewing card
+
+editCard : Model -> State
+editCard card = 
+  Editing card card
+
 
 styleLabel : Style -> String
 styleLabel style = 

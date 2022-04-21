@@ -19,10 +19,6 @@ type alias TType =
   , age : Int
   }
 
-type State a 
-  = Viewing (Model a)
-  | Editing (Model a) a
-  
 type Msg 
   = View 
   | Edit
@@ -37,19 +33,16 @@ from : List a -> Model a
 from things =
   (Just -1, things)
 
+
 by : Int -> List a -> Model a
 by index things =
   (Just index, things)
 
 
-init : Maybe Int -> (State a, Cmd msg)
+init : Maybe Int -> (Model a, Cmd msg)
 init x =
-  (Viewing new, Cmd.none)
+  (new, Cmd.none)
 
-stateFrom : Model a -> State a
-stateFrom model =
-  Viewing model
-  
 
 
 someItems : List (Html msg)
@@ -76,22 +69,22 @@ apply msg ((mIndex, children) as model) =
     _ -> model
 
 
-update : Msg -> State a -> (State a, Cmd msg)
+update : Msg -> Model a -> (Model a, Cmd msg)
 update msg state = 
   case msg of 
     _ -> (state, Cmd.none)
 
 
-view : State a -> (a -> Html msg) -> Html msg
-view state thumb = 
-  case state of 
-    Viewing (mIndex, children) ->
-      Components.box <|
-      [ h1 [] [text "Group"] ] ++
-      List.map thumb children
+show : (a -> Html msg) -> List a -> Html msg
+show thumb things =
+  div [] <| List.map thumb things
 
-    Editing _ _ -> 
-      text "Edit this thing"
+view : Model a -> (a -> Html msg) -> Html msg
+view model thumb = 
+  case model of 
+    (Nothing, children) -> show thumb children
+    (Just index, children) -> show thumb children
+
 
 main = text ""
 

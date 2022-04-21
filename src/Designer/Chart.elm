@@ -15,22 +15,17 @@ import Card as Card
 
 import Json.Decode as Decode
 
-type alias CardGroup = (Group.Model Card.Model)
 
-type alias Model = (Group.State Card.Model, Maybe Card.State)
+type alias CardGroup = Group.Model Card.Model
 
-type Msg cmsg
-  = View Model
-  | InitCard Card.Model
+
+type Msg
+  = OpenCard Card.Model
   | SaveCard 
   | KillCard
 
 
-type State 
-  = Viewing Model
-  | EditingCard Model Card.State
-
-type alias DefaultMsg = Msg Card.Msg
+type alias State = (Group.Model Card.Model, Maybe Card.State)
 
 
 someCards : List Card.Model
@@ -40,66 +35,57 @@ someCards =
   , Card.new3
   ]
 
-new : Model
+
+new : State
 new = 
-  (Group.stateFrom (Group.from someCards), Nothing)
+  (Group.from someCards, Nothing)
 
 
 init : Maybe Int -> (State, Cmd msg)
 init flags = 
   case flags of 
-    _ -> (Viewing new, Cmd.none)
+    _ -> (new, Cmd.none)
 
 
-
-update : DefaultMsg -> State -> (State, Cmd msg)
+update : Msg -> State -> (State, Cmd msg)
 update msg state = 
   case state of 
-    Viewing group -> 
-      case msg of 
-        InitCard card -> 
+    (group, Nothing) ->    
+      case msg of  
+        OpenCard card -> 
           let
-             cards = Tuple.second group
-             index = Tools.findIndex card cards
+             index = Tools.findIndex card (Tuple.second group)
+             next = Group.by index (Tuple.second group)
           in 
-          (EditingCard (Just index, cards) Card.initState, Cmd.none)
+          ((group, Just <| Card.editCard card), Cmd.none)
         _ -> (state, Cmd.none)
-    -- Editing model -> (EditingCard model Card.initState, Cmd.none)
-    EditingCard orig cardState -> (state, Cmd.none)
 
-  
+    ((mIndex, cards), Just card) -> (state, Cmd.none)
 
--- deferM2 : Card.State -> CardMsg msg2 -> Card.State
--- deferM2 state msg =
-  -- Card.update msg state
 
 viewCard : Card.State -> msg -> msg -> msg -> Html msg
 viewCard state start save cancel  =
   Card.viewSlim state start save cancel
 
 
-view : State -> msg -> msg -> msg -> msg -> Html msg
-view state start save cancel selectCard = 
+view : State -> (Card.Model -> msg) -> msg -> msg -> Html msg
+view state open save cancel = 
   case state of 
-    View group -> 
-      Components.box 
-        [ h1 [] [text "Chart Designer"] 
-        , Group.view group (\c -> Card.stub (start c))
-        ]
+    (group, Nothing) ->
+      Group.view group (\c -> Card.stub c (open c))
+
+    (group, Just editing) -> 
+      case editing of 
+        Card.Viewing card -> Card.viewSlim editing (open card) save cancel
+        Card.Editing orig next -> Card.viewSlim editing (open next) save cancel
+        
       
-    EditingCard group cardState -> 
-      Components.box 
-        [ h1 [] [text "Chart Designer"] 
-        , viewCard cardState start save cancel
-        -- , Group.view group.first (\c -> Card.stub c m2)
-        ]
-    
 
 
 main = 
   Browser.element 
     { init = init
     , update = update
-    , view = (\state -> view state  InitCard SaveCard KillCard )
+    , view = (\state -> view state OpenCard SaveCard KillCard)
     , subscriptions = (\_ -> Sub.none)
     }
