@@ -392,7 +392,7 @@ voiceBox current change helps showHelp playSample clearSample sample =
  div [ Attr.id "voice-box", Attr.class " mb-6"]
     [ div [Attr.class "content"]
       [ p [Attr.class "mt-3"] [ text "Which voices should we put in it? Pick up to 4." ] 
-      , Html.small [Attr.class "is-block has-text-centered"] [ text "Not sure which voices to pick? Read the ", Html.a [ Attr.href "/articles/quickstart", Attr.target "_blank" ] [ text "Quickstart" ], text " for some tips!" ]
+      , p [Attr.class "is-size-4 is-block has-text-centered"] [ text "Not sure which voices to pick? Read the ", Html.a [ Attr.href "/articles/quickstart", Attr.target "_blank" ] [ text "Quickstart" ], text " for some tips!" ]
       ]
     , div [ Attr.class "mb-3 columns is-multiline is-mobile is-tablet is-desktop" ]  <| List.map (\r -> 
        if List.member r current then 
@@ -406,7 +406,7 @@ voiceBox current change helps showHelp playSample clearSample sample =
          availableIcon r change (List.member r helps) showHelp toggleSample
        else
          disabledIcon r )  Data.synthRoles
-    , Html.small [Attr.class "is-block has-text-centered"] [ text "Want more voices? Use the ", Html.a [Attr.href "/song-designer"] [text "Song Designer"], text " for unlimited voices and sections." ]
+    , p [Attr.class "is-size-4 is-block has-text-centered"] [ text "Want more voices? Use the ", Html.a [Attr.style "text-decoration" "underline", Attr.href "/song-designer"] [text "Song Designer"], text " for unlimited voices and sections." ]
     ]
 
 

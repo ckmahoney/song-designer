@@ -150,7 +150,7 @@ editorNew state index voice toMsg =
 
 showNoVoices : State -> (Msg -> msg) -> Html msg
 showNoVoices state toMsg =
-  Components.button (toMsg <| Create Bass) [] "Create the First Voice"  
+  Components.button (toMsg <| Create Bass) [Attr.class "is-success"] "Create the First Voice for this Ensemble"  
 
 
 controls : (Msg -> msg) -> Int -> Voice -> Html msg

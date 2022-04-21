@@ -175,8 +175,9 @@ apply state msg =
 
    Create -> 
     let
-      v = Data.emptyCombo
-      next = List.append state [ v ]
+      (meta, ensemble) = Data.emptyCombo
+      
+      next = List.append state [ ({ meta | label = meta.label ++ " " ++ (String.fromInt <| List.length state) }, ensemble) ]
       index = List.length next
     in 
     next 
@@ -264,9 +265,8 @@ picker things icon select kill clone add =
          div [] [ Components.paragraph "No combos here yet. Add one now to start making music."
                 , Components.col1 <| Components.plusButton add
                 ] 
-        else if 4 > List.length things then 
+        else
           Components.col1 <| Components.plusButton add
-        else text ""
       ]
    ]
 
@@ -280,9 +280,12 @@ pickerHorizontal things icon select kill clone add =
        div [Attr.class "column is-flex is-flex-directtoin-row is-mobile is-half is-level"] 
          [ comboCard icon thing i (select i) (kill i) (clone i)
          ]) things)
-      [ if 4 > List.length things then 
+      [ if 0 == List.length things then 
+         div [] [ Components.paragraph "No combos here yet. Add one now to start making music."
+                , Components.col1 <| Components.plusButton add
+                ] 
+        else
           Components.col1 <| Components.plusButton add
-        else text ""
       ]
    ]
 
