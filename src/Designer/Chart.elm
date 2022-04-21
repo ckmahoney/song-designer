@@ -12,7 +12,7 @@ import Components
 import Data
 import Components.Group as Group
 import Card as Card
-
+import Chords
 import Json.Decode as Decode
 
 
@@ -99,12 +99,14 @@ update msg state =
         _ -> (state, Cmd.none)
 
 
-
 view : State -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) -> Html msg
 view state open edit change save cancel createCard editGroup = 
   case state of
     Viewing (mIndex, children) ->
-      Group.view children (\i c -> Card.stub c (open c)) editGroup createCard
+      div [] 
+        [ Group.view children (\i c -> Card.stub c (open c)) editGroup createCard
+        , Chords.read (3, Chords.O)
+        ]
 
     Editing group cardState -> 
       case cardState of 

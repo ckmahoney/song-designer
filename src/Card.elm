@@ -189,7 +189,6 @@ init flag =
   (initState, Cmd.none)
 
 
-  
 readonly : Model -> msg -> msg -> Html msg
 readonly card revise done = 
   Components.box
@@ -197,6 +196,7 @@ readonly card revise done =
     , Components.button revise [] "Edit"
     , Components.button done [] "Return"
     ]
+
 
 editor : Model -> (Msg -> msg) -> msg -> msg -> Html msg
 editor card change save cancel = 

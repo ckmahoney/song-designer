@@ -90,11 +90,11 @@ overview : (Msg a -> msg) -> msg -> (Int -> a -> Html msg) -> List a -> Html msg
 overview revise create thumb things =
   let
     withDelete = (\i el -> 
-      div [] [ thumb i el, Components.button (revise <| Delete i) [] "Delete Arc" ] )
+      div [] [ thumb i el, Components.button (revise <| Delete i) [] ("Delete Arc " ++ String.fromInt (i + 1)) ] )
   in 
   div [] <| 
     (List.indexedMap withDelete things)
-    ++ [(Components.button create [] "+")]
+    ++ [(Components.button create [] "Add Another")]
 
 
 view : List a -> (Int -> a -> Html msg) -> (Msg a -> msg) -> msg -> Html msg

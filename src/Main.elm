@@ -17,7 +17,7 @@ import Router
 import Card 
 import Designer.Chart as Chart
 import Editor.SketchEditor
-
+import Chords
 
 type alias User = 
   { username : String
