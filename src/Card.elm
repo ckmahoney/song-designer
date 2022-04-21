@@ -37,7 +37,7 @@ type Style
   | Instrumental
   | Abstract
 
-type alias Item =
+type alias MetaModel =
   { title : String
   , tempo : String
   , bpm : Bpm
@@ -45,32 +45,48 @@ type alias Item =
   , style : Style
   }
 
+
+type alias Model =
+  { title : String
+  , size : Int
+  , key : Key
+  , style : Style
+  }
+
+
 type Msg 
   = InitEdits
   | SaveEdits
   | KillEdits  
 
   | SetTitle String
-  | SetBpm String
+  | SetSize Int
   | SetKey Int
   | SetStyle Style
 
 
-type Model 
-  = Viewing Item 
-  | Editing Item Item
+type State 
+  = Viewing Model 
+  | Editing Model Model
 
 bpmMin = 44.0
 bpmMax = 360.0
 
-new : Item
+sizeMin = 3
+sizeMax = 5
+
+new : Model
 new = 
-  Item "New Arc" "104" 104 -2 Mix
+  Model "Verse" 4 -2 Mix
 
 
-new2 : Item
+new2 : Model
 new2 = 
-  Item "New Arc 2" "144" 144 -1 Beat
+  Model "Chorus" 5 -1 Groove 
+
+new3 : Model
+new3 = 
+  Model "Break" 3 1 Beat
 
 
 styleLabel : Style -> String
@@ -82,6 +98,15 @@ styleLabel style =
     Instrumental -> "Instrumental"
     Abstract -> "Abstract"
 
+sizeLabel : Int -> String
+sizeLabel size = 
+  case size of 
+    4 -> "Short"
+    5 -> "Medium"
+    6 -> "Long"
+    _ -> "? mystery size ?"
+    
+
 
 styleInfo : Style -> String
 styleInfo style = 
@@ -92,78 +117,110 @@ styleInfo style =
     Instrumental -> "Mostly instruments with kick or hats"
     Abstract -> "Just instruments, less clear rhythms"
 
-edit : Msg -> Item -> Item
+edit : Msg -> Model -> Model
 edit msg item = 
   case msg of 
     SetTitle title -> {item | title = title}
-    SetBpm t -> 
-     let 
-        c = Maybe.withDefault item.bpm <| String.toFloat t
-        bpm = if c < bpmMin then bpmMin else if c > bpmMax then bpmMax else c
-        display = if "" == t then "0" else t
-     in 
-      { item | tempo = display, bpm = bpm }
+    SetSize size -> { item | size = size } 
     SetKey index -> { item | key = index }
     SetStyle style -> { item| style = style }
     _ -> item
 
-update : Msg -> Model -> (Model, Cmd msg) 
-update msg state =
+     -- SetBpm let 
+     --    c = Maybe.withDefault item.size <| String.toInt t
+     --    size = if c < sizeMin then sizeMin else if c > sizeMax then sizeMax else c
+     --    display = if "" == t then "" else t
+     -- in 
+     --  { item | sizeMessage = t, size = size }
+
+
+apply : Msg -> State -> State
+apply msg state =
   case state of 
     Editing orig next -> 
       case msg of 
-        SaveEdits -> (Viewing next, Cmd.none)
-        KillEdits -> (Viewing orig, Cmd.none)
-        _ -> (Editing orig <| edit msg next, Cmd.none)
+        SaveEdits -> Viewing next
+        KillEdits -> Viewing orig
+        _ -> Editing orig <| edit msg next
 
     Viewing item -> 
       case msg of 
-       InitEdits -> (Editing item item, Cmd.none)
-       _ -> (Viewing item, Cmd.none)
+       InitEdits -> Editing item item
+       _ -> Viewing item
 
 
-stub : Item -> Html msg
-stub { title, key, style, bpm } = 
+update : Msg -> State -> (State, Cmd msg) 
+update msg state =
+  (apply msg state, Cmd.none)
+
+
+stub : Model -> msg -> Html msg
+stub { title, key, style, size } click = 
   Components.box
    [ Components.label title
-   , text <| View.keyLabel key
-   , text <| (styleLabel style) ++ (styleInfo style)
-   , text <| View.bpmString bpm
+   , Components.button click [] "Edit Arc"
+   -- , text <| View.keyLabel key
+   -- , text <| (styleLabel style) ++ (styleInfo style)
+   -- , text <| View.bpmString bpm
+ 
    ]
 
 
-view : Model -> msg -> msg -> msg -> (String -> msg) -> (String -> msg) -> (Int -> msg) -> (Style -> msg) -> Html msg
-view model start finish cancel xTitle xBpm xKey xStyle =
+sizes : List Int
+sizes = [2, 3, 4]
+
+
+view : State -> msg -> msg -> msg -> (String -> msg) -> (Int -> msg) -> (Int -> msg) -> (Style -> msg) -> Html msg
+view model start finish cancel xTitle xSize xKey xStyle =
   let keys = [Beat, Groove, Mix, Instrumental, Abstract ] 
       select = (\i -> xStyle <| Tools.getOr i keys Mix) 
+      selectSize = (\i -> xSize <| Tools.getOr i sizes 6)
   in
   case model of 
     Viewing item -> 
       Components.box 
-        [ stub item 
-        , Components.button start [] "Edit Arc"
+        [ stub item start
         ]
 
     Editing orig next ->
       Components.box 
         [ Components.editText "Title" (text "") next.title xTitle
-        , Components.editRangeString "BPM" (text "") (bpmMin, bpmMax) next.tempo xBpm
+        , Components.pickerSelected sizes (text << sizeLabel) selectSize next.size
         , Components.keyPickerFull useSharps next.key xKey
         , Components.pickerSelected keys (text << styleLabel) select next.style
-        , text <|  "Applying bpm :" ++ String.fromFloat next.bpm
         , Components.button finish  [] "Save Arc"
         , Components.button cancel  [] "Cancel Changes"
         ]
 
 
-init : Maybe Int -> (Model, Cmd msg)
+initState : State
+initState = Editing new new
+
+
+init : Maybe Int -> (State, Cmd msg)
 init flag = 
   -- (Viewing new, Cmd.none)
-  (Editing new new, Cmd.none)
+  (initState, Cmd.none)
+
+viewSlim : State -> msg -> msg -> msg -> Html msg
+viewSlim state start finish cancel = 
+  case state of 
+    Viewing item -> 
+      Components.box 
+        [ stub item start
+        ]
+
+    Editing orig next ->
+      Components.box 
+        [ text next.title
+        , Components.button finish  [] "Save Arc"
+        , Components.button cancel  [] "Cancel Changes"
+        ]
+  
 
 main = 
   Browser.element { init = init
                   , update = update
-                  , view = (\model -> view model InitEdits SaveEdits KillEdits SetTitle SetBpm SetKey SetStyle)
+                  , view = (\model -> view model InitEdits SaveEdits KillEdits SetTitle SetSize SetKey SetStyle)
                   , subscriptions = (\_ -> Sub.none)
                   }
