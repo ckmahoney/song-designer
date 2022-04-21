@@ -55,11 +55,7 @@ type alias Model =
 
 
 type Msg 
-  = InitEdits
-  | SaveEdits
-  | KillEdits  
-
-  | SetTitle String
+  = SetTitle String
   | SetSize Int
   | SetKey Int
   | SetStyle Style
@@ -132,7 +128,6 @@ edit msg item =
     SetSize size -> { item | size = size } 
     SetKey index -> { item | key = index }
     SetStyle style -> { item| style = style }
-    _ -> item
 
      -- SetBpm let 
      --    c = Maybe.withDefault item.size <| String.toInt t
@@ -147,13 +142,10 @@ apply msg state =
   case state of 
     Editing orig next -> 
       case msg of 
-        SaveEdits -> Viewing next
-        KillEdits -> Viewing orig
         _ -> Editing orig <| edit msg next
 
     Viewing item -> 
       case msg of 
-       InitEdits -> Editing item item
        _ -> Viewing item
 
 
@@ -166,11 +158,7 @@ stub : Model -> msg -> Html msg
 stub { title, key, style, size } click = 
   Components.box
    [ Components.label title
-   , Components.button click [] "Edit Arc"
-   -- , text <| View.keyLabel key
-   -- , text <| (styleLabel style) ++ (styleInfo style)
-   -- , text <| View.bpmString bpm
- 
+   , Components.button click [] "View Arc"
    ]
 
 
@@ -210,6 +198,7 @@ init flag =
   -- (Viewing new, Cmd.none)
   (initState, Cmd.none)
 
+
 viewSlim : State -> msg -> msg -> msg -> Html msg
 viewSlim state start finish cancel = 
   case state of 
@@ -224,11 +213,20 @@ viewSlim state start finish cancel =
         , Components.button finish  [] "Save Arc"
         , Components.button cancel  [] "Cancel Changes"
         ]
-  
 
-main = 
-  Browser.element { init = init
-                  , update = update
-                  , view = (\model -> view model InitEdits SaveEdits KillEdits SetTitle SetSize SetKey SetStyle)
-                  , subscriptions = (\_ -> Sub.none)
-                  }
+  
+readonly : Model -> msg -> Html msg
+readonly card done = 
+  Components.box
+    [ Components.label card.title
+    , Components.button done [] "Return"
+    ]
+
+editor : Model -> (Msg -> msg) -> msg -> Html msg
+editor card change cancel = 
+  Components.box
+    [ text <|  "Editing the card " ++ card.title
+    , Components.button cancel [] "Cancel changes" 
+    ]
+  
+main = text ""

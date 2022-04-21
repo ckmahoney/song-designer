@@ -14,6 +14,8 @@ import Types as T
 import Data exposing (p1, p2, p3, p4)
 import View 
 import Router 
+import Card 
+import Designer.Chart as Chart
 import Editor.SketchEditor
 
 
@@ -40,7 +42,6 @@ mainApp =
                   }
 
 
-
 main = 
-  Router.main
-
+  -- Card.main
+  Chart.main

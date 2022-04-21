@@ -14,6 +14,11 @@ type Modal
   | Showing
 
 
+type StringTransient a 
+  = IsString String
+  | IsVal a  
+
+
 mobileOnlyClass = class "is-hidden-tablet"
 mobileNotClass = class "is-hidden-mobile is-hidden-touch"
 
@@ -223,6 +228,13 @@ keyPicker useSharps val toMsg =
     , div [class "is-hidden-mobile"] [keyPickerDesktop useSharps val toMsg]
     ]
 
+keyPickerFull : Bool -> Int -> (Int -> msg) -> Html msg
+keyPickerFull useSharps val toMsg =
+  div [class "box"]
+    [ div [class "is-hidden-tablet"] [keyPickerMobile useSharps val toMsg]
+    , div [class "is-hidden-mobile"] [keyPickerDesktop useSharps val toMsg]
+    ]
+
 
 viewList : List a -> (a -> Html msg) -> Html msg
 viewList xs pic =
@@ -233,15 +245,15 @@ viewList xs pic =
            [ pic el ]) xs]
 
 
-
 buttonDisabled :  (List (Html.Attribute msg)) -> String -> Html msg
 buttonDisabled attrs content =
   Html.button ([disabled True, class "button"] ++ attrs) [ text content ]  
 
 
-strvalToFloat : Float -> Float ->  String -> Float
+strvalToFloat : Float -> Float -> String -> Float
 strvalToFloat min max str = 
   let 
+    endsDecimal = String.endsWith "." 
     val = Maybe.withDefault min <| String.toFloat str
   in
   if val > max then max else if val < min then min else val
@@ -250,8 +262,6 @@ strvalToFloat min max str =
 label : String -> Html msg
 label content =
   Html.label [class "m-0 mb-3 subtitle"] [ text content ]
-
-
 
 editRange : String -> Html msg -> (Float, Float) -> Float -> (Float -> msg) -> Html msg
 editRange title html (mn, mx)  val fltMsg =
@@ -263,6 +273,19 @@ editRange title html (mn, mx)  val fltMsg =
       , Html.input [ type_ "text"
               , class "m-0"
               , value <| String.fromFloat val ] [] ]
+    , div [class "column"] [ html ] ] ]
+
+
+editRangeString : String -> Html msg -> (Float, Float) -> String -> (String -> msg) -> Html msg
+editRangeString title html (mn, mx) val update =
+  div [ class "box level" ]
+  [ div [class "columns is-multiline"]
+    [ div [class "column is-full level is-flex is-justify-content-space-around"] 
+      [ Html.label [class "m-0 subtitle"] [text title]
+      , Html.input [ type_ "text"
+              , onInput update
+              , class "m-0"
+              , value val ] [] ]
     , div [class "column"] [ html ] ] ]
 
 
@@ -358,11 +381,9 @@ editSelection curr name info options current select =
         div [ class "class column is-one-quarter is-flex is-justify-content-center",  onClick (select val) ] [ div [ class "has-text-centered has-background-white", class classes ] [ html ] ]  ) options ]
 
 
-
 header : String -> Html msg
 header content =
   Html.header [ class "" ] [ text content ]
-
 
 
 card : String -> Html msg-> Html msg
@@ -373,7 +394,6 @@ card title content =
       ]
    , div [ class "card-content" ] [ content ]
    ]
-
 
 
 cardWith : String -> String -> Html msg-> Html msg
@@ -403,6 +423,7 @@ box : (List (Html msg)) -> Html msg
 box =
   div [ class "box" ]
 
+
 boxWith : String -> (List (Html msg)) -> Html msg
 boxWith c =
   div [ class "box", class c ]
@@ -410,7 +431,6 @@ boxWith c =
 
 boxAttrs attrs  =
   div ([ class "box" ] ++ attrs)
-
 
 
 button : msg -> List (Html.Attribute msg) -> String -> Html.Html msg
@@ -421,6 +441,7 @@ button click attrs content =
 plusButton : msg -> Html msg
 plusButton msg  =
   button msg [ class "p-6 is-primary" ] "+"
+
 
 addButton : msg -> String -> Html msg
 addButton msg content =
@@ -459,6 +480,13 @@ pickerSelected things pic select current =
   div [ class "columns is-multiline level is-vcentered" ] <|
      List.indexedMap (\i thing ->
        div [ class <|if thing == current then "chosen" else "", class "column is-vcentered has-text-centered", onClick (select i) ]
+         [ pic thing ]) things
+
+chooserSelected : List a -> (a -> Html msg) -> (a -> msg) -> a -> Html msg
+chooserSelected things pic choose current = 
+  div [ class "columns is-multiline level is-vcentered" ] <|
+     List.map (\thing ->
+       div [ class <|if thing == current then "chosen" else "", class "column is-vcentered has-text-centered", onClick (choose thing) ]
          [ pic thing ]) things
 
 
