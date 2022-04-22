@@ -106,17 +106,12 @@ initState : State
 initState = Editing empty empty
 
 
-init : Maybe Int -> (State, Cmd msg)
-init flag = 
-  (initState, Cmd.none)
-
-
-readonly : Model -> msg -> msg -> Html msg
-readonly meta revise done = 
+readonly : Model -> msg -> Html msg
+readonly meta revise = 
   Components.box
     [ Components.label meta.title
     , Components.button revise [] "Edit"
-    , Components.button done [] "Return"
+    -- , Components.button done [] "Return"
     ]
 
 
@@ -129,5 +124,6 @@ editor meta =
     -- , Components.button save [] "Save changes" 
     -- , Components.button cancel [] "Cancel" 
     ]
-  
+
+
 main = text ""

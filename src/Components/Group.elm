@@ -123,31 +123,31 @@ overview revise  thumb things =
 inserter : (Msg a -> msg) -> a -> (Int -> a -> Html msg) -> List a -> Html msg
 inserter revise newEl thumb things =
   let
-    adder = (\i -> p []  [Components.button (revise <| InsertAt i newEl) [] "Put it here"])
+    adder = (\i -> Components.boxWith "m-6"  <| [Components.button (revise <| InsertAt i newEl) [] "+"])
     withActions = (\i el -> 
-      div [] [ adder i, 
-      div [Attr.class "box m-6"] <| List.singleton <| Components.col [] 
-        [ thumb i el
-        , Components.colsMulti  <| 
-          List.map Components.colHalf 
-            [ if i > 0 then 
-                Components.button (revise <| MoveTo el i (i - 1)) [Attr.class "is-fullwidth"] "Move Left" 
-                else text ""
-            , if i < -1 + List.length things then 
-              Components.button (revise <| MoveTo el i (i + 1)) [Attr.class "is-fullwidth"] "Move Right" 
-                else text ""
-            , Components.button (revise <| InsertAt (i + 1) el) [Attr.class "is-fullwidth"] "Duplicate"
-            , Components.button (revise <| Delete i) [Attr.class "is-fullwidth"] ("Delete Arc " ++ String.fromInt (i + 1)) 
+      div [Attr.class "is-flex is-flex-direction-row"] -- keep these elements horizontal 
+        [ adder i
+        , div [Attr.class "box m-6 column"] 
+          [ thumb i el
+          , Components.colsMulti  <| 
+            List.map Components.colHalf 
+              [ if i > 0 then 
+                  Components.button (revise <| MoveTo el i (i - 1)) [Attr.class "is-fullwidth"] "Move Left" 
+                  else text ""
+              , if i < -1 + List.length things then 
+                Components.button (revise <| MoveTo el i (i + 1)) [Attr.class "is-fullwidth"] "Move Right" 
+                  else text ""
+              , Components.button (revise <| InsertAt (i + 1) el) [Attr.class "is-fullwidth"] "Duplicate"
+              , Components.button (revise <| Delete i) [Attr.class "is-fullwidth"] ("Delete Arc " ++ String.fromInt (i + 1)) 
 
-            ]
-        ]
-        , if i == List.length things - 1 then (adder <| i + 1) else text ""  ] )
+              ]
+          ]
+        , if i == List.length things - 1 then 
+          (adder <| i + 1) 
+            else text ""  ] )
   in 
   Components.colsWith [Attr.class "is-vcentered"] <| 
     (List.indexedMap withActions things)
-
-
-
 
 view : List a -> (Int -> a -> Html msg) -> (Msg a -> msg) -> msg -> Html msg
 view children thumb revise create = 

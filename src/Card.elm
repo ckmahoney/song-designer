@@ -17,12 +17,6 @@ import Json.Encode as Encode
 import Encoders as JE
 import Configs as Conf
 
-import ScopeEditor
-import EnsembleEditor
-import ComboEditor
-import LayoutEditor
-import Playback
-
 type alias Title = String
 type alias Key = Int
 type alias Tempo = Float -- string representation of the BPM

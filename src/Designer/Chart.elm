@@ -31,6 +31,12 @@ type Msg
   | EditGroup (Group.Msg Card.Model)
 
 
+  | EditMeta
+  | SaveMeta ScoreMeta.Model
+  | CloseMeta
+  | UpdateMeta ScoreMeta.Msg
+
+
 type State 
   = Viewing ScoreMeta.Model (Group.Model Card.Model)
   | EditingCards ScoreMeta.Model (Group.Model Card.Model) Card.State
@@ -66,7 +72,7 @@ update msg state =
 
         ViewCard card -> 
           let
-             index = Debug.log "EditingCards card at index" <| Tools.findIndex card (Tuple.second group)
+             index = Tools.findIndex card (Tuple.second group)
              newGroup = Group.by index (Tuple.second group)
           in 
           (EditingCards meta newGroup <| Card.editCard card, Cmd.none)
@@ -76,6 +82,10 @@ update msg state =
             group2 = Group.apply gMsg group
           in
           (Viewing meta group2, Cmd.none)
+
+        EditMeta ->
+          (EditingMeta meta group <| ScoreMeta.Editing meta meta, Cmd.none)
+
         _ -> (state, Cmd.none)
 
     EditingCards meta ((index, cards) as group) cardState -> 
@@ -95,46 +105,55 @@ update msg state =
 
         EditCard card -> 
           let
-            i = Debug.log "Editing the card at " Tools.findIndex card cards
+            i = Tools.findIndex card cards
             newGroup = (Just i, cards)
           in
           (EditingCards meta newGroup <| Card.Editing card card, Cmd.none)
 
         _ -> (state, Cmd.none)
 
-    EditingMeta _ _ _ ->
-      (Debug.log "need to fix editor for meta" state, Cmd.none)
+    EditingMeta orig group metaState ->
+      case msg of 
+        UpdateMeta mMsg ->
+          (EditingMeta orig group (ScoreMeta.apply mMsg metaState), Cmd.none)
+
+        SaveMeta meta ->
+          (Viewing meta group, Cmd.none)
+          
+        CloseMeta ->
+          (state, Cmd.none)          
+
+        _ ->
+          (state, Cmd.none)
 
 
-view : State -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) -> Html msg
-view state open edit change save cancel createCard editGroup =
+view : State -> msg -> (ScoreMeta.Msg -> msg) -> msg -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) -> Html msg
+view state editMeta changeMeta closeMeta openCard editCard change save cancel createCard editGroup =
   case state of
     Viewing meta (mIndex, children) ->
-      Group.inserter editGroup Card.empty (\i c -> Card.stub c (open c))  children
+      Components.box 
+        [ ScoreMeta.readonly meta editMeta
+        , Group.inserter editGroup Card.empty (\i c -> Card.stub c (openCard c))  children
+        ]
 
     EditingCards meta group cardState -> 
       case cardState of 
-        Card.Viewing card -> Card.readonly card (edit card) cancel
+        Card.Viewing card -> Card.readonly card (editCard card) cancel
         Card.Editing orig next -> Card.editor next change (save next) cancel
 
-    _ -> 
-      text "this is not the place for meta"
+    EditingMeta orig group metaState -> 
+      case metaState of 
+        ScoreMeta.Viewing next ->
+          ScoreMeta.readonly next editMeta
 
-
-viewMeta : State ->  Html msg
-viewMeta state  =
-  case state of
-    EditingMeta meta group metaState ->
-      text "this is the meta state viewer"
-
-    _ -> 
-      text "this is not the place for cards"
+        ScoreMeta.Editing prev next ->
+          ScoreMeta.editor next
 
 
 main = 
   Browser.element 
     { init = init
     , update = update
-    , view = (\state -> view state ViewCard EditCard UpdateCard SaveCard CloseCard CreateCard EditGroup)
+    , view = (\state -> view state EditMeta UpdateMeta CloseMeta ViewCard EditCard UpdateCard SaveCard CloseCard CreateCard EditGroup)
     , subscriptions = (\_ -> Sub.none)
     }
