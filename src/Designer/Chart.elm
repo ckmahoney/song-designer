@@ -12,6 +12,7 @@ import Components
 import Data
 import Components.Group as Group
 import Card as Card
+import ScoreMeta as ScoreMeta
 import Chords
 import Json.Decode as Decode
 
@@ -29,10 +30,13 @@ type Msg
   | CreateCard
   | EditGroup (Group.Msg Card.Model)
 
+
 type State 
-  = Viewing (Group.Model Card.Model)
-  | Editing (Group.Model Card.Model) Card.State
- 
+  = Viewing ScoreMeta.Model (Group.Model Card.Model)
+  | EditingCards ScoreMeta.Model (Group.Model Card.Model) Card.State
+  | EditingMeta ScoreMeta.Model (Group.Model Card.Model) ScoreMeta.State 
+
+
 someCards : List Card.Model
 someCards = 
   [ Card.new
@@ -43,7 +47,7 @@ someCards =
 
 new : State
 new = 
-  Viewing <| Group.from someCards
+  Viewing ScoreMeta.empty <| Group.from someCards
 
 
 init : Maybe Int -> (State, Cmd msg)
@@ -55,63 +59,76 @@ init flags =
 update : Msg -> State -> (State, Cmd msg)
 update msg state = 
   case state of 
-    Viewing group -> 
+    Viewing meta group -> 
       case msg of  
         CreateCard -> 
-          (Viewing (Tuple.first group, List.append (Tuple.second group) [Card.create]), Cmd.none)
+          (Viewing meta (Tuple.first group, List.append (Tuple.second group) [Card.create]), Cmd.none)
 
         ViewCard card -> 
           let
-             index = Debug.log "Editing card at index" <| Tools.findIndex card (Tuple.second group)
+             index = Debug.log "EditingCards card at index" <| Tools.findIndex card (Tuple.second group)
              newGroup = Group.by index (Tuple.second group)
           in 
-          (Editing newGroup <| Card.editCard card, Cmd.none)
+          (EditingCards meta newGroup <| Card.editCard card, Cmd.none)
 
         EditGroup gMsg -> 
           let
             group2 = Group.apply gMsg group
           in
-          (Viewing group2, Cmd.none)
+          (Viewing meta group2, Cmd.none)
         _ -> (state, Cmd.none)
 
-    Editing ((index, cards) as group) cardState -> 
+    EditingCards meta ((index, cards) as group) cardState -> 
       case msg of 
         UpdateCard cMsg ->     
-          (Editing group (Card.apply cMsg cardState), Cmd.none)
+          (EditingCards meta group (Card.apply cMsg cardState), Cmd.none)
 
         SaveCard next -> 
           let
             i = Maybe.withDefault -1 index
             newGroup = (Nothing, Tools.replaceAt i next cards)
           in
-          (Viewing newGroup, Cmd.none)
+          (Viewing meta newGroup, Cmd.none)
 
         CloseCard -> 
-          (Viewing group, Cmd.none)
+          (Viewing meta group, Cmd.none)
 
         EditCard card -> 
           let
             i = Debug.log "Editing the card at " Tools.findIndex card cards
             newGroup = (Just i, cards)
           in
-          (Editing newGroup <| Card.Editing card card, Cmd.none)
+          (EditingCards meta newGroup <| Card.Editing card card, Cmd.none)
 
         _ -> (state, Cmd.none)
+
+    EditingMeta _ _ _ ->
+      (Debug.log "need to fix editor for meta" state, Cmd.none)
 
 
 view : State -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) -> Html msg
 view state open edit change save cancel createCard editGroup =
   case state of
-    Viewing (mIndex, children) ->
-      div [] 
-        [ Group.inserter editGroup Card.empty (\i c -> Card.stub c (open c))  children
-        , Chords.read (3, Chords.O)
-        ]
+    Viewing meta (mIndex, children) ->
+      Group.inserter editGroup Card.empty (\i c -> Card.stub c (open c))  children
 
-    Editing group cardState -> 
+    EditingCards meta group cardState -> 
       case cardState of 
         Card.Viewing card -> Card.readonly card (edit card) cancel
         Card.Editing orig next -> Card.editor next change (save next) cancel
+
+    _ -> 
+      text "this is not the place for meta"
+
+
+viewMeta : State ->  Html msg
+viewMeta state  =
+  case state of
+    EditingMeta meta group metaState ->
+      text "this is the meta state viewer"
+
+    _ -> 
+      text "this is not the place for cards"
 
 
 main = 
