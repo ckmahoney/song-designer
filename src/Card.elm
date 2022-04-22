@@ -49,7 +49,6 @@ type alias MetaModel =
 type alias Model =
   { title : String
   , size : Int
-  , key : Key
   , style : Style
   }
 
@@ -57,7 +56,7 @@ type alias Model =
 type Msg 
   = SetTitle String
   | SetSize Int
-  | SetKey Int
+  -- | SetKey Int
   | SetStyle Style
 
 
@@ -73,20 +72,20 @@ sizeMax = 4
 
 new : Model
 new = 
-  Model "Verse" 4 7 Mix
+  Model "Verse" 4 Mix
 
 
 new2 : Model
 new2 = 
-  Model "Chorus" 5 1 Groove 
+  Model "Chorus" 5 Groove 
 
 new3 : Model
 new3 = 
-  Model "Break" 3 0 Beat
+  Model "Break" 3 Beat
 
 create : Model
 create = 
-  Model "New Arc" 0 0 Mix
+  Model "New Arc" 3 Mix
 
 stateFrom : Model -> State
 stateFrom card = 
@@ -130,7 +129,7 @@ edit msg item =
   case msg of 
     SetTitle title -> {item | title = title}
     SetSize size -> { item | size = size } 
-    SetKey index -> { item | key = index }
+    -- SetKey index -> { item | key = index }
     SetStyle style -> { item| style = style }
 
      -- SetBpm let 
@@ -159,10 +158,10 @@ update msg state =
 
 
 stub : Model -> msg -> Html msg
-stub { title, key, style, size } click = 
+stub { title, style, size } click = 
   Components.box
    [ Components.label title
-   , p [] [ text <| Components.keyMessage useSharps key ]
+   -- , p [] [ text <| Components.keyMessage useSharps key ]
    , p [] [ text <| styleLabel style ]
    , p [] [ text <| "Size " ++ (String.fromInt size) ]
    , Components.button click [] "Edit Arc"
@@ -210,7 +209,7 @@ editor card change save cancel =
     , Components.button save [] "Save changes" 
     , Components.button cancel [] "Cancel" 
     , Components.pickerSelected sizes (text << sizeLabel) (\int -> change <| SetSize <| Tools.getOr int sizes 6) card.size
-    , Components.keyPickerFull useSharps card.key (\int -> change <| SetKey int)
+    -- , Components.keyPickerFull useSharps card.key (\int -> change <| SetKey int)
     , Components.pickerSelected styles (text << styleLabel) selectStyle card.style
     ]
   
