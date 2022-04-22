@@ -104,7 +104,7 @@ view state open edit change save cancel createCard editGroup =
   case state of
     Viewing (mIndex, children) ->
       div [] 
-        [ Group.view children (\i c -> Card.stub c (open c)) editGroup createCard
+        [ Group.inserter editGroup Card.empty (\i c -> Card.stub c (open c))  children
         , Chords.read (3, Chords.O)
         ]
 

@@ -70,6 +70,10 @@ bpmMax = 360.0
 sizeMin = 2
 sizeMax = 4
 
+empty : Model
+empty = 
+  Model "New Arc" 3 Mix
+
 new : Model
 new = 
   Model "Verse" 4 Mix
