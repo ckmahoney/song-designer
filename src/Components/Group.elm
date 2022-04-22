@@ -23,6 +23,7 @@ type alias TType =
 type Msg a
   = View 
   | InsertAt Index a 
+  | MoveTo a Index Index
   | Delete Index
 
 
@@ -68,16 +69,20 @@ newModel =
 apply : (Msg a) -> (Model a) -> Model a
 apply msg ((mIndex, children) as model) = 
   case msg of
-    View -> (Just -1, children)
+    View -> 
+      (Nothing, children)
+
     InsertAt index el ->
+      (Nothing, Tools.insertAt index el children)
+
+    MoveTo target fromI toI ->
       let
-        head = List.take index children
-        tail = List.drop index children
-        list = head ++ [ el ] ++ tail
+        filtered = Tools.removeAt fromI children
       in 
-      (Just -1, list)
+      (Nothing, Tools.insertAt toI target filtered)
+
     Delete index -> 
-        (Just -1, Tools.removeAt index children)
+      (Nothing, Tools.removeAt index children)
 
 
 update : (Msg a) -> Model a -> (Model a, Cmd msg)
@@ -89,11 +94,23 @@ update msg state =
 overview : (Msg a -> msg) -> msg -> (Int -> a -> Html msg) -> List a -> Html msg
 overview revise create thumb things =
   let
-    withDelete = (\i el -> 
-      div [] [ thumb i el, Components.button (revise <| Delete i) [] ("Delete Arc " ++ String.fromInt (i + 1)) ] )
+    withActions = (\i el -> 
+      div []
+        [ thumb i el
+        , Components.button (revise <| Delete i) [] ("Delete Arc " ++ String.fromInt (i + 1)) 
+        , Components.button (revise <| InsertAt (i + 1) el) [] "Duplicate"
+        , if i > 0 then 
+            Components.button (revise <| MoveTo el i (i - 1)) [] "Move Left" 
+            else text ""
+        , if i < -1 + List.length things then 
+            Components.button (revise <| MoveTo el i (i + 1)) [] "Move Right" 
+            else text ""
+        ] )
+
+
   in 
   div [] <| 
-    (List.indexedMap withDelete things)
+    (List.indexedMap withActions things)
     ++ [(Components.button create [] "Add Another")]
 
 
