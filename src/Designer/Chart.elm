@@ -100,7 +100,7 @@ update msg state =
 
 
 view : State -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) -> Html msg
-view state open edit change save cancel createCard editGroup = 
+view state open edit change save cancel createCard editGroup =
   case state of
     Viewing (mIndex, children) ->
       div [] 

@@ -91,27 +91,34 @@ update msg state =
     _ -> (state, Cmd.none)
 
 
+smallBox : Html msg -> Html msg
+smallBox el = 
+  div [Attr.class "box m-6 is-vcentered"] [ el ]
+
+
 overview : (Msg a -> msg) -> msg -> (Int -> a -> Html msg) -> List a -> Html msg
 overview revise create thumb things =
   let
     withActions = (\i el -> 
-      div []
+      div [Attr.class "box m-6"] <| List.singleton <| Components.col [] 
         [ thumb i el
-        , Components.button (revise <| Delete i) [] ("Delete Arc " ++ String.fromInt (i + 1)) 
-        , Components.button (revise <| InsertAt (i + 1) el) [] "Duplicate"
-        , if i > 0 then 
-            Components.button (revise <| MoveTo el i (i - 1)) [] "Move Left" 
-            else text ""
-        , if i < -1 + List.length things then 
-            Components.button (revise <| MoveTo el i (i + 1)) [] "Move Right" 
-            else text ""
+        , Components.colsMulti  <| 
+          List.map Components.colHalf 
+            [ if i > 0 then 
+                Components.button (revise <| MoveTo el i (i - 1)) [Attr.class "is-fullwidth"] "Move Left" 
+                else text ""
+            , if i < -1 + List.length things then 
+              Components.button (revise <| MoveTo el i (i + 1)) [Attr.class "is-fullwidth"] "Move Right" 
+                else text ""
+            , Components.button (revise <| InsertAt (i + 1) el) [Attr.class "is-fullwidth"] "Duplicate"
+            , Components.button (revise <| Delete i) [Attr.class "is-fullwidth"] ("Delete Arc " ++ String.fromInt (i + 1)) 
+            ]
         ] )
 
-
   in 
-  div [] <| 
+  Components.colsWith [Attr.class "is-vcentered"] <| 
     (List.indexedMap withActions things)
-    ++ [(Components.button create [] "Add Another")]
+    ++ [ smallBox <| Components.button create [Attr.class "is-vcentered"] "Add Another" ] 
 
 
 view : List a -> (Int -> a -> Html msg) -> (Msg a -> msg) -> msg -> Html msg

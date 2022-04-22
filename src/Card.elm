@@ -85,7 +85,7 @@ new3 =
 
 create : Model
 create = 
-  Model "New Arc" 3 Mix
+  Model "New Arc" 4 Mix
 
 stateFrom : Model -> State
 stateFrom card = 
@@ -161,7 +161,6 @@ stub : Model -> msg -> Html msg
 stub { title, style, size } click = 
   Components.box
    [ Components.label title
-   -- , p [] [ text <| Components.keyMessage useSharps key ]
    , p [] [ text <| styleLabel style ]
    , p [] [ text <| "Size " ++ (String.fromInt size) ]
    , Components.button click [] "Edit Arc"

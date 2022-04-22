@@ -82,6 +82,8 @@ findIndex x xs =
     y
 
 
+
+
 remove : Maybe a -> List a -> List a
 remove x xs =
   case x of 
