@@ -56,6 +56,15 @@ type State
   | Editing Model Model
 
 
+
+tempoMessage : Int -> Float -> Int -> String
+tempoMessage cpc cps nCycles =
+  let 
+     duration = (toFloat cpc) * cps * (toFloat nCycles)
+  in 
+  (String.fromFloat duration) ++  " seconds long."
+
+
 bpmMin = 44.0
 bpmMax = 180.0
 
@@ -110,19 +119,19 @@ readonly : Model -> msg -> Html msg
 readonly meta revise = 
   Components.box
     [ Components.label meta.title
+    , p [] [ text <| Components.keyMessage useSharps meta.key ]
+    , p [] [ text <| tempoMessage meta.cpc  (meta.bpm / 60)  16 ]
     , Components.button revise [] "Edit"
-    -- , Components.button done [] "Return"
     ]
 
 
-editor : Model -> Html msg
-editor meta =
+editor : Model -> (Msg -> msg) -> msg -> msg -> Html msg
+editor meta change save cancel =
   Components.box
-    [ text <|  "Editing Meta " ++ meta.title
-    -- , Components.editText "Title" (text "") card.title (\str -> (change <| SetTitle str))
-    -- , Components.keyPickerFull useSharps card.key (\int -> change <| SetKey int)
-    -- , Components.button save [] "Save changes" 
-    -- , Components.button cancel [] "Cancel" 
+    [ Components.editText "Title" (text "") meta.title (\str -> (change <| SetTitle str))
+    , Components.keyPickerFull useSharps meta.key (\int -> change <| SetKey int)
+    , Components.button save [] "Save changes" 
+    , Components.button cancel [] "Cancel" 
     ]
 
 

@@ -123,11 +123,11 @@ overview revise  thumb things =
 inserter : (Msg a -> msg) -> a -> (Int -> a -> Html msg) -> List a -> Html msg
 inserter revise newEl thumb things =
   let
-    adder = (\i -> Components.boxWith "m-6"  <| [Components.button (revise <| InsertAt i newEl) [] "+"])
+    adder = (\i -> Components.boxWith "my-6 mx-1"  <| [Components.button (revise <| InsertAt i newEl) [] "+"])
     withActions = (\i el -> 
       div [Attr.class "is-flex is-flex-direction-row"] -- keep these elements horizontal 
         [ adder i
-        , div [Attr.class "box m-6 column"] 
+        , div [Attr.class "box my-6 mx-3 column"] 
           [ thumb i el
           , Components.colsMulti  <| 
             List.map Components.colHalf 

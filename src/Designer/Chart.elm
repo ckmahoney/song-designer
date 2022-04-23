@@ -19,6 +19,8 @@ import Json.Decode as Decode
 
 type alias CardGroup = Group.Model Card.Model
 
+-- the word "Save" is used to describe the act of closing 
+-- an editor with the new value applied to parent state
 
 type Msg
   = ViewCard Card.Model
@@ -29,7 +31,6 @@ type Msg
 
   | CreateCard
   | EditGroup (Group.Msg Card.Model)
-
 
   | EditMeta
   | SaveMeta ScoreMeta.Model
@@ -121,14 +122,14 @@ update msg state =
           (Viewing meta group, Cmd.none)
           
         CloseMeta ->
-          (state, Cmd.none)          
+          (Viewing orig group, Cmd.none)
 
         _ ->
           (state, Cmd.none)
 
 
-view : State -> msg -> (ScoreMeta.Msg -> msg) -> msg -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) -> Html msg
-view state editMeta changeMeta closeMeta openCard editCard change save cancel createCard editGroup =
+view : State -> msg -> (ScoreMeta.Msg -> msg) -> (ScoreMeta.Model -> msg) ->  msg -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) -> Html msg
+view state editMeta changeMeta saveMeta closeMeta openCard editCard change save cancel createCard editGroup =
   case state of
     Viewing meta (mIndex, children) ->
       Components.box 
@@ -147,13 +148,13 @@ view state editMeta changeMeta closeMeta openCard editCard change save cancel cr
           ScoreMeta.readonly next editMeta
 
         ScoreMeta.Editing prev next ->
-          ScoreMeta.editor next
+          ScoreMeta.editor next changeMeta (saveMeta next) closeMeta
 
 
 main = 
   Browser.element 
     { init = init
     , update = update
-    , view = (\state -> view state EditMeta UpdateMeta CloseMeta ViewCard EditCard UpdateCard SaveCard CloseCard CreateCard EditGroup)
+    , view = (\state -> view state EditMeta UpdateMeta SaveMeta CloseMeta ViewCard EditCard UpdateCard SaveCard CloseCard CreateCard EditGroup)
     , subscriptions = (\_ -> Sub.none)
     }

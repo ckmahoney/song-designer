@@ -31,14 +31,6 @@ type Style
   | Instrumental
   | Abstract
 
-type alias MetaModel =
-  { title : String
-  , tempo : String
-  , bpm : Bpm
-  , key : Key
-  , style : Style
-  }
-
 
 type alias Model =
   { title : String
@@ -50,7 +42,6 @@ type alias Model =
 type Msg 
   = SetTitle String
   | SetSize Int
-  -- | SetKey Int
   | SetStyle Style
 
 
@@ -58,8 +49,16 @@ type State
   = Viewing Model 
   | Editing Model Model
 
-bpmMin = 44.0
-bpmMax = 360.0
+
+initState : State
+initState = Editing new new
+
+
+init : Maybe Int -> (State, Cmd msg)
+init flag = 
+  -- (Viewing new, Cmd.none)
+  (initState, Cmd.none)
+
 
 sizeMin = 2
 sizeMax = 4
@@ -103,6 +102,7 @@ styleLabel style =
     Instrumental -> "Instrumental"
     Abstract -> "Abstract"
 
+
 sizeLabel : Int -> String
 sizeLabel size = 
   case size of 
@@ -110,7 +110,6 @@ sizeLabel size =
     3 -> "Medium"
     4 -> "Long"
     _ -> "? mystery size ?"
-    
 
 
 styleInfo : Style -> String
@@ -122,20 +121,13 @@ styleInfo style =
     Instrumental -> "Mostly instruments with kick or hats"
     Abstract -> "Just instruments, less clear rhythms"
 
+
 edit : Msg -> Model -> Model
 edit msg item = 
   case msg of 
     SetTitle title -> {item | title = title}
     SetSize size -> { item | size = size } 
-    -- SetKey index -> { item | key = index }
     SetStyle style -> { item| style = style }
-
-     -- SetBpm let 
-     --    c = Maybe.withDefault item.size <| String.toInt t
-     --    size = if c < sizeMin then sizeMin else if c > sizeMax then sizeMax else c
-     --    display = if "" == t then "" else t
-     -- in 
-     --  { item | sizeMessage = t, size = size }
 
 
 apply : Msg -> State -> State
@@ -173,18 +165,6 @@ styles : List Style
 styles = [Beat, Groove, Mix, Instrumental, Abstract ] 
 
 
-
-
-initState : State
-initState = Editing new new
-
-
-init : Maybe Int -> (State, Cmd msg)
-init flag = 
-  -- (Viewing new, Cmd.none)
-  (initState, Cmd.none)
-
-
 readonly : Model -> msg -> msg -> Html msg
 readonly card revise done = 
   Components.box
@@ -206,7 +186,6 @@ editor card change save cancel =
     , Components.button save [] "Save changes" 
     , Components.button cancel [] "Cancel" 
     , Components.pickerSelected sizes (text << sizeLabel) (\int -> change <| SetSize <| Tools.getOr int sizes 6) card.size
-    -- , Components.keyPickerFull useSharps card.key (\int -> change <| SetKey int)
     , Components.pickerSelected styles (text << styleLabel) selectStyle card.style
     ]
   
