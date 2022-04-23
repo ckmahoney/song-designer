@@ -122,7 +122,7 @@ readonly nCycles meta revise =
     , p [] [ text <| Components.keyMessage useSharps meta.key ]
     , p [] [ text <| (String.fromFloat meta.bpm) ++ " Beats Per Minute" ]
     , p [] [ text <| tempoMessage meta.cpc  (meta.bpm / 60) nCycles ]
-    , Components.button revise [] "Edit"
+    , Components.button revise [class "mt-3"] "Edit Song Details"
     ]
 
 

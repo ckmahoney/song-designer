@@ -40,7 +40,7 @@ type Msg
 
 type State 
   = Viewing ScoreMeta.Model (Group.Model Card.Model)
-  | EditingCards ScoreMeta.Model (Group.Model Card.Model) Card.State
+  | EditingCard ScoreMeta.Model (Group.Model Card.Model) Card.State
   | EditingMeta ScoreMeta.Model (Group.Model Card.Model) ScoreMeta.State 
 
 
@@ -55,12 +55,12 @@ someCards =
 new : State
 new = 
   Viewing ScoreMeta.empty <| Group.from someCards
+  -- EditingCard ScoreMeta.empty (Group.from someCards) (Card.Editing Card.new Card.new)
 
 
 init : Maybe Int -> (State, Cmd msg)
 init flags = 
-  case flags of 
-    _ -> (new, Cmd.none)
+  (new, Cmd.none)
 
 
 update : Msg -> State -> (State, Cmd msg)
@@ -76,7 +76,7 @@ update msg state =
              index = Tools.findIndex card (Tuple.second group)
              newGroup = Group.by index (Tuple.second group)
           in 
-          (EditingCards meta newGroup <| Card.editCard card, Cmd.none)
+          (EditingCard meta newGroup <| Card.editCard card, Cmd.none)
 
         EditGroup gMsg -> 
           let
@@ -89,10 +89,10 @@ update msg state =
 
         _ -> (state, Cmd.none)
 
-    EditingCards meta ((index, cards) as group) cardState -> 
+    EditingCard meta ((index, cards) as group) cardState -> 
       case msg of 
         UpdateCard cMsg ->     
-          (EditingCards meta group (Card.apply cMsg cardState), Cmd.none)
+          (EditingCard meta group (Card.apply cMsg cardState), Cmd.none)
 
         SaveCard next -> 
           let
@@ -109,7 +109,7 @@ update msg state =
             i = Tools.findIndex card cards
             newGroup = (Just i, cards)
           in
-          (EditingCards meta newGroup <| Card.Editing card card, Cmd.none)
+          (EditingCard meta newGroup <| Card.Editing card card, Cmd.none)
 
         _ -> (state, Cmd.none)
 
@@ -140,7 +140,7 @@ view state editMeta changeMeta saveMeta closeMeta openCard editCard change save 
         , Group.inserter editGroup Card.empty (\i c -> Card.stub c (openCard c))  cards
         ]
 
-    EditingCards meta group cardState -> 
+    EditingCard meta group cardState -> 
       case cardState of 
         Card.Viewing card -> Card.readonly card (editCard card) cancel
         Card.Editing orig next -> Card.editor next change (save next) cancel

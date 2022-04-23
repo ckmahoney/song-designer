@@ -5,17 +5,9 @@ import Html exposing (Html, h1, button, div, text, label, p)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
-import Types exposing (..)
-import Data
 import View 
 import Components
 import Tools
-import Http
-import Url.Builder as Url
-import Json.Decode as Decode
-import Json.Encode as Encode
-import Encoders as JE
-import Configs as Conf
 
 type alias Title = String
 type alias Key = Int
@@ -115,11 +107,11 @@ sizeLabel size =
 styleInfo : Style -> String
 styleInfo style = 
   case style of
-    Beat -> "Just percussive parts, less clear harmony or melody"
-    Groove -> "Mostly percussion with some bass or chords"
+    Beat -> "Just percussive parts, like kick drum, hi hats, clap, and snare drum"
+    Groove -> "Mostly percussion with some chance of instrumental parts"
     Mix -> "All parts evenly balanaced"
-    Instrumental -> "Mostly instruments with kick or hats"
-    Abstract -> "Just instruments, less clear rhythms"
+    Instrumental -> "Mostly instruments with some chance of percussive parts"
+    Abstract -> "Just instruments, like bass, chords, and melody."
 
 
 edit : Msg -> Model -> Model
@@ -153,7 +145,7 @@ stub { title, style, size } click =
    [ Components.label title
    , p [] [ text <| styleLabel style ]
    , p [] [ text <| "Size " ++ (String.fromInt size) ]
-   , Components.button click [] "Edit Arc"
+   , Components.button click [class "mt-3"] "Edit Arc"
    ]
 
 
@@ -183,10 +175,12 @@ editor card change save cancel =
   Components.box
     [ text <|  "Editing the card " ++ card.title
     , Components.editText "Title" (text "") card.title (\str -> (change <| SetTitle str))
+    , div [class "my-6"] <| List.singleton <| Components.pickerSelected sizes (text << sizeLabel) (\int -> change <| SetSize <| Tools.getOr int sizes 3) card.size
+    -- , p [class "content" ]  [ text <| sizeInfo card.size ]
+    , div [class "my-6"] <| List.singleton <| Components.pickerSelected styles (text << styleLabel) selectStyle card.style
+    , div [class "w-100"] <| List.singleton <| Html.b [class "is-block has-text-centered content" ]  [ text <| styleInfo card.style ]
     , Components.button save [] "Save changes" 
     , Components.button cancel [] "Cancel" 
-    , Components.pickerSelected sizes (text << sizeLabel) (\int -> change <| SetSize <| Tools.getOr int sizes 3) card.size
-    , Components.pickerSelected styles (text << styleLabel) selectStyle card.style
     ]
   
 main = text ""

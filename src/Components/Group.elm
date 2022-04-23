@@ -146,6 +146,7 @@ inserter revise newEl thumb things =
           (adder <| i + 1) 
             else text ""  ] )
   in 
+  if 0 == List.length things then adder 0 else 
   Components.colsWith [Attr.class "is-vcentered"] <| 
     (List.indexedMap withActions things)
 
@@ -154,11 +155,3 @@ view children thumb revise create =
   overview revise thumb children
 
 main = text ""
-
-
--- main = Browser.element 
---   { init = init
---   , update = update
---   , view = view
---   , subscriptions = (\_ -> Sub.none)
---   }
