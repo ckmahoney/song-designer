@@ -69,16 +69,16 @@ empty =
 
 new : Model
 new = 
-  Model "Verse" 4 Mix
+  Model "Verse" 3 Mix
 
 
 new2 : Model
 new2 = 
-  Model "Chorus" 5 Groove 
+  Model "Chorus" 4 Groove 
 
 new3 : Model
 new3 = 
-  Model "Break" 3 Beat
+  Model "Break" 2 Beat
 
 create : Model
 create = 
@@ -185,7 +185,7 @@ editor card change save cancel =
     , Components.editText "Title" (text "") card.title (\str -> (change <| SetTitle str))
     , Components.button save [] "Save changes" 
     , Components.button cancel [] "Cancel" 
-    , Components.pickerSelected sizes (text << sizeLabel) (\int -> change <| SetSize <| Tools.getOr int sizes 6) card.size
+    , Components.pickerSelected sizes (text << sizeLabel) (\int -> change <| SetSize <| Tools.getOr int sizes 3) card.size
     , Components.pickerSelected styles (text << styleLabel) selectStyle card.style
     ]
   

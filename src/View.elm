@@ -416,7 +416,7 @@ sectionToLength nCycles cps =
 
 
 tempoMessage : Int -> Float -> Int -> Html msg
-tempoMessage cpc  cps size =
+tempoMessage cpc cps size =
   div [class "content"] 
     [ p [] [text "The speed for this element. Higher BPM are faster, and lower BPM are slower."]
     , p [] [ text <| "With size " ++ (String.fromInt size) ++ " at " ++ (bpmString cps) ++ "BPM, that means this section is " ++ (String.fromInt (round <| duration cpc cps size)) ++  " seconds long." ] ]
@@ -456,7 +456,7 @@ timeString : Float -> String
 timeString t =
   let
     m = ((round t) // 60)
-    pad = if m < 10 then "0" else "" 
+    pad = if m < 10 then "" else "" 
     mm = pad ++ String.fromInt m
     
     s = modBy 60 (round t)

@@ -114,7 +114,7 @@ update msg state =
         _ -> (state, Cmd.none)
 
     EditingMeta orig group metaState ->
-      case msg of 
+      case msg of
         UpdateMeta mMsg ->
           (EditingMeta orig group (ScoreMeta.apply mMsg metaState), Cmd.none)
 
@@ -131,10 +131,13 @@ update msg state =
 view : State -> msg -> (ScoreMeta.Msg -> msg) -> (ScoreMeta.Model -> msg) ->  msg -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) -> Html msg
 view state editMeta changeMeta saveMeta closeMeta openCard editCard change save cancel createCard editGroup =
   case state of
-    Viewing meta (mIndex, children) ->
+    Viewing meta (mIndex, cards) ->
+      let
+        nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 cards 
+      in
       Components.box 
-        [ ScoreMeta.readonly meta editMeta
-        , Group.inserter editGroup Card.empty (\i c -> Card.stub c (openCard c))  children
+        [ ScoreMeta.readonly nCycles meta editMeta
+        , Group.inserter editGroup Card.empty (\i c -> Card.stub c (openCard c))  cards
         ]
 
     EditingCards meta group cardState -> 
@@ -144,11 +147,10 @@ view state editMeta changeMeta saveMeta closeMeta openCard editCard change save 
 
     EditingMeta orig group metaState -> 
       case metaState of 
-        ScoreMeta.Viewing next ->
-          ScoreMeta.readonly next editMeta
-
         ScoreMeta.Editing prev next ->
           ScoreMeta.editor next changeMeta (saveMeta next) closeMeta
+        _ ->
+          text "How did you get here"
 
 
 main = 

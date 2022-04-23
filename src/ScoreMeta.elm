@@ -62,7 +62,7 @@ tempoMessage cpc cps nCycles =
   let 
      duration = (toFloat cpc) * cps * (toFloat nCycles)
   in 
-  (String.fromFloat duration) ++  " seconds long."
+  View.timeString duration
 
 
 bpmMin = 44.0
@@ -115,12 +115,13 @@ initState : State
 initState = Editing empty empty
 
 
-readonly : Model -> msg -> Html msg
-readonly meta revise = 
+readonly : Int -> Model -> msg -> Html msg
+readonly nCycles meta revise = 
   Components.box
     [ Components.label meta.title
     , p [] [ text <| Components.keyMessage useSharps meta.key ]
-    , p [] [ text <| tempoMessage meta.cpc  (meta.bpm / 60)  16 ]
+    , p [] [ text <| (String.fromFloat meta.bpm) ++ " Beats Per Minute" ]
+    , p [] [ text <| tempoMessage meta.cpc  (meta.bpm / 60) nCycles ]
     , Components.button revise [] "Edit"
     ]
 
@@ -129,6 +130,7 @@ editor : Model -> (Msg -> msg) -> msg -> msg -> Html msg
 editor meta change save cancel =
   Components.box
     [ Components.editText "Title" (text "") meta.title (\str -> (change <| SetTitle str))
+    , Components.editRangeString "BPM" (text "Enter a BPM between 44 and 180.") (bpmMin, bpmMax) meta.tempo (\str -> (change <| SetBpm str))
     , Components.keyPickerFull useSharps meta.key (\int -> change <| SetKey int)
     , Components.button save [] "Save changes" 
     , Components.button cancel [] "Cancel" 
