@@ -177,8 +177,10 @@ update msg state complete =
             (state, Cmd.none)
 
 
-view : State -> msg -> (ScoreMeta.Msg -> msg) -> (ScoreMeta.Model -> msg) ->  msg -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) -> Html msg
-view state editMeta changeMeta saveMeta closeMeta openCard editCard change save cancel createCard editGroup =
+view : State -> msg -> (ScoreMeta.Msg -> msg) -> (ScoreMeta.Model -> msg) ->  msg -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) 
+  -> (ScoreMeta.Model -> (List Card.Model) -> msg)
+  -> Html msg
+view state editMeta changeMeta saveMeta closeMeta openCard editCard change save cancel createCard editGroup doRequest =
   case state of
     Viewing meta (mIndex, cards) ->
       let
@@ -187,6 +189,7 @@ view state editMeta changeMeta saveMeta closeMeta openCard editCard change save 
       Components.box 
         [ ScoreMeta.readonly nCycles meta editMeta
         , Group.inserter editGroup Card.empty (\i c -> Card.stub c (openCard c))  cards
+        , Components.button (doRequest meta cards) [] "Make a Song"
         ]
 
     EditingCard meta group cardState -> 
@@ -206,6 +209,6 @@ main =
   Browser.element 
     { init = init
     , update = (\msg model -> update msg model GotTrack)
-    , view = (\state -> view state EditMeta UpdateMeta SaveMeta CloseMeta ViewCard EditCard UpdateCard SaveCard CloseCard CreateCard EditGroup)
+    , view = (\state -> view state EditMeta UpdateMeta SaveMeta CloseMeta ViewCard EditCard UpdateCard SaveCard CloseCard CreateCard EditGroup ReqTrack)
     , subscriptions = (\_ -> Sub.none)
     }
