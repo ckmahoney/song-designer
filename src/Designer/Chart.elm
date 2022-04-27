@@ -112,14 +112,23 @@ init flags =
 
 update : ChartMsg -> State -> (Result Http.Error TrackMeta -> msg) -> (State, Cmd msg)
 update msg state complete = 
-  case msg of  -- "preflight" check
+  case msg  of  -- "preflight" check
     ReqTrack meta arcs ->
       (state, reqTrack meta arcs complete)
 
+    Download path -> 
+      (state, Configs.download <| Debug.log "triggerd a download" path)
     _ -> 
      case state of 
       Viewing player meta group -> 
         case msg of  
+          UpdatePlayer pMsg -> 
+            let
+              (next, trig) = Player.update pMsg player 
+            in
+            (Viewing next meta group, Player.trigger trig)
+
+            
           GotTrack result ->
             case result of 
               Ok track  -> 
@@ -222,7 +231,9 @@ view : State ->
   -> (ScoreMeta.Model -> (List Card.Model) -> msg)
   -> Html msg
 view state updatePlayer download editMeta changeMeta saveMeta closeMeta openCard editCard change save cancel createCard editGroup doRequest =
-  case state of
+  div [] 
+  [ div [Attr.id "the-player"] []
+  , case state of
       Viewing player meta (mIndex, cards) ->
         let
           nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 cards 
@@ -246,6 +257,7 @@ view state updatePlayer download editMeta changeMeta saveMeta closeMeta openCard
             ScoreMeta.editor next changeMeta (saveMeta next) closeMeta
           _ ->
             text "How did you get here"
+    ] 
 
 
 main = 
