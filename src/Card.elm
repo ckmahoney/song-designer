@@ -92,7 +92,7 @@ styleLabel style =
     Groove -> "Groove"
     Mix -> "Mix"
     Instrumental -> "Instrumental"
-    Abstract -> "Abstract"
+    Abstract -> "Synth"
 
 
 sizeLabel : Int -> String
