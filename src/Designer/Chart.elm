@@ -19,7 +19,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Decoders
 import Http
-import Types exposing (TrackMeta)
+import Types exposing (WithMember, GhostMember, TrackMeta)
 import Playback2 as Player
 
 type alias CardGroup = Group.Model Card.Model
@@ -52,6 +52,8 @@ type State
   = Viewing Player.Model ScoreMeta.Model (Group.Model Card.Model)
   | EditingCard Player.Model ScoreMeta.Model (Group.Model Card.Model) Card.State
   | EditingMeta Player.Model ScoreMeta.Model (Group.Model Card.Model) ScoreMeta.State 
+
+
 
 
 encodeScoreMeta : ScoreMeta.Model -> Encode.Value
@@ -99,37 +101,28 @@ someCards =
   ]
 
 
-new : State
-new = 
+newState : State
+newState = 
   Viewing Player.new ScoreMeta.empty <| Group.from someCards
-  -- EditingCard player ScoreMeta.empty (Group.from someCards) (Card.Editing Card.new Card.new)
 
 
-init : Maybe Int -> (State, Cmd msg)
+
+init : Maybe GhostMember -> (WithMember State, Cmd msg)
 init flags = 
-  (new, Cmd.none)
+  case flags of 
+    Nothing -> 
+      ((Configs.anonMember, newState), Cmd.none)
+    
+    Just member ->
+      ((member, newState), Cmd.none)
 
 
-update : ChartMsg -> State -> (Result Http.Error TrackMeta -> msg) -> (State, Cmd msg)
-update msg state complete = 
-  case msg  of  -- "preflight" check
-    ReqTrack meta arcs ->
-      (state, reqTrack meta arcs complete)
 
-    Download path -> 
-      (state, Configs.download <| Debug.log "triggerd a download" path)
-
-    _ -> 
-     case state of 
+apply : ChartMsg -> WithMember State -> State
+apply msg (member, state) = 
+   case state of 
       Viewing player meta group -> 
         case msg of  
-          UpdatePlayer pMsg -> 
-            let
-              (next, trig) = Player.update pMsg player 
-            in
-            (Viewing next meta group, Player.trigger trig)
-
-            
           GotTrack result ->
             case result of 
               Ok track  -> 
@@ -137,53 +130,53 @@ update msg state complete =
                   prefix = if Configs.devMode == True then "http://localhost:3000" else ""
                   p =  Player.add player { track  | filepath = prefix ++ track.filepath } 
                 in 
-                (Viewing p meta group, Cmd.none)
+                Viewing p meta group
 
               Err error -> 
-                Debug.log "Error getting the track" (state, Cmd.none)
+                state
 
           CreateCard -> 
-            (Viewing player meta (Tuple.first group, List.append (Tuple.second group) [Card.create]), Cmd.none)
+            Viewing player meta (Tuple.first group, List.append (Tuple.second group) [Card.create])
 
           ViewCard card -> 
             let
                index = Tools.findIndex card (Tuple.second group)
                newGroup = Group.by index (Tuple.second group)
             in 
-            (EditingCard player meta newGroup <| Card.editCard card, Cmd.none)
+            EditingCard player meta newGroup <| Card.editCard card
 
           EditGroup gMsg -> 
             let
               group2 = Group.apply gMsg group
             in
-            (Viewing player meta group2, Cmd.none)
+            Viewing player meta group2
 
           EditMeta ->
-            (EditingMeta player meta group <| ScoreMeta.Editing meta meta, Cmd.none)
+            EditingMeta player meta group <| ScoreMeta.Editing meta meta
 
-          _ -> (state, Cmd.none)
+          _ -> state
 
       EditingCard player meta ((index, cards) as group) cardState -> 
         case msg of 
           UpdateCard cMsg ->     
-            (EditingCard player meta group (Card.apply cMsg cardState), Cmd.none)
+            EditingCard player meta group (Card.apply cMsg cardState)
 
           SaveCard next -> 
             let
               i = Maybe.withDefault -1 index
               newGroup = (Nothing, Tools.replaceAt i next cards)
             in
-            (Viewing player meta newGroup, Cmd.none)
+            Viewing player meta newGroup
 
           CloseCard -> 
-            (Viewing player meta group, Cmd.none)
+            Viewing player meta group
 
           EditCard card -> 
             let
               i = Tools.findIndex card cards
               newGroup = (Just i, cards)
             in
-            (EditingCard player meta newGroup <| Card.Editing card card, Cmd.none)
+            EditingCard player meta newGroup <| Card.Editing card card
 
           GotTrack result ->
             case result of 
@@ -191,24 +184,25 @@ update msg state complete =
                 let
                   p =  Player.add player track 
                 in 
-                (EditingCard p meta group cardState, Cmd.none)
+                EditingCard p meta group cardState
 
               Err error -> 
-                Debug.log "Error getting the track" (state, Cmd.none)
+                state
 
 
-          _ -> (state, Cmd.none)
+          _ -> state
+
 
       EditingMeta player orig group metaState ->
         case msg of
           UpdateMeta mMsg ->
-            (EditingMeta player orig group (ScoreMeta.apply mMsg metaState), Cmd.none)
+            EditingMeta player orig group (ScoreMeta.apply mMsg metaState)
 
           SaveMeta meta ->
-            (Viewing player meta group, Cmd.none)
+            Viewing player meta group
 
           CloseMeta ->
-            (Viewing player orig group, Cmd.none)
+            Viewing player orig group
 
           GotTrack result -> 
             case result of 
@@ -216,23 +210,50 @@ update msg state complete =
                 let
                   p = Player.add player track 
                 in 
-                (EditingMeta p orig group metaState, Cmd.none)
+                EditingMeta p orig group metaState
 
               Err error -> 
-                Debug.log "Error getting the track" (state, Cmd.none)
-
+                state
 
           _ ->
-            (state, Cmd.none)
+            state
 
 
-view : State -> 
+update : ChartMsg -> WithMember State -> (Result Http.Error TrackMeta -> msg) -> (WithMember State, Cmd msg)
+update msg ((member, state) as model) onComplete =
+  case msg of 
+    ReqTrack meta arcs ->
+      ((member, state), reqTrack meta arcs onComplete)
+
+    Download path -> 
+      ((member, state), Configs.download <| Debug.log "triggerd a download" path)
+
+    UpdatePlayer pMsg -> 
+      let
+        next = (\p -> Tuple.first <| Player.update pMsg p) 
+        cmdr = (\p -> Player.trigger <| Tuple.second <| Player.update pMsg p) 
+      in
+      case state of 
+        Viewing player meta group ->
+         ((member, Viewing (next player) meta group), cmdr player)
+
+        EditingCard player meta ((index, cards) as group) cardState ->      
+         ((member, EditingCard (next player) meta group cardState), cmdr player)
+          
+        EditingMeta player orig group metaState ->
+         ((member, EditingMeta (next player) orig group metaState), cmdr player)          
+
+    _ -> 
+      ((member, apply msg model), Cmd.none) 
+
+
+view : WithMember State -> 
   (Player.Msg -> msg) ->
   (String -> msg) -> 
   msg -> (ScoreMeta.Msg -> msg) -> (ScoreMeta.Model -> msg) ->  msg -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) 
   -> (ScoreMeta.Model -> (List Card.Model) -> msg)
   -> Html msg
-view state updatePlayer download editMeta changeMeta saveMeta closeMeta openCard editCard change save cancel createCard editGroup doRequest =
+view (member, state) updatePlayer download editMeta changeMeta saveMeta closeMeta openCard editCard change save cancel createCard editGroup doRequest =
   div [] 
   [ div [Attr.id "the-player"] []
   , case state of
@@ -266,6 +287,6 @@ main =
   Browser.element 
     { init = init
     , update = (\msg model -> update msg model GotTrack)
-    , view = (\state -> view state UpdatePlayer Download EditMeta UpdateMeta SaveMeta CloseMeta ViewCard EditCard UpdateCard SaveCard CloseCard CreateCard EditGroup ReqTrack)
+    , view = (\(member, state) -> view (member, state) UpdatePlayer Download EditMeta UpdateMeta SaveMeta CloseMeta ViewCard EditCard UpdateCard SaveCard CloseCard CreateCard EditGroup ReqTrack)
     , subscriptions = (\_ -> Sub.none)
     }
