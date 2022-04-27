@@ -74,7 +74,7 @@ type alias Model =
 
 new : Model
 new = 
-  (Nothing, Empty, [])
+  (Nothing, Empty, Data.someTracks)
 
 
 assetName : Asset -> String
@@ -118,7 +118,6 @@ apply msg ((track, model, tracks) as p) =
     Load src -> (track, Playing, tracks)
     Select next -> (next, Stopped, tracks)
     CreateAndPlay (nodeId, src) -> (track, Playing, tracks)
-
 
 
 update : Msg -> Model -> (Model, Msg)
@@ -227,12 +226,11 @@ face track state trig =
     ]
 
 
-feature : TrackMeta -> State ->  (Msg -> msg) -> (Int -> Asset -> msg) -> Html msg 
-feature track state trig req =
+feature : TrackMeta -> State ->  (Msg -> msg) -> Html msg 
+feature track state trig  =
   div []
     [ face track state trig 
     , meta track
-    , assets track (req track.id)
     ]
 
 
@@ -241,10 +239,10 @@ player track state trig =
   face track state trig 
 
 
-card : Model -> ((Model, Msg) -> msg)-> TrackMeta -> Html msg
+card : Model -> (Msg -> msg)-> TrackMeta -> Html msg
 card ((selection, state, tracks) as p) signal track = 
   let 
-    change = (\msg -> signal <| update msg (Just track, state, tracks))
+    change = (\msg -> signal msg)
     children = case selection of 
       Nothing -> 
          div [onClick <| change <| Load track.filepath] [Components.svg "play"]
@@ -257,10 +255,10 @@ card ((selection, state, tracks) as p) signal track =
   Components.col [ Attr.class "is-half"] [ Components.songCard track.title <| List.singleton children]
 
 
-listing : Model -> ((Model, Msg) -> msg)-> TrackMeta -> (String -> msg) -> Html msg
+listing : Model -> (Msg -> msg)-> TrackMeta -> (String -> msg) -> Html msg
 listing ((selection, state, tracks) as p) signal track download = 
   let 
-    change = (\msg -> signal <| update msg (Just track, state, tracks))
+    change = (\msg -> signal  msg)
     children = case selection of 
       Nothing -> 
          div [onClick <| change <| Load track.filepath] [Components.svg "play"]
@@ -279,30 +277,30 @@ listing ((selection, state, tracks) as p) signal track download =
        ]
 
 
-playlist : Model -> ((Model, Msg) -> msg) ->   (String -> msg) -> Html msg
-playlist  ((selection, model, tracks) as p) signal  download =
+playlist : Model -> (Msg -> msg) ->   (String -> msg) -> Html msg
+playlist  model signal  download =
   div [] 
    [ Html.h2 [Attr.class "title"] [text "My Songs"]
    , Components.box <| List.singleton  <|
-       actionlist p signal download
+       actionlist model signal download
    ] 
 
 
-actionlist : Model -> ((Model, Msg) -> msg) ->  (String -> msg) -> Html msg
+actionlist : Model -> (Msg -> msg) ->  (String -> msg) -> Html msg
 actionlist  ((selection, model, tracks) as p) signal  download =
   Components.box <| List.singleton  <| Components.colsMulti <|
     List.map ((\x -> listing p signal x download)) tracks
 
 
-minilist : Model -> ((Model, Msg) -> msg) ->   Html msg
+minilist : Model -> (Msg -> msg) ->   Html msg
 minilist  ((selection, model, tracks) as p) signal  =
   Components.box <| List.singleton <| Components.colsMulti <|
    List.map (card p signal) tracks
 
 
 
-view : Model -> ((Model, Msg) -> msg) -> (Int -> Asset -> msg) -> (String -> msg) -> Html msg
-view ((selection, model, tracks) as p) signal req  download =
+view : Model -> (Msg -> msg) ->  (String -> msg) -> Html msg
+view ((selection, model, tracks) as p) signal  download =
   case selection of 
    Nothing ->
     Components.cols
@@ -311,15 +309,15 @@ view ((selection, model, tracks) as p) signal req  download =
 
    Just track ->
     let
-       change = (\msg -> signal <| update msg (Just track, model, tracks))
+       change = (\msg -> signal msg)
     in
     Components.cols
-      [ Components.colSize "is-one-third" <| feature track model change req
+      [ Components.colSize "is-one-third" <| feature track model change
       , Components.colSize "is-two-thirds" <| playlist p signal download
       ] 
 
 
-mini : Model -> ((Model, Msg) -> msg) -> (String -> msg) -> Html msg
+mini : Model -> (Msg -> msg) -> (String -> msg) -> Html msg
 mini ((selection, model, tracks) as p) signal download =
   case selection of 
    Nothing ->
@@ -330,7 +328,7 @@ mini ((selection, model, tracks) as p) signal download =
 
    Just track ->
     let
-       change = (\msg -> signal <| update msg p)
+       change = (\msg -> signal msg)
     in
     div [Attr.id "mini-player"] <| List.singleton <|
      Components.cols
@@ -356,6 +354,11 @@ bottomPlayer selection audio =
    , audio
    , text "3:24"
    ]
+
+
+add : Model -> TrackMeta -> Model
+add (a, b, list) track =
+  (a, b, track :: list)
 
 
 emptyMessage : Html msg
