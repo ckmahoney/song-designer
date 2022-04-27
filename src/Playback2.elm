@@ -1,4 +1,4 @@
-port module Playback2 exposing (..)
+module Playback2 exposing (..)
 
 import Html exposing (Html, div, text)
 import Html.Attributes as Attr
@@ -14,30 +14,12 @@ import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Configs as Conf
-
+import PlaybackPorts exposing (..)
 
 type alias NodeId = String
 type alias AudioSrc = String
 type alias NoArgs = String
 
-
-port playMusic : NoArgs -> Cmd msg
-
-port pauseMusic : NoArgs -> Cmd msg
-
-port stopMusic : NoArgs -> Cmd msg
-
-port setSource : (NodeId, AudioSrc) -> Cmd msg
-
-port setAndPlaySource : (NodeId, AudioSrc) -> Cmd msg
-
-port kill : NoArgs -> Cmd msg
-
-port createSource : (NodeId, AudioSrc) -> Cmd msg
-
-port createAndPlaySource : (NodeId, AudioSrc) -> Cmd msg
-
-port getAsset : String -> Cmd msg
 
 
 patreonLink =
