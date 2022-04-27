@@ -150,6 +150,10 @@ type alias GhostMember =
   } 
 
 
+type alias WithMember a
+  = (GhostMember, a)
+
+
 type alias Ensemble = List Voice
 type alias NPresetKit = (String, Ensemble)
 
