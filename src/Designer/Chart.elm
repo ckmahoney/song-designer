@@ -17,14 +17,17 @@ import ScoreMeta as ScoreMeta
 import Chords
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Decoders
 import Http
+import Types exposing (TrackMeta)
+import Playback2 as Player
 
 type alias CardGroup = Group.Model Card.Model
 
 -- the word "Save" is used to describe the act of closing 
 -- an editor with the new value applied to parent state
 
-type Msg
+type ChartMsg
   = ViewCard Card.Model
   | EditCard Card.Model
   | SaveCard Card.Model
@@ -39,13 +42,16 @@ type Msg
   | CloseMeta
   | UpdateMeta ScoreMeta.Msg
 
+  | UpdatePlayer Player.Msg
+  | Download String
+
   | ReqTrack ScoreMeta.Model (List Card.Model)
-  | GotTrack (Result Http.Error ())
+  | GotTrack (Result Http.Error TrackMeta)
 
 type State 
-  = Viewing ScoreMeta.Model (Group.Model Card.Model)
-  | EditingCard ScoreMeta.Model (Group.Model Card.Model) Card.State
-  | EditingMeta ScoreMeta.Model (Group.Model Card.Model) ScoreMeta.State 
+  = Viewing Player.Model ScoreMeta.Model (Group.Model Card.Model)
+  | EditingCard Player.Model ScoreMeta.Model (Group.Model Card.Model) Card.State
+  | EditingMeta Player.Model ScoreMeta.Model (Group.Model Card.Model) ScoreMeta.State 
 
 
 encodeScoreMeta : ScoreMeta.Model -> Encode.Value
@@ -76,12 +82,12 @@ encodeReqTrackNext meta arcs =
     ]
 
 
-reqTrack : ScoreMeta.Model -> List Card.Model -> (Result Http.Error () -> msg) -> Cmd msg
+reqTrack : ScoreMeta.Model -> List Card.Model -> (Result Http.Error TrackMeta -> msg) -> Cmd msg
 reqTrack meta arcs complete =
   Http.post
     { url = Configs.apiUrl "track/next"
     , body = Http.jsonBody <| encodeReqTrackNext meta arcs
-    , expect = Http.expectWhatever complete
+    , expect = Http.expectJson complete Decoders.decodeTrack
     }
 
 
@@ -95,8 +101,8 @@ someCards =
 
 new : State
 new = 
-  Viewing ScoreMeta.empty <| Group.from someCards
-  -- EditingCard ScoreMeta.empty (Group.from someCards) (Card.Editing Card.new Card.new)
+  Viewing Player.new ScoreMeta.empty <| Group.from someCards
+  -- EditingCard player ScoreMeta.empty (Group.from someCards) (Card.Editing Card.new Card.new)
 
 
 init : Maybe Int -> (State, Cmd msg)
@@ -104,111 +110,148 @@ init flags =
   (new, Cmd.none)
 
 
-update : Msg -> State -> (Result Http.Error () -> msg) -> (State, Cmd msg)
+update : ChartMsg -> State -> (Result Http.Error TrackMeta -> msg) -> (State, Cmd msg)
 update msg state complete = 
   case msg of  -- "preflight" check
     ReqTrack meta arcs ->
       (state, reqTrack meta arcs complete)
 
-    GotTrack _ ->
-      (state, Cmd.none)
-
     _ -> 
      case state of 
-      Viewing meta group -> 
+      Viewing player meta group -> 
         case msg of  
+          GotTrack result ->
+            case result of 
+              Ok track  -> 
+                let
+                  p =  Player.add player track 
+                in 
+                (Viewing p meta group, Cmd.none)
+
+              Err error -> 
+                Debug.log "Error getting the track" (state, Cmd.none)
+
           CreateCard -> 
-            (Viewing meta (Tuple.first group, List.append (Tuple.second group) [Card.create]), Cmd.none)
+            (Viewing player meta (Tuple.first group, List.append (Tuple.second group) [Card.create]), Cmd.none)
 
           ViewCard card -> 
             let
                index = Tools.findIndex card (Tuple.second group)
                newGroup = Group.by index (Tuple.second group)
             in 
-            (EditingCard meta newGroup <| Card.editCard card, Cmd.none)
+            (EditingCard player meta newGroup <| Card.editCard card, Cmd.none)
 
           EditGroup gMsg -> 
             let
               group2 = Group.apply gMsg group
             in
-            (Viewing meta group2, Cmd.none)
+            (Viewing player meta group2, Cmd.none)
 
           EditMeta ->
-            (EditingMeta meta group <| ScoreMeta.Editing meta meta, Cmd.none)
+            (EditingMeta player meta group <| ScoreMeta.Editing meta meta, Cmd.none)
 
           _ -> (state, Cmd.none)
 
-      EditingCard meta ((index, cards) as group) cardState -> 
+      EditingCard player meta ((index, cards) as group) cardState -> 
         case msg of 
           UpdateCard cMsg ->     
-            (EditingCard meta group (Card.apply cMsg cardState), Cmd.none)
+            (EditingCard player meta group (Card.apply cMsg cardState), Cmd.none)
 
           SaveCard next -> 
             let
               i = Maybe.withDefault -1 index
               newGroup = (Nothing, Tools.replaceAt i next cards)
             in
-            (Viewing meta newGroup, Cmd.none)
+            (Viewing player meta newGroup, Cmd.none)
 
           CloseCard -> 
-            (Viewing meta group, Cmd.none)
+            (Viewing player meta group, Cmd.none)
 
           EditCard card -> 
             let
               i = Tools.findIndex card cards
               newGroup = (Just i, cards)
             in
-            (EditingCard meta newGroup <| Card.Editing card card, Cmd.none)
+            (EditingCard player meta newGroup <| Card.Editing card card, Cmd.none)
+
+          GotTrack result ->
+            case result of 
+              Ok track  -> 
+                let
+                  p =  Player.add player track 
+                in 
+                (EditingCard p meta group cardState, Cmd.none)
+
+              Err error -> 
+                Debug.log "Error getting the track" (state, Cmd.none)
+
 
           _ -> (state, Cmd.none)
 
-      EditingMeta orig group metaState ->
+      EditingMeta player orig group metaState ->
         case msg of
           UpdateMeta mMsg ->
-            (EditingMeta orig group (ScoreMeta.apply mMsg metaState), Cmd.none)
+            (EditingMeta player orig group (ScoreMeta.apply mMsg metaState), Cmd.none)
 
           SaveMeta meta ->
-            (Viewing meta group, Cmd.none)
+            (Viewing player meta group, Cmd.none)
 
           CloseMeta ->
-            (Viewing orig group, Cmd.none)
+            (Viewing player orig group, Cmd.none)
+
+          GotTrack result -> 
+            case result of 
+              Ok track  -> 
+                let
+                  p = Player.add player track 
+                in 
+                (EditingMeta p orig group metaState, Cmd.none)
+
+              Err error -> 
+                Debug.log "Error getting the track" (state, Cmd.none)
+
 
           _ ->
             (state, Cmd.none)
 
 
-view : State -> msg -> (ScoreMeta.Msg -> msg) -> (ScoreMeta.Model -> msg) ->  msg -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) 
+view : State -> 
+  (Player.Msg -> msg) ->
+  (String -> msg) -> 
+  msg -> (ScoreMeta.Msg -> msg) -> (ScoreMeta.Model -> msg) ->  msg -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) 
   -> (ScoreMeta.Model -> (List Card.Model) -> msg)
   -> Html msg
-view state editMeta changeMeta saveMeta closeMeta openCard editCard change save cancel createCard editGroup doRequest =
+view state updatePlayer download editMeta changeMeta saveMeta closeMeta openCard editCard change save cancel createCard editGroup doRequest =
   case state of
-    Viewing meta (mIndex, cards) ->
-      let
-        nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 cards 
-      in
-      Components.box 
-        [ ScoreMeta.readonly nCycles meta editMeta
-        , Group.inserter editGroup Card.empty (\i c -> Card.stub c (openCard c))  cards
-        , Components.button (doRequest meta cards) [] "Make a Song"
-        ]
+      Viewing player meta (mIndex, cards) ->
+        let
+          nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 cards 
+        in
+       
+        Components.box 
+          [ Player.view player updatePlayer download
+          , ScoreMeta.readonly nCycles meta editMeta
+          , Group.inserter editGroup Card.empty (\i c -> Card.stub c (openCard c))  cards
+          , Components.button (doRequest meta cards) [] "Make a Song"
+          ]
 
-    EditingCard meta group cardState -> 
-      case cardState of 
-        Card.Viewing card -> Card.readonly card (editCard card) cancel
-        Card.Editing orig next -> Card.editor next change (save next) cancel
+      EditingCard player meta group cardState -> 
+        case cardState of 
+          Card.Viewing card -> Card.readonly card (editCard card) cancel
+          Card.Editing orig next -> Card.editor next change (save next) cancel
 
-    EditingMeta orig group metaState -> 
-      case metaState of 
-        ScoreMeta.Editing prev next ->
-          ScoreMeta.editor next changeMeta (saveMeta next) closeMeta
-        _ ->
-          text "How did you get here"
+      EditingMeta player orig group metaState -> 
+        case metaState of 
+          ScoreMeta.Editing prev next ->
+            ScoreMeta.editor next changeMeta (saveMeta next) closeMeta
+          _ ->
+            text "How did you get here"
 
 
 main = 
   Browser.element 
     { init = init
     , update = (\msg model -> update msg model GotTrack)
-    , view = (\state -> view state EditMeta UpdateMeta SaveMeta CloseMeta ViewCard EditCard UpdateCard SaveCard CloseCard CreateCard EditGroup ReqTrack)
+    , view = (\state -> view state UpdatePlayer Download EditMeta UpdateMeta SaveMeta CloseMeta ViewCard EditCard UpdateCard SaveCard CloseCard CreateCard EditGroup ReqTrack)
     , subscriptions = (\_ -> Sub.none)
     }
