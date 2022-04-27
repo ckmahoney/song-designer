@@ -118,6 +118,7 @@ update msg state complete =
 
     Download path -> 
       (state, Configs.download <| Debug.log "triggerd a download" path)
+
     _ -> 
      case state of 
       Viewing player meta group -> 
@@ -133,7 +134,8 @@ update msg state complete =
             case result of 
               Ok track  -> 
                 let
-                  p =  Player.add player track 
+                  prefix = if Configs.devMode == True then "http://localhost:3000" else ""
+                  p =  Player.add player { track  | filepath = prefix ++ track.filepath } 
                 in 
                 (Viewing p meta group, Cmd.none)
 
