@@ -1,7 +1,7 @@
 module Designer.Chart exposing (..)
 
 import Browser
-import Html exposing (Html, h1, button, div, text, label, p, input,b)
+import Html exposing (Html, h1, h3, button, div, text, label, p, input,b, details, summary)
 import Html.Attributes as Attr
 import Html.Events as Events exposing (onClick, onInput)
 
@@ -12,7 +12,7 @@ import Tools
 import Components
 import Data
 import Components.Group as Group
-import Card as Card
+import Arc as Arc
 import ScoreMeta as ScoreMeta
 import Chords
 import Json.Decode as Decode
@@ -22,20 +22,20 @@ import Http
 import Types exposing (WithMember, GhostMember, TrackMeta)
 import Playback2 as Player
 
-type alias CardGroup = Group.Model Card.Model
+type alias ArcGroup = Group.Model Arc.Model
 
 -- the word "Save" is used to describe the act of closing 
 -- an editor with the new value applied to parent state
 
 type ChartMsg
-  = ViewCard Card.Model
-  | EditCard Card.Model
-  | SaveCard Card.Model
-  | CloseCard
-  | UpdateCard Card.Msg
+  = ViewArc Arc.Model
+  | EditArc Arc.Model
+  | SaveArc Arc.Model
+  | CloseArc
+  | UpdateArc Arc.Msg
 
-  | CreateCard
-  | EditGroup (Group.Msg Card.Model)
+  | CreateArc
+  | EditGroup (Group.Msg Arc.Model)
 
   | EditMeta
   | SaveMeta ScoreMeta.Model
@@ -45,14 +45,14 @@ type ChartMsg
   | UpdatePlayer Player.Msg
   | Download String
 
-  | ReqTrack ScoreMeta.Model (List Card.Model)
+  | ReqTrack ScoreMeta.Model (List Arc.Model)
   | GotTrack (Result Http.Error TrackMeta)
 
 type State 
-  = Viewing Player.Model ScoreMeta.Model (Group.Model Card.Model)
-  | EditingCard Player.Model ScoreMeta.Model (Group.Model Card.Model) Card.State
-  | EditingMeta Player.Model ScoreMeta.Model (Group.Model Card.Model) ScoreMeta.State 
-  | Requesting Player.Model ScoreMeta.Model (Group.Model Card.Model)
+  = Viewing Player.Model ScoreMeta.Model (Group.Model Arc.Model)
+  | EditingArc Player.Model ScoreMeta.Model (Group.Model Arc.Model) Arc.State
+  | EditingMeta Player.Model ScoreMeta.Model (Group.Model Arc.Model) ScoreMeta.State 
+  | Requesting Player.Model ScoreMeta.Model (Group.Model Arc.Model)
 
 
 
@@ -66,17 +66,17 @@ encodeScoreMeta {title, bpm, key, cpc} =
     ]
 
 
-encodeArc : Card.Model -> Encode.Value
+encodeArc : Arc.Model -> Encode.Value
 encodeArc {title, size, style}  =
   Encode.object
     [ ("title", Encode.string title)
     , ("size", Encode.int size )
-    , ("style", Encode.string <| String.toLower <| Card.styleLabel style)
+    , ("style", Encode.string <| String.toLower <| Arc.styleLabel style)
     ]
 
 
 
-encodeReqTrackNext : ScoreMeta.Model -> List  Card.Model -> Encode.Value
+encodeReqTrackNext : ScoreMeta.Model -> List  Arc.Model -> Encode.Value
 encodeReqTrackNext meta arcs =
   Encode.object
     [ ("meta", encodeScoreMeta meta)
@@ -84,7 +84,7 @@ encodeReqTrackNext meta arcs =
     ]
 
 
-reqTrack : ScoreMeta.Model -> List Card.Model -> (Result Http.Error TrackMeta -> msg) -> Cmd msg
+reqTrack : ScoreMeta.Model -> List Arc.Model -> (Result Http.Error TrackMeta -> msg) -> Cmd msg
 reqTrack meta arcs complete =
   Http.post
     { url = Configs.apiUrl "track/next"
@@ -93,23 +93,23 @@ reqTrack meta arcs complete =
     }
 
 
-someCards : List Card.Model
-someCards = 
-  [ Card.new
-  , Card.new2
-  , Card.new3
-  , Card.new2
-  , Card.new3
-  , Card.new4
-  , Card.new3
-  , Card.new3
-  , Card.new
+someArcs : List Arc.Model
+someArcs = 
+  [ Arc.new
+  , Arc.new2
+  , Arc.new3
+  , Arc.new2
+  , Arc.new3
+  , Arc.new4
+  , Arc.new3
+  , Arc.new3
+  , Arc.new
   ]
 
 
 newState : State
 newState = 
-  Viewing Player.new ScoreMeta.empty <| Group.from someCards
+  Viewing Player.new ScoreMeta.empty <| Group.from someArcs
 
 
 
@@ -141,15 +141,15 @@ apply msg (member, state) =
               Err error -> 
                 state
 
-          CreateCard -> 
-            Viewing player meta (Tuple.first group, List.append (Tuple.second group) [Card.create])
+          CreateArc -> 
+            Viewing player meta (Tuple.first group, List.append (Tuple.second group) [Arc.create])
 
-          ViewCard card -> 
+          ViewArc card -> 
             let
                index = Tools.findIndex card (Tuple.second group)
                newGroup = Group.by index (Tuple.second group)
             in 
-            EditingCard player meta newGroup <| Card.editCard card
+            EditingArc player meta newGroup <| Arc.editArc card
 
           EditGroup gMsg -> 
             let
@@ -162,27 +162,27 @@ apply msg (member, state) =
 
           _ -> state
 
-      EditingCard player meta ((index, cards) as group) cardState -> 
+      EditingArc player meta ((index, cards) as group) cardState -> 
         case msg of 
-          UpdateCard cMsg ->     
-            EditingCard player meta group (Card.apply cMsg cardState)
+          UpdateArc cMsg ->     
+            EditingArc player meta group (Arc.apply cMsg cardState)
 
-          SaveCard next -> 
+          SaveArc next -> 
             let
               i = Maybe.withDefault -1 index
               newGroup = (Nothing, Tools.replaceAt i next cards)
             in
             Viewing player meta newGroup
 
-          CloseCard -> 
+          CloseArc -> 
             Viewing player meta group
 
-          EditCard card -> 
+          EditArc card -> 
             let
               i = Tools.findIndex card cards
               newGroup = (Just i, cards)
             in
-            EditingCard player meta newGroup <| Card.Editing card card
+            EditingArc player meta newGroup <| Arc.Editing card card
 
           GotTrack result ->
             case result of 
@@ -190,7 +190,7 @@ apply msg (member, state) =
                 let
                   p =  Player.add player track 
                 in 
-                EditingCard p meta group cardState
+                EditingArc p meta group cardState
 
               Err error -> 
                 state
@@ -271,8 +271,8 @@ update msg ((member, state) as model) onComplete =
         Viewing player meta group ->
          ((member, Viewing (next player) meta group), cmdr player)
 
-        EditingCard player meta ((index, cards) as group) cardState ->      
-         ((member, EditingCard (next player) meta group cardState), cmdr player)
+        EditingArc player meta ((index, cards) as group) cardState ->      
+         ((member, EditingArc (next player) meta group cardState), cmdr player)
           
         EditingMeta player orig group metaState ->
          ((member, EditingMeta (next player) orig group metaState), cmdr player)          
@@ -281,44 +281,81 @@ update msg ((member, state) as model) onComplete =
       ((member, apply msg model), Cmd.none)
 
 
+
+
+
+welcome : Html msg
+welcome = 
+  div [ Attr.class "content" ]
+    [ h1 [] [ text "Chart Designer"]
+    , p [] [ text "Hi! I'm your Chart Designer. You can use me to build and arrange the layout of your song." ]
+    , p [] [ text " When you have added at least 1 arc to your layout, then you can press the \"Make a Song\" button to produce the new music." ]
+    , details [] 
+        [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What are Song Details?"  ]
+        , div [Attr.class "m-3" ]
+            [ p [] [ text "No matter what, ALL music contains these two things in common: It moves through time, and occupies space! " ]
+          , p [] [ text "To measure time we use Beats Per Minute. A higher number means the song will sound faster, while lower numbers sound slower." ]
+          , p [] [ text "The space a song fills is determined by its Key. Let's use colors for a comparison. Yellow, purple, blue, orange, red, and green are great colors and each one is about equal to the others when it comes to anything. When it comes to listening to music, the same is true for the all 12 keys. It's like picking a different flavor." ]
+          , p [] [ text "Making songs in a different keys is the fastest way to get a wide color palette." ]
+            ] ]
+    , details [] 
+        [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What is a Layout?" ]
+        , div [Attr.class "m-3"]
+          [ p [] [ text "Most music has a few distinct sections that get used over and over and over again. We call each of these sections an \"Arc.\" The final order of Arcs, from beginning to end, is the Layout." ]
+          , p [] [ text "Think about a song that has a verse-chorus-verse pattern. It might have all of these arcs in this order: intro, verse, chorus, verse, chorus, chorus, verse, outro. So it has four unique arcs: intro, verse, chorus, and outro." ]
+          ] ]
+
+    ]
+
+
+editor : Bool ->
+  Player.Model -> 
+  (Player.Msg -> msg) -> 
+  (String -> msg) -> 
+  ScoreMeta.Model -> 
+  msg -> 
+  (Group.Msg Arc.Model  -> msg) -> 
+  (Arc.Model -> msg) ->
+  (List Arc.Model) -> 
+  (ScoreMeta.Model -> (List Arc.Model) -> msg) ->  Html msg
+editor isUsable player updatePlayer download meta editMeta editGroup openArc cards doRequest =
+  let
+    nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 cards 
+  in
+  div []
+    [ welcome,
+    Components.boxWith  (if isUsable then "" else "overlay-disabled")
+      [ ScoreMeta.readonly nCycles meta editMeta
+      , Group.inserter editGroup Arc.empty (\i c -> Arc.stub c (openArc c))  cards
+      , Components.button (doRequest meta cards) [] "Make a Song"
+      , Player.view player updatePlayer download
+      ]
+  ] 
+
+
 view : WithMember State -> 
   (Player.Msg -> msg) ->
   (String -> msg) -> 
-  msg -> (ScoreMeta.Msg -> msg) -> (ScoreMeta.Model -> msg) ->  msg -> (Card.Model -> msg) -> (Card.Model -> msg) -> (Card.Msg -> msg) -> (Card.Model -> msg) -> msg -> msg -> (Group.Msg Card.Model -> msg) 
-  -> (ScoreMeta.Model -> (List Card.Model) -> msg)
+  msg -> 
+  (ScoreMeta.Msg -> msg) -> 
+  (ScoreMeta.Model -> msg) ->  
+  msg -> (Arc.Model -> msg) -> (Arc.Model -> msg) -> (Arc.Msg -> msg) -> (Arc.Model -> msg) -> msg -> msg -> (Group.Msg Arc.Model -> msg) 
+  -> (ScoreMeta.Model -> (List Arc.Model) -> msg)
   -> Html msg
-view (member, state) updatePlayer download editMeta changeMeta saveMeta closeMeta openCard editCard change save cancel createCard editGroup doRequest =
+view (member, state) updatePlayer download editMeta changeMeta saveMeta closeMeta openArc editArc change save cancel createArc editGroup doRequest =
   div [] 
   [ div [Attr.id "the-player"] []
   , case state of  
       Requesting player meta (mIndex, cards) ->
-        let
-          nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 cards 
-        in
-       
-        Components.box 
-          [ Player.view player updatePlayer download
-          , ScoreMeta.readonly nCycles meta editMeta
-          , Group.inserter editGroup Card.empty (\i c -> Card.stub c (openCard c))  cards
-          , Components.button (doRequest meta cards) [] "Make a Song"
-          ]
+        editor False player updatePlayer download meta editMeta editGroup openArc cards doRequest
 
       Viewing player meta (mIndex, cards) ->      
-        let
-          nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 cards 
-        in
-       
-        Components.box 
-          [ Player.view player updatePlayer download
-          , ScoreMeta.readonly nCycles meta editMeta
-          , Group.inserter editGroup Card.empty (\i c -> Card.stub c (openCard c))  cards
-          , Components.button (doRequest meta cards) [] "Make a Song"
-          ]
+        editor True player updatePlayer download meta editMeta editGroup openArc cards doRequest
 
-      EditingCard player meta group cardState -> 
+      EditingArc player meta group cardState -> 
         case cardState of 
-          Card.Viewing card -> Card.readonly card (editCard card) cancel
-          Card.Editing orig next -> Card.editor next change (save next) cancel
+          Arc.Viewing card -> Arc.readonly card (editArc card) cancel
+          Arc.Editing orig next -> Arc.editor next change (save next) cancel
 
       EditingMeta player orig group metaState -> 
         case metaState of 
@@ -326,13 +363,13 @@ view (member, state) updatePlayer download editMeta changeMeta saveMeta closeMet
             ScoreMeta.editor next changeMeta (saveMeta next) closeMeta
           _ ->
             text "How did you get here"
-    ] 
+    ]
 
 
 main = 
   Browser.element 
     { init = init
     , update = (\msg model -> update msg model GotTrack)
-    , view = (\(member, state) -> view (member, state) UpdatePlayer Download EditMeta UpdateMeta SaveMeta CloseMeta ViewCard EditCard UpdateCard SaveCard CloseCard CreateCard EditGroup ReqTrack)
+    , view = (\(member, state) -> view (member, state) UpdatePlayer Download EditMeta UpdateMeta SaveMeta CloseMeta ViewArc EditArc UpdateArc SaveArc CloseArc CreateArc EditGroup ReqTrack)
     , subscriptions = (\_ -> Sub.none)
     }
