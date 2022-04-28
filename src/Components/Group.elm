@@ -127,19 +127,18 @@ inserter revise newEl thumb things =
     withActions = (\i el -> 
       div [Attr.class "is-flex is-flex-direction-row"] -- keep these elements horizontal 
         [ adder i
-        , div [Attr.class "box my-6 mx-3 column"] 
+        , div [Attr.class "box my-6 mx-3 column has-text-centered"] 
           [ thumb i el
           , Components.colsMulti  <| 
             List.map Components.colHalf 
               [ if i > 0 then 
-                  Components.button (revise <| MoveTo el i (i - 1)) [Attr.class "is-fullwidth"] "Move Left" 
+                  Components.svgButton "arrow-left" (revise <| MoveTo el i (i - 1))
                   else text ""
               , if i < -1 + List.length things then 
-                Components.button (revise <| MoveTo el i (i + 1)) [Attr.class "is-fullwidth"] "Move Right" 
+                Components.svgButton "arrow-right" (revise <| MoveTo el i (i + 1))
                   else text ""
               , Components.button (revise <| InsertAt (i + 1) el) [Attr.class "is-fullwidth"] "Duplicate"
               , Components.button (revise <| Delete i) [Attr.class "is-fullwidth"] ("Delete Arc " ++ String.fromInt (i + 1)) 
-
               ]
           ]
         , if i == List.length things - 1 then 
@@ -147,8 +146,15 @@ inserter revise newEl thumb things =
             else text ""  ] )
   in 
   if 0 == List.length things then adder 0 else 
-  Components.colsWith [Attr.class "is-vcentered"] <| 
+  Components.colsWith [Attr.class "is-vcentered", Attr.style "overflow-x" "scroll"] <| 
     (List.indexedMap withActions things)
+
+uniques : List a -> List a
+uniques els = 
+  List.foldl (\a u ->
+   if List.member a u then u
+   else u ++ [ a ] ) [] els
+
 
 view : List a -> (Int -> a -> Html msg) -> (Msg a -> msg) -> msg -> Html msg
 view children thumb revise create = 
