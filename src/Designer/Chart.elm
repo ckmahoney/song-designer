@@ -52,7 +52,7 @@ type State
   = Viewing Player.Model ScoreMeta.Model (Group.Model Card.Model)
   | EditingCard Player.Model ScoreMeta.Model (Group.Model Card.Model) Card.State
   | EditingMeta Player.Model ScoreMeta.Model (Group.Model Card.Model) ScoreMeta.State 
-
+  | Requesting Player.Model ScoreMeta.Model (Group.Model Card.Model)
 
 
 
@@ -98,6 +98,12 @@ someCards =
   [ Card.new
   , Card.new2
   , Card.new3
+  , Card.new2
+  , Card.new3
+  , Card.new4
+  , Card.new3
+  , Card.new3
+  , Card.new
   ]
 
 
@@ -218,12 +224,37 @@ apply msg (member, state) =
           _ ->
             state
 
+      _ ->
+        state
+
 
 update : ChartMsg -> WithMember State -> (Result Http.Error TrackMeta -> msg) -> (WithMember State, Cmd msg)
 update msg ((member, state) as model) onComplete =
   case msg of 
+    GotTrack res ->
+      case res of 
+        Ok track -> 
+         case state of 
+           Requesting player meta group ->
+              let
+                prefix = if Configs.devMode == True then "http://localhost:3000" else ""
+                p =  Player.add player { track  | filepath = prefix ++ track.filepath } 
+              in 
+              ((member, Viewing p meta group), Cmd.none)
+
+           _ ->
+            (model, Cmd.none)
+
+        Err error -> 
+          ((member, state), Cmd.none)
+
     ReqTrack meta arcs ->
-      ((member, state), reqTrack meta arcs onComplete)
+      case state of 
+        Viewing c a b ->
+         ((member, Requesting c a b), reqTrack meta arcs onComplete)
+
+        _ ->   
+         ((member, state), Cmd.none)
 
     Download path -> 
       ((member, state), Configs.download <| Debug.log "triggerd a download" path)
@@ -234,6 +265,9 @@ update msg ((member, state) as model) onComplete =
         cmdr = (\p -> Player.trigger <| Tuple.second <| Player.update pMsg p) 
       in
       case state of 
+        Requesting player meta group ->
+         ((member, Requesting (next player) meta group), cmdr player)
+
         Viewing player meta group ->
          ((member, Viewing (next player) meta group), cmdr player)
 
@@ -244,7 +278,7 @@ update msg ((member, state) as model) onComplete =
          ((member, EditingMeta (next player) orig group metaState), cmdr player)          
 
     _ -> 
-      ((member, apply msg model), Cmd.none) 
+      ((member, apply msg model), Cmd.none)
 
 
 view : WithMember State -> 
@@ -256,8 +290,20 @@ view : WithMember State ->
 view (member, state) updatePlayer download editMeta changeMeta saveMeta closeMeta openCard editCard change save cancel createCard editGroup doRequest =
   div [] 
   [ div [Attr.id "the-player"] []
-  , case state of
-      Viewing player meta (mIndex, cards) ->
+  , case state of  
+      Requesting player meta (mIndex, cards) ->
+        let
+          nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 cards 
+        in
+       
+        Components.box 
+          [ Player.view player updatePlayer download
+          , ScoreMeta.readonly nCycles meta editMeta
+          , Group.inserter editGroup Card.empty (\i c -> Card.stub c (openCard c))  cards
+          , Components.button (doRequest meta cards) [] "Make a Song"
+          ]
+
+      Viewing player meta (mIndex, cards) ->      
         let
           nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 cards 
         in
