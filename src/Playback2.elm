@@ -56,7 +56,7 @@ type alias Model =
 
 new : Model
 new = 
-  (Nothing, Empty, Data.someTracks)
+  (Nothing, Empty, [])
 
 
 assetName : Asset -> String
@@ -285,9 +285,10 @@ view : Model -> (Msg -> msg) ->  (String -> msg) -> Html msg
 view ((selection, model, tracks) as p) signal  download =
   case selection of 
    Nothing ->
-    Components.cols
-      [ Components.col1 <| playlist p signal download
-      ] 
+    if List.length tracks > 0 then 
+      Components.cols [ Components.col1 <| playlist p signal download ]
+    else   
+      text ""
 
    Just track ->
     let
