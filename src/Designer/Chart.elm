@@ -342,7 +342,8 @@ editor isUsable player updatePlayer download meta editMeta editGroup openArc car
     Components.boxWith  (if isUsable then "" else "overlay-disabled")
       [ ScoreMeta.readonly nCycles meta editMeta
       , Group.inserter editGroup Arc.empty (\i c -> Arc.stub c (openArc c))  cards
-      , Components.button (doRequest meta cards) [] "Make a Song"
+      , if List.length cards > 0 then Components.button (doRequest meta cards) [] "Make a Song"
+        else text ""
       , Player.view player updatePlayer download
       ]
   ] 
@@ -362,7 +363,10 @@ view (member, state) updatePlayer download editMeta changeMeta saveMeta closeMet
   [ div [Attr.id "the-player"] []
   , case state of  
       Requesting player meta (mIndex, cards) ->
-        editor False player updatePlayer download meta editMeta editGroup openArc cards doRequest
+        div [] 
+          [ editor False player updatePlayer download meta editMeta editGroup openArc cards doRequest
+          , p [] [ text "Writing a song for you" ]
+          ]
 
       Viewing player meta (mIndex, cards) ->      
         editor True player updatePlayer download meta editMeta editGroup openArc cards doRequest
