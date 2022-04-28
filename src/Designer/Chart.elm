@@ -17,6 +17,7 @@ import ScoreMeta as ScoreMeta
 import Chords
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Encoders
 import Decoders
 import Http
 import Types exposing (WithMember, GhostMember, TrackMeta)
@@ -76,19 +77,27 @@ encodeArc {title, size, style}  =
 
 
 
-encodeReqTrackNext : ScoreMeta.Model -> List  Arc.Model -> Encode.Value
-encodeReqTrackNext meta arcs =
+encodeReqTrack : ScoreMeta.Model -> List  Arc.Model -> Encode.Value
+encodeReqTrack meta arcs =
   Encode.object
     [ ("meta", encodeScoreMeta meta)
     , ("arcs", Encode.list encodeArc arcs)
     ]
 
 
-reqTrack : ScoreMeta.Model -> List Arc.Model -> (Result Http.Error TrackMeta -> msg) -> Cmd msg
-reqTrack meta arcs complete =
+encodeSongRequest : GhostMember -> ScoreMeta.Model -> List Arc.Model -> Encode.Value
+encodeSongRequest member meta arcs =
+  Encode.object
+    [ ("member", Encoders.encodeMember member)
+    , ("scoredef", encodeReqTrack meta arcs)
+    ]
+
+
+reqTrack : GhostMember -> ScoreMeta.Model -> List Arc.Model -> (Result Http.Error TrackMeta -> msg) -> Cmd msg
+reqTrack member meta arcs complete =
   Http.post
     { url = Configs.apiUrl "track/next"
-    , body = Http.jsonBody <| encodeReqTrackNext meta arcs
+    , body = Http.jsonBody <| encodeSongRequest member meta arcs
     , expect = Http.expectJson complete Decoders.decodeTrack
     }
 
@@ -251,7 +260,7 @@ update msg ((member, state) as model) onComplete =
     ReqTrack meta arcs ->
       case state of 
         Viewing c a b ->
-         ((member, Requesting c a b), reqTrack meta arcs onComplete)
+         ((member, Requesting c a b), reqTrack member meta arcs onComplete)
 
         _ ->   
          ((member, state), Cmd.none)
@@ -281,7 +290,13 @@ update msg ((member, state) as model) onComplete =
       ((member, apply msg model), Cmd.none)
 
 
-
+arcSummary : List Arc.Model -> Html msg
+arcSummary arcs = 
+  let uniques = Group.uniques arcs in 
+  div []
+    [ 
+    
+    ]
 
 
 welcome : Html msg
@@ -301,7 +316,7 @@ welcome =
     , details [] 
         [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What is a Layout?" ]
         , div [Attr.class "m-3"]
-          [ p [] [ text "Most music has a few distinct sections that get used over and over and over again. We call each of these sections an \"Arc.\" The final order of Arcs, from beginning to end, is the Layout." ]
+          [ p [] [ text "Most music has a few distinct sections that get used over and over and over again. We call each of these sections an \"Arc.\" The sequence of Arcs, from beginning to end, is the Layout." ]
           , p [] [ text "Think about a song that has a verse-chorus-verse pattern. It might have all of these arcs in this order: intro, verse, chorus, verse, chorus, chorus, verse, outro. So it has four unique arcs: intro, verse, chorus, and outro." ]
           ] ]
 
