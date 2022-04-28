@@ -147,9 +147,11 @@ svgClick : String -> msg -> Html msg
 svgClick name click =
   div [class "is-clickable", onClick click] [svg name]
 
+
 svgButton : String -> msg -> Html msg
 svgButton name click =
-  Html.button [class "is-clickable p-3 ", onClick click] [svg name]
+  Html.button [onClick click
+              , class "is-clickable p-1" ] [svg name]
 
 
 saveButton : msg -> String -> Html msg
