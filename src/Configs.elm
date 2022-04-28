@@ -1,5 +1,6 @@
 module Configs exposing (..)
 
+import Data
 import Types exposing (GhostMember)
 import Html exposing (text)
 import File.Download as Download
@@ -59,9 +60,9 @@ download url =
 anonMember : GhostMember
 anonMember =
   if devMode then 
-    GhostMember "ecadef5f-da0f-41c9-9b7f-7d03d3e9b569" "anon" "test-user sandy" "" "anon@synthony.app" False False []
+    Data.testMember
   else 
-    GhostMember "f6bc137f-218b-42c7-8a6f-ae445103d96c" "anon" "test-user mike" "" "anon@synthony.app" False False []
+    Data.anonMember
 
 
 

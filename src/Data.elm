@@ -636,11 +636,14 @@ emptyMember : GhostMember
 emptyMember =
   GhostMember "" "" "" "" "" False False []
 
+
 testMember : GhostMember
 testMember =
   GhostMember "263bb49a-a3e7-471e-a945-74570b25fd53" "test-user" "test-user mike" "" "demo@mail.com" False False []
 
-
+anonMember : GhostMember
+anonMember = 
+  GhostMember "f6bc137f-218b-42c7-8a6f-ae445103d96c" "anon" "test-user mike" "" "anon@synthony.app" False False []
 
 
 scopes1 : List Scope
