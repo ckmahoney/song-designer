@@ -132,7 +132,7 @@ editor meta change save cancel =
     [ Components.editText "Title" (text "") meta.title (\str -> (change <| SetTitle str))
     , Components.editRangeString "BPM" (text "Enter a BPM between 44 and 180.") (bpmMin, bpmMax) meta.tempo (\str -> (change <| SetBpm str))
     , Components.keyPickerFull useSharps meta.key (\int -> change <| SetKey int)
-    , Components.button save [] "Save changes" 
+    , Components.button save [class "mr-3"] "Save changes" 
     , Components.button cancel [] "Cancel" 
     ]
 
