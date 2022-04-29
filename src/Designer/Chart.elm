@@ -1,7 +1,7 @@
 module Designer.Chart exposing (..)
 
 import Browser
-import Html exposing (Html, h1, h3, button, div, text, label, p, input,b, details, summary)
+import Html exposing (Html, h1, h3, button, div, text, label, p, input,b, details, summary, br)
 import Html.Attributes as Attr
 import Html.Events as Events exposing (onClick, onInput)
 
@@ -303,14 +303,16 @@ welcome : Html msg
 welcome = 
   div [ Attr.class "content" ]
     [ h1 [] [ text "Chart Designer"]
-    , p [] [ text "Hi! I'm your Chart Designer. You can use me to build and arrange the layout of your song." ]
-    , p [] [ text " When you have added at least 1 arc to your layout, then you can press the \"Make a Song\" button to produce the new music." ]
+    , p [] [ text "Hi! I'm your Chart Designer. You can use me to build the layout of your song." ]
+    , p [] [ text "When you have at least 1 Arc in your layout, you can press the \"Make a Song\" button to produce the new music." ]
     , details [] 
         [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What are Song Details?"  ]
         , div [Attr.class "m-3" ]
             [ p [] [ text "No matter what, ALL music contains these two things in common: It moves through time, and occupies space! " ]
           , p [] [ text "To measure time we use Beats Per Minute. A higher number means the song will sound faster, while lower numbers sound slower." ]
-          , p [] [ text "The space a song fills is determined by its Key. Let's use colors for a comparison. Yellow, purple, blue, orange, red, and green are great colors and each one is about equal to the others when it comes to anything. When it comes to listening to music, the same is true for the all 12 keys. It's like picking a different flavor." ]
+          , p [] [ text "The space a song fills is determined by its Key. Let's use colors for a comparison." ]
+          , p [] [ text "Yellow, purple, blue, orange, red, and green are great colors and each one is about equal to the others." ]
+          , p [] [ text "When listening to music, the same idea is true for all 12 keys." ]
           , p [] [ text "Making songs in a different keys is the fastest way to get a wide color palette." ]
             ] ]
     , details [] 
@@ -318,7 +320,7 @@ welcome =
         , div [Attr.class "m-3"]
           [ p [] [ text "Most music has a few distinct sections that get used over and over and over again. We call each of these sections an \"Arc.\" The sequence of Arcs, from beginning to end, is the Layout." ]
           , p [] [ text "Think about a song that has a verse-chorus-verse pattern. It might have all of these arcs in this order: intro, verse, chorus, verse, chorus, chorus, verse, outro. So it has four unique arcs: intro, verse, chorus, and outro." ]
-          ]
+          ] 
         ] 
     , details []
         [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "Glossary" ]
@@ -339,11 +341,10 @@ welcome =
           , p [] [ text "A label to help you remember what this Arc is. It does not affect the music." ]
           , b [] [ text "Size" ]
           , p [] [ text "How long this Arc is." ]
-          , b [] [ text "Style" ] 
+          , b [] [ text "Mix" ] 
           , p [] [ text "The instruments (beat or synths) that should go in this Arc." ]
           ]        
      ]
-
     ]
 
 
@@ -364,7 +365,13 @@ editor isUsable player updatePlayer download meta editMeta editGroup openArc car
   div []
     [ welcome,
     Components.boxWith  (if isUsable then "" else "overlay-disabled")
-      [ ScoreMeta.readonly nCycles meta editMeta
+      [ label [] [ text "Song Details" ]
+      , ScoreMeta.readonly nCycles meta editMeta
+      , label [] [ text "Layout" ]
+      , b [] [ text "note:" ]
+      , p [] [ text "When you have two identical Arcs (the title, size, and style all match),"
+             , br [] [] 
+             , text "then the music for that Arc will be the same everywhere it is found in the Layout." ]
       , Group.inserter editGroup Arc.empty (\i c -> Arc.stub c (openArc c))  cards
       , if List.length cards > 0 then Components.button (doRequest meta cards) [] "Make a Song"
         else text ""

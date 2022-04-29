@@ -1,7 +1,7 @@
 module Arc exposing (..)
 
 import Browser
-import Html exposing (Html, h1, button, div, text, label, p)
+import Html exposing (Html, h1, h3, button, div, text, label, p, b)
 import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (onClick)
 
@@ -111,11 +111,11 @@ sizeLabel size =
 styleInfo : Style -> String
 styleInfo style = 
   case style of
-    Beat -> "Just percussive parts, like kick drum, hi hats, clap, and snare drum"
-    Groove -> "Mostly percussion with some chance of instrumental parts"
-    Mix -> "All parts evenly balanaced"
-    Instrumental -> "Mostly instruments with some chance of percussive parts"
-    Abstract -> "Just instruments, like bass, chords, and melody."
+    Beat -> "Only percussive parts, like kick drum, hi hats, clap, and snare drum"
+    Groove -> "Mostly percussion with some chance of synth parts"
+    Mix -> "An equal chance of percussion and synth parts"
+    Instrumental -> "Mostly synths with some chance of percussive parts"
+    Abstract -> "Only synths, like bass, chords, and melody."
 
 
 edit : Msg -> Model -> Model
@@ -148,7 +148,7 @@ stub { title, style, size } click =
   div [Attr.class "box", Attr.style "min-width" "240px"]
    [ Components.label title
    , p [] [ text <| styleLabel style ]
-   , p [] [ text <| "Size " ++ (String.fromInt size) ]
+   , h3 [] [ text "Size" ]
    , Components.button click [class "mt-3"] "Edit Arc"
    ]
 
@@ -177,13 +177,13 @@ editor arc change save cancel =
       change <| SetStyle (Tools.getOr int styles Mix))
   in 
   Components.box
-    [ text <|  "Editing the arc " ++ arc.title
-    , Components.editText "Title" (text "") arc.title (\str -> (change <| SetTitle str))
+    [ Components.editText "Title" (text "") arc.title (\str -> (change <| SetTitle str))
+    , h3 [] [ text "Size" ]
     , div [class "my-6"] <| List.singleton <| Components.pickerSelected sizes (text << sizeLabel) (\int -> change <| SetSize <| Tools.getOr int sizes 3) arc.size
-    -- , p [class "content" ]  [ text <| sizeInfo arc.size ]
+    , h3 [] [ text "Mix" ]
     , div [class "my-6"] <| List.singleton <| Components.pickerSelected styles (text << styleLabel) selectStyle arc.style
     , div [class "w-100"] <| List.singleton <| Html.b [class "is-block has-text-centered content" ]  [ text <| styleInfo arc.style ]
-    , Components.button save [] "Save changes" 
+    , Components.button save [Attr.class "mr-3"] "Save changes" 
     , Components.button cancel [] "Cancel" 
     ]
   

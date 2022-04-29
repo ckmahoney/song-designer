@@ -55,14 +55,27 @@ type State
   = Viewing Model 
   | Editing Model Model
 
+maxDuration : Float
+maxDuration = 
+  5 * 60.0
 
 
-tempoMessage : Int -> Float -> Int -> String
+duration : Float -> Int -> Int -> Float
+duration cps cpc nCycles =
+  (toFloat cpc) * (1/cps) * (toFloat nCycles)
+
+
+tempoMessage : Int -> Float -> Int -> Html msg
 tempoMessage cpc cps nCycles =
   let 
-     duration = (toFloat cpc) * cps * (toFloat nCycles)
+   dur = duration cps cpc nCycles
   in 
-  View.timeString duration
+  div [] 
+    [ p [] [ text <| View.timeString <| dur ]
+    , if dur < maxDuration then text "" else 
+        p [] [ text "Synthony currently supports songs up to 5 minutes in length. You can make a layout that looks longer than that, but the song writer will shorten it to fit into the 5 minute range." ]
+    ]
+  
 
 
 bpmMin = 44.0
@@ -121,7 +134,7 @@ readonly nCycles meta revise =
     [ Components.label meta.title
     , p [] [ text <| Components.keyMessage useSharps meta.key ]
     , p [] [ text <| (String.fromFloat meta.bpm) ++ " Beats Per Minute" ]
-    , p [] [ text <| tempoMessage meta.cpc  (meta.bpm / 60) nCycles ]
+    , tempoMessage meta.cpc  (meta.bpm / 60) nCycles 
     , Components.button revise [class "mt-3"] "Edit Song Details"
     ]
 
