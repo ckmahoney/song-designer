@@ -123,7 +123,11 @@ overview revise  thumb things =
 inserter : (Msg a -> msg) -> a -> (Int -> a -> Html msg) -> List a -> Html msg
 inserter revise newEl thumb things =
   let
-    adder = (\i -> div [Attr.class "is-flex is-flex-direction-column is-justify-content-center my-6 mx-1"] [Components.button (revise <| InsertAt i newEl) [] "+"])
+    adder = (\i -> 
+      let insert = (revise <| InsertAt i newEl) in 
+      div [Attr.class " is-flex is-flex-direction-column is-justify-content-center my-6 mx-3"] 
+        [ Components.button insert [Attr.class "is-size-4 has-text-info"] "+"])
+
     withActions = (\i el -> 
       div [Attr.class "is-flex is-flex-direction-row"] -- keep these elements horizontal 
         [ adder i
@@ -132,13 +136,13 @@ inserter revise newEl thumb things =
           , Components.colsMulti  <| 
             List.map Components.colHalf 
               [ if i > 0 then 
-                  Components.svgButton "arrow-left" (revise <| MoveTo el i (i - 1))
+                  Components.button (revise <| MoveTo el i (i - 1)) [Attr.class "is-fullwidth"] "Move left"
                   else text ""
               , if i < -1 + List.length things then 
-                Components.svgButton "arrow-right" (revise <| MoveTo el i (i + 1))
+                Components.button (revise <| MoveTo el i (i + 1)) [Attr.class "is-fullwidth"] "Move right"
                   else text ""
-              , Components.button (revise <| InsertAt (i + 1) el) [Attr.class "is-fullwidth"] "Duplicate"
-              , Components.button (revise <| Delete i) [Attr.class "is-fullwidth"] ("Delete Arc " ++ String.fromInt (i + 1)) 
+              , Components.button (revise <| InsertAt (i + 1) el) [Attr.class "is-fullwidth has-text-white has-background-success "] "Duplicate"
+              , Components.button (revise <| Delete i) [Attr.class "is-fullwidth has-text-white has-background-danger "] ("Delete Arc " ++ String.fromInt (i + 1)) 
               ]
           ]
         , if i == List.length things - 1 then 
@@ -146,7 +150,8 @@ inserter revise newEl thumb things =
             else text ""  ] )
   in 
   if 0 == List.length things then adder 0 else 
-  Components.colsWith [Attr.class "is-vcentered", Attr.style "overflow-x" "scroll"] <| 
+  div [Attr.class "scroll-horizontal-parent"] <| List.singleton <| 
+    Components.colsWith [Attr.class "is-vcentered scroll-horizontal-child"] <| 
     (List.indexedMap withActions things)
 
 uniques : List a -> List a
@@ -159,5 +164,6 @@ uniques els =
 view : List a -> (Int -> a -> Html msg) -> (Msg a -> msg) -> msg -> Html msg
 view children thumb revise create = 
   overview revise thumb children
+
 
 main = text ""

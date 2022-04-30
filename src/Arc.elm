@@ -147,9 +147,16 @@ stub : Model -> msg -> Html msg
 stub { title, style, size } click = 
   div [Attr.class "box", Attr.style "min-width" "240px"]
    [ Components.label title
-   , p [] [ text <| styleLabel style ]
-   , h3 [] [ text "Size" ]
-   , Components.button click [class "mt-3"] "Edit Arc"
+   , p [ Attr.class "mt-3"] [ text <| sizeLabel size ++ " "  ++ styleLabel style ]
+   , Components.button click [class "my-3"] "Edit Arc"
+   ]
+
+
+thumb : Model ->  Html msg
+thumb { title, style, size }  = 
+  div [Attr.class "box", Attr.style "min-width" "240px"]
+   [ Components.label title
+   , p [ Attr.class "mt-3"] [ text <| sizeLabel size ++ " "  ++ styleLabel style ]
    ]
 
 

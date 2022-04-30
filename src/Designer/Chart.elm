@@ -1,7 +1,7 @@
 module Designer.Chart exposing (..)
 
 import Browser
-import Html exposing (Html, h1, h3, button, div, text, label, p, input,b, details, summary, br)
+import Html exposing (Html, h1, h2, h3, button, div, text, label, p, input,b, details, summary, br)
 import Html.Attributes as Attr
 import Html.Events as Events exposing (onClick, onInput)
 
@@ -290,63 +290,93 @@ update msg ((member, state) as model) onComplete =
       ((member, apply msg model), Cmd.none)
 
 
-arcSummary : List Arc.Model -> Html msg
-arcSummary arcs = 
-  let uniques = Group.uniques arcs in 
-  div []
-    [ 
-    
-    ]
 
+allTheDetails : List (Html msg)
+allTheDetails =
+  [ details [] 
+          [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What are Song Details?"  ]
+          , div [Attr.class "m-3" ]
+              [ p [] [ text "No matter what, ALL music contains these two things in common: It moves through time, and occupies space! " ]
+            , p [] [ text "To measure time we use Beats Per Minute. A higher number means the song will sound faster, while lower numbers sound slower." ]
+            , p [] [ text "The space a song fills is determined by its Key. Let's use colors for a comparison." ]
+            , p [] [ text "Yellow, purple, blue, orange, red, and green are great colors and each one is about equal to the others." ]
+            , p [] [ text "When listening to music, the same idea is true for all 12 keys." ]
+            , p [] [ text "Making songs in a different keys is the fastest way to get a wide color palette." ]
+              ] ]
+      , details [] 
+          [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What is a Layout?" ]
+          , div [Attr.class "m-3"]
+            [ p [] [ text "Most music has a few distinct sections that get used over and over and over again. We call each of these sections an \"Arc.\" The sequence of Arcs, from beginning to end, is the Layout." ]
+            , p [] [ text "Think about a song that has a verse-chorus-verse pattern. It might have all of these arcs in this order: intro, verse, chorus, verse, chorus, chorus, verse, outro. So it has four unique arcs: intro, verse, chorus, and outro." ]
+            ] 
+          ] 
+      , details []
+          [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "Glossary" ]
+          , div [ Attr.class "m-3" ]
+            [  p [] [ text "The words we use to make songs, and what they mean." ]
+            , h3 [] [ text "Song Details" ]
+            , p [] [ text "Information about the song as a whole. These options are used on all of the song, not just individual arcs." ]
+            , b [] [ text "Title" ]
+            , p [] [ text "The name of your song. It does not affect the music." ]
+            , b [] [ text "BPM" ]
+            , p [] [ text "Beats Per Minute (BPM)"
+                   , text "The speed of the song." ]
+            , b [] [ text "Key" ]
+            , p [] [ text "The key signature of the song." ]
+            , h3 [] [ text "Arc" ]
+            , p [] [ text "Information for this specific section of music." ]
+            , b [] [ text "Title" ] 
+            , p [] [ text "A label to help you remember what this Arc is. It does not affect the music." ]
+            , b [] [ text "Size" ]
+            , p [] [ text "How long this Arc is." ]
+            , b [] [ text "Mix" ] 
+            , p [] [ text "The instruments (beat or synths) that should go in this Arc." ]
+            ]
+       ]
+  ]
 
 welcome : Html msg
 welcome = 
   div [ Attr.class "content" ]
-    [ h1 [] [ text "Chart Designer"]
-    , p [] [ text "Hi! I'm your Chart Designer. You can use me to build the layout of your song." ]
-    , p [] [ text "When you have at least 1 Arc in your layout, you can press the \"Make a Song\" button to produce the new music." ]
-    , details [] 
-        [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What are Song Details?"  ]
-        , div [Attr.class "m-3" ]
-            [ p [] [ text "No matter what, ALL music contains these two things in common: It moves through time, and occupies space! " ]
-          , p [] [ text "To measure time we use Beats Per Minute. A higher number means the song will sound faster, while lower numbers sound slower." ]
-          , p [] [ text "The space a song fills is determined by its Key. Let's use colors for a comparison." ]
-          , p [] [ text "Yellow, purple, blue, orange, red, and green are great colors and each one is about equal to the others." ]
-          , p [] [ text "When listening to music, the same idea is true for all 12 keys." ]
-          , p [] [ text "Making songs in a different keys is the fastest way to get a wide color palette." ]
-            ] ]
-    , details [] 
-        [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What is a Layout?" ]
-        , div [Attr.class "m-3"]
-          [ p [] [ text "Most music has a few distinct sections that get used over and over and over again. We call each of these sections an \"Arc.\" The sequence of Arcs, from beginning to end, is the Layout." ]
-          , p [] [ text "Think about a song that has a verse-chorus-verse pattern. It might have all of these arcs in this order: intro, verse, chorus, verse, chorus, chorus, verse, outro. So it has four unique arcs: intro, verse, chorus, and outro." ]
-          ] 
-        ] 
-    , details []
-        [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "Glossary" ]
-        , div [ Attr.class "m-3" ]
-          [  p [] [ text "The words we use to make songs, and what they mean." ]
-          , h3 [] [ text "Song Details" ]
-          , p [] [ text "Information about the song as a whole. These options are used on all of the song, not just individual arcs." ]
-          , b [] [ text "Title" ]
-          , p [] [ text "The name of your song. It does not affect the music." ]
-          , b [] [ text "BPM" ]
-          , p [] [ text "Beats Per Minute (BPM)"
-                 , text "The speed of the song." ]
-          , b [] [ text "Key" ]
-          , p [] [ text "The key signature of the song." ]
-          , h3 [] [ text "Arc" ]
-          , p [] [ text "Information for this specific section of music." ]
-          , b [] [ text "Title" ] 
-          , p [] [ text "A label to help you remember what this Arc is. It does not affect the music." ]
-          , b [] [ text "Size" ]
-          , p [] [ text "How long this Arc is." ]
-          , b [] [ text "Mix" ] 
-          , p [] [ text "The instruments (beat or synths) that should go in this Arc." ]
-          ]        
-     ]
+    [ p [] [ text "Hi! I'm your Chart Designer. You can use me to build the layout of your song." ]
+    , div [Attr.class "p-3" ] allTheDetails
     ]
 
+
+showSequence : List Arc.Model -> Html msg
+showSequence arcs =
+  let 
+    separator = "   ->   " 
+    seq = List.foldl (\arc chain -> chain ++ arc.title ++ separator ) "" arcs
+    show = String.dropRight (String.length separator) seq
+  in
+  div [Attr.class "px-3 my-3 has-text-centered"] [ text <| show ]
+
+
+showUniques : List Arc.Model -> Html msg
+showUniques arcs =
+  let uniques = Group.uniques arcs in 
+  div [] [
+    div [Attr.class "columns is-multiline d-flex is-justify-content-center" ] <| List.map (\arc ->
+      let count = List.foldl (\a sum -> if a == arc then sum + 1 else sum) 0 arcs in
+      div [Attr.class "column is-narrow"] [ text <| (String.fromInt count) ++ "x", Arc.thumb arc ] ) uniques
+
+   , if List.length uniques /= List.length arcs then 
+     p [ Attr.class "mt-3 mb-6 p-3 has-background-success-light has-text-centered"] [ text "When you have two identical Arcs (the title, size, and style all match),"
+           , br [] [] 
+           , text "then the music for that Arc will be the same everywhere it is found in the Layout." ]
+     else text ""
+    ]
+
+arcSummary : List Arc.Model -> Html msg
+arcSummary arcs = 
+  div []
+    [ showSequence arcs
+    , showUniques arcs
+    ]
+
+-- the summary shows you how many of each arc are present 
+-- and a list of the names separated by arrows 
 
 editor : Bool ->
   Player.Model -> 
@@ -358,23 +388,22 @@ editor : Bool ->
   (Arc.Model -> msg) ->
   (List Arc.Model) -> 
   (ScoreMeta.Model -> (List Arc.Model) -> msg) ->  Html msg
-editor isUsable player updatePlayer download meta editMeta editGroup openArc cards doRequest =
+editor isUsable player updatePlayer download meta editMeta editGroup openArc arcs doRequest =
   let
-    nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 cards 
+    nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 arcs 
   in
   div []
-    [ welcome,
-    Components.boxWith  (if isUsable then "" else "overlay-disabled")
-      [ label [] [ text "Song Details" ]
+    [ welcome
+    , h2 [Attr.class "is-size-2 my-6" ] [ text "Chart Designer"]
+    , Components.boxWith  (if isUsable then "" else "overlay-disabled")
+      [ label [Attr.class "is-size-3 is-block mt-3 mb-6"] [ text "Title, Tempo and Key" ]
       , ScoreMeta.readonly nCycles meta editMeta
-      , label [] [ text "Layout" ]
-      , b [] [ text "note:" ]
-      , p [] [ text "When you have two identical Arcs (the title, size, and style all match),"
-             , br [] [] 
-             , text "then the music for that Arc will be the same everywhere it is found in the Layout." ]
-      , Group.inserter editGroup Arc.empty (\i c -> Arc.stub c (openArc c))  cards
-      , if List.length cards > 0 then Components.button (doRequest meta cards) [] "Make a Song"
-        else text ""
+      , label [Attr.class "is-size-3 is-block mt-3 mb-6"] [ text "Layout" ]
+      , details [] [ summary [Attr.class "is-size-5"] [ text "Show Summary" ], arcSummary arcs ]
+      , p [Attr.class "mt-3 mb-6" ] [ text "Use the buttons below to add, edit, remove, and position your Arcs." ]
+      , Group.inserter editGroup Arc.empty (\i c -> Arc.stub c (openArc c))  arcs
+      , if List.length arcs > 0 && isUsable then Components.button (doRequest meta arcs) [Attr.class "mt-6 mb-3"] "Make a Song"
+        else p  [] [ text "When you have at least 1 Arc in your layout, you can press the \"Make a Song\" button to produce the new music." ]
       , Player.view player updatePlayer download
       ]
   ] 
@@ -393,17 +422,18 @@ view (member, state) updatePlayer download editMeta changeMeta saveMeta closeMet
   div [] 
   [ div [Attr.id "the-player"] []
   , case state of  
-      Requesting player meta (mIndex, cards) ->
+      Requesting player meta (mIndex, arcs) ->
         div [] 
-          [ editor False player updatePlayer download meta editMeta editGroup openArc cards doRequest
-          , p [] [ text "Writing a song for you" ]
+          [ editor False player updatePlayer download meta editMeta editGroup openArc arcs doRequest
+          , p [ Attr.class "p-3 bg-info" ] [ text "Writing a song for you!" ]
+          , p [ Attr.class "p-3 bg-info" ] [ text "This can take up to one minute." ]
           ]
 
-      Viewing player meta (mIndex, cards) ->      
-        editor True player updatePlayer download meta editMeta editGroup openArc cards doRequest
+      Viewing player meta (mIndex, arcs) ->      
+        editor True player updatePlayer download meta editMeta editGroup openArc arcs doRequest
 
-      EditingArc player meta group cardState -> 
-        case cardState of 
+      EditingArc player meta group arcState -> 
+        case arcState of 
           Arc.Viewing card -> Arc.readonly card (editArc card) cancel
           Arc.Editing orig next -> Arc.editor next change (save next) cancel
 

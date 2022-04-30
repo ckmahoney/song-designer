@@ -1,6 +1,6 @@
 module Playback2 exposing (..)
 
-import Html exposing (Html, div, text)
+import Html exposing (Html, div, text, p)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)
 import Types exposing (TrackMeta)
@@ -146,33 +146,33 @@ assets track req  =
    , Components.colsMulti
        [ Components.colHalf <| div [] 
            [ Html.button [onClick (req MixLow), Attr.class "is-success"] [text "Mixdown mp3"]  
-           , Html.p [] [text "Low resolution master recording" ]
+           , p [] [text "Low resolution master recording" ]
            ] 
        , Components.colHalf <| div [] 
            [ Html.button [onClick (req MixHigh), Attr.class "is-success"] [text "Mixdown aiff"]
-           , Html.p [] [text "Original high resolution master recording" ]
+           , p [] [text "Original high resolution master recording" ]
            ]
        , Components.colHalf <| div [] 
            [ Components.buttonDisabled [Attr.class "is-success"] "MIDI Stems"
-           , Html.p [] [text "All the stems in MIDI format"]
-           , Html.p [] [text "Coming in version 0.5.0!"]
-           , Html.p [] [ text "Do you want MIDI stems sooner? Please support me "
+           , p [] [text "All the stems in MIDI format"]
+           , p [] [text "Coming in version 0.5.0!"]
+           , p [] [ text "Do you want MIDI stems sooner? Please support me "
                        , Html.a [Attr.href patreonLink] [text "on Patreon."]
                        , text "It would really help a lot. Thank you!" 
                        ]
            ]
        , Components.colHalf <| div [] 
            [ Components.buttonDisabled [Attr.class "is-success"] "Sheet Music"
-           , Html.p [] [text "Sheet Music in PDF"]
-           , Html.p [] [text "Coming in version 0.6.0!"]
-           , Html.p [] [ text "Do you want Sheet Music sooner? Please support me "
+           , p [] [text "Sheet Music in PDF"]
+           , p [] [text "Coming in version 0.6.0!"]
+           , p [] [ text "Do you want Sheet Music sooner? Please support me "
                        , Html.a [Attr.href patreonLink] [text "on Patreon."]
                        , text "It would really help a lot. Thank you!" 
                        ]
            ]
        -- , Components.colHalf <| div [] 
            -- [ Html.button [] [text "Stem Pack mp3"]
-           -- , Html.p [] [text "Recordings required to create the mixdown, in low resolution format"]
+           -- , p [] [text "Recordings required to create the mixdown, in low resolution format"]
            -- ]
        , Components.colSize "is-full" <| div [] 
            [ Html.button [onClick (req Stems)] [text "Stem Pack aiff"]
@@ -262,7 +262,7 @@ listing ((selection, state, tracks) as p) signal track download =
 playlist : Model -> (Msg -> msg) ->   (String -> msg) -> Html msg
 playlist  model signal  download =
   div [] 
-   [ Html.h2 [Attr.class "title"] [text "My Songs"]
+   [ Html.h2 [Attr.class "title"] [text "My Songs"] 
    , Components.box <| List.singleton  <|
        actionlist model signal download
    ] 

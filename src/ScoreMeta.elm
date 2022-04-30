@@ -130,12 +130,12 @@ initState = Editing empty empty
 
 readonly : Int -> Model -> msg -> Html msg
 readonly nCycles meta revise = 
-  Components.box
+  div [class "box m-auto", style "width" "360px" ]
     [ Components.label meta.title
     , p [] [ text <| Components.keyMessage useSharps meta.key ]
     , p [] [ text <| (String.fromFloat meta.bpm) ++ " Beats Per Minute" ]
     , tempoMessage meta.cpc  (meta.bpm / 60) nCycles 
-    , Components.button revise [class "mt-3"] "Edit Song Details"
+    , Components.button revise [class "mt-3"] "Edit Details"
     ]
 
 
