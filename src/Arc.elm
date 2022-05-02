@@ -108,6 +108,7 @@ sizeLabel size =
     _ -> "? mystery size ?"
 
 
+
 styleInfo : Style -> String
 styleInfo style = 
   case style of
@@ -186,6 +187,7 @@ editor arc change save cancel =
   Components.box
     [ Components.editText "Title" (text "") arc.title (\str -> (change <| SetTitle str))
     , h3 [] [ text "Size" ]
+    , p [] [ text "How long this section of music is." ]
     , div [class "my-6"] <| List.singleton <| Components.pickerSelected sizes (text << sizeLabel) (\int -> change <| SetSize <| Tools.getOr int sizes 3) arc.size
     , h3 [] [ text "Mix" ]
     , div [class "my-6"] <| List.singleton <| Components.pickerSelected styles (text << styleLabel) selectStyle arc.style

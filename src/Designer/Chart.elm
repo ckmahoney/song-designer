@@ -121,6 +121,10 @@ newState =
   Viewing Player.new ScoreMeta.empty <| Group.from someArcs
 
 
+isAnon : GhostMember -> Bool
+isAnon member =
+  member == Configs.anonMember
+
 
 init : Maybe GhostMember -> (WithMember State, Cmd msg)
 init flags = 
@@ -298,10 +302,10 @@ allTheDetails =
           , div [Attr.class "m-3" ]
               [ p [] [ text "No matter what, ALL music contains these two things in common: It moves through time, and occupies space! " ]
             , p [] [ text "To measure time we use Beats Per Minute. A higher number means the song will sound faster, while lower numbers sound slower." ]
-            , p [] [ text "The space a song fills is determined by its Key. Let's use colors for a comparison." ]
+            , p [] [ text "The space a song fills is determined by its key signature. That's a term musicians use to describe which notes to choose from. We just call it \"color.\" Let's use actual colors for a comparison." ]
             , p [] [ text "Yellow, purple, blue, orange, red, and green are great colors and each one is about equal to the others." ]
             , p [] [ text "When listening to music, the same idea is true for all 12 keys." ]
-            , p [] [ text "Making songs in a different keys is the fastest way to get a wide color palette." ]
+            , p [] [ text "Making songs in a different keys is the fastest way to get a wide variety of results." ]
               ] ]
       , details [] 
           [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What is a Layout?" ]
@@ -338,7 +342,7 @@ allTheDetails =
 welcome : Html msg
 welcome = 
   div [ Attr.class "content" ]
-    [ p [] [ text "Hi! I'm your Chart Designer. You can use me to build the layout of your song." ]
+    [ p [] [ text "Hi! I'm your Layout Designer. You can use me to build the layout of your song." ]
     , div [Attr.class "p-3" ] allTheDetails
     ]
 
@@ -371,14 +375,14 @@ showUniques arcs =
 arcSummary : List Arc.Model -> Html msg
 arcSummary arcs = 
   div []
-    [ showSequence arcs
-    , showUniques arcs
+    [ showUniques arcs
     ]
 
 -- the summary shows you how many of each arc are present 
 -- and a list of the names separated by arrows 
 
 editor : Bool ->
+  Bool ->
   Player.Model -> 
   (Player.Msg -> msg) -> 
   (String -> msg) -> 
@@ -388,25 +392,24 @@ editor : Bool ->
   (Arc.Model -> msg) ->
   (List Arc.Model) -> 
   (ScoreMeta.Model -> (List Arc.Model) -> msg) ->  Html msg
-editor isUsable player updatePlayer download meta editMeta editGroup openArc arcs doRequest =
+editor anon isUsable player updatePlayer download meta editMeta editGroup openArc arcs doRequest =
   let
     nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 arcs 
   in
-  div []
-    [ welcome
-    , h2 [Attr.class "is-size-2 my-6" ] [ text "Chart Designer"]
-    , Components.boxWith  (if isUsable then "" else "overlay-disabled")
-      [ label [Attr.class "is-size-3 is-block mt-3 mb-6"] [ text "Title, Tempo and Key" ]
+    Components.boxWith  (if isUsable then "" else "overlay-disabled")
+      [ label [Attr.class "is-size-3 is-block mt-3 mb-6"] [ text "Title, BPM and Color" ]
       , ScoreMeta.readonly nCycles meta editMeta
-      , label [Attr.class "is-size-3 is-block mt-3 mb-6"] [ text "Layout" ]
+      , label [Attr.class "is-size-3 is-block my-6"] [ text "Layout" ]
       , details [] [ summary [Attr.class "is-size-5"] [ text "Show Summary" ], arcSummary arcs ]
       , p [Attr.class "mt-3 mb-6" ] [ text "Use the buttons below to add, edit, remove, and position your Arcs." ]
+      , showSequence arcs
       , Group.inserter editGroup Arc.empty (\i c -> Arc.stub c (openArc c))  arcs
-      , if List.length arcs > 0 && isUsable then Components.button (doRequest meta arcs) [Attr.class "mt-6 mb-3"] "Make a Song"
+      , if isUsable then 
+          if List.length arcs > 0 && isUsable then Components.button (doRequest meta arcs) [Attr.class "mt-6 mb-3"] "Make a Song"
         else p  [] [ text "When you have at least 1 Arc in your layout, you can press the \"Make a Song\" button to produce the new music." ]
-      , Player.view player updatePlayer download
+        else text ""
+      , Player.view anon player updatePlayer download 
       ]
-  ] 
 
 
 view : WithMember State -> 
@@ -420,17 +423,19 @@ view : WithMember State ->
   -> Html msg
 view (member, state) updatePlayer download editMeta changeMeta saveMeta closeMeta openArc editArc change save cancel createArc editGroup doRequest =
   div [] 
-  [ div [Attr.id "the-player"] []
-  , case state of  
+    [ welcome
+    , h2 [Attr.class "is-size-2 my-6" ] [ text "Layout Designer"]
+    , case state of  
       Requesting player meta (mIndex, arcs) ->
         div [] 
-          [ editor False player updatePlayer download meta editMeta editGroup openArc arcs doRequest
+          [ editor (isAnon member) False player updatePlayer download meta editMeta editGroup openArc arcs doRequest
           , p [ Attr.class "p-3 bg-info" ] [ text "Writing a song for you!" ]
           , p [ Attr.class "p-3 bg-info" ] [ text "This can take up to one minute." ]
+          , p [ Attr.class "p-3 bg-info wait-a-minute" ] [ text "Looks like this song is taking longer; or maybe you lost network connection? Please try reloading the page, or contact us to report the issue." ]
           ]
 
       Viewing player meta (mIndex, arcs) ->      
-        editor True player updatePlayer download meta editMeta editGroup openArc arcs doRequest
+        editor (isAnon member) True player updatePlayer download meta editMeta editGroup openArc arcs doRequest
 
       EditingArc player meta group arcState -> 
         case arcState of 
@@ -443,6 +448,9 @@ view (member, state) updatePlayer download editMeta changeMeta saveMeta closeMet
             ScoreMeta.editor next changeMeta (saveMeta next) closeMeta
           _ ->
             text "How did you get here"
+
+    , div [Attr.class "box my-6 px-0 py-3"]
+       [ div [ Attr.id "the-player"] [] ]
     ]
 
 
