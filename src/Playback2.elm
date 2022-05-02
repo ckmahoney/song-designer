@@ -56,7 +56,9 @@ type alias Model =
 
 new : Model
 new = 
-  (Nothing, Empty, [])
+  -- (Nothing, Empty, [])
+  (Nothing, Empty, Data.someTracks)
+
 
 
 assetName : Asset -> String
@@ -237,8 +239,8 @@ card ((selection, state, tracks) as p) signal track =
   Components.col [ Attr.class "is-half"] [ Components.songCard track.title <| List.singleton children]
 
 
-listing : Model -> (Msg -> msg)-> TrackMeta -> (String -> msg) -> Html msg
-listing ((selection, state, tracks) as p) signal track download = 
+listing : Bool -> Model -> (Msg -> msg)-> TrackMeta -> (String -> msg) -> Html msg
+listing isAnon ((selection, state, tracks) as p) signal track download = 
   let 
     change = (\msg -> signal  msg)
     children = case selection of 
@@ -255,23 +257,28 @@ listing ((selection, state, tracks) as p) signal track download =
     <| Components.colsWith [Attr.class "is-vcentered"]
        [ Components.col1 <| Components.label track.title 
        , Components.col1 <| selectPlay track change
-       , Components.col1 <| Components.button (download track.filepath) [] "Download"
+       , if isAnon then 
+          Components.buttonDisabled [] "Download"          
+         else 
+          Components.col1 <| Components.button (download track.filepath) [] "Download"
        ]
 
 
-playlist : Model -> (Msg -> msg) ->   (String -> msg) -> Html msg
-playlist  model signal  download =
+playlist : Bool -> Model -> (Msg -> msg) ->   (String -> msg) -> Html msg
+playlist isAnon  model signal  download =
   div [] 
-   [ Html.h2 [Attr.class "title"] [text "My Songs"] 
+   [ Html.h2 [Attr.class "title mt-6"] [text "My Songs"] 
+   , Html.p [Attr.class " mb-3"] [ text "To download these songs and keep them as your own, log into your account. Every song you make while logged is yours. You can anything you want with it! We do not claim any rights, license, or ownership over the songs you make." ]
+   , Html.p [] [ text "Those terms are described in more detail ", Html.a [Attr.href <| Conf.selfUrl "terms-of-service" ] [ text "here" ], text "." ]
    , Components.box <| List.singleton  <|
-       actionlist model signal download
+       actionlist isAnon model signal download 
    ] 
 
 
-actionlist : Model -> (Msg -> msg) ->  (String -> msg) -> Html msg
-actionlist  ((selection, model, tracks) as p) signal  download =
+actionlist : Bool -> Model -> (Msg -> msg) ->  (String -> msg) -> Html msg
+actionlist isAnon  ((selection, model, tracks) as p) signal  download =
   Components.box <| List.singleton  <| Components.colsMulti <|
-    List.map ((\x -> listing p signal x download)) tracks
+    List.map ((\x -> listing isAnon p signal x download)) tracks
 
 
 minilist : Model -> (Msg -> msg) ->   Html msg
@@ -280,13 +287,15 @@ minilist  ((selection, model, tracks) as p) signal  =
    List.map (card p signal) tracks
 
 
-
-view : Model -> (Msg -> msg) ->  (String -> msg) -> Html msg
-view ((selection, model, tracks) as p) signal  download =
+view : Bool -> Model -> (Msg -> msg) ->  (String -> msg) -> Html msg
+view isAnon ((selection, model, tracks) as p) signal download =
   case selection of 
    Nothing ->
     if List.length tracks > 0 then 
-      Components.cols [ Components.col1 <| playlist p signal download ]
+      div [] 
+        [ Components.cols [ Components.col1 <| playlist isAnon p signal download ]
+        , Html.p [Attr.class "show-on-mobile"] [ text "On mobile? Make sure your mute switch is off and the volume is up." ]
+        ]
     else   
       text ""
 
@@ -296,27 +305,7 @@ view ((selection, model, tracks) as p) signal  download =
     in
     Components.cols
       [ Components.colSize "is-one-third" <| feature track model change
-      , Components.colSize "is-two-thirds" <| playlist p signal download
-      ] 
-
-
-mini : Model -> (Msg -> msg) -> (String -> msg) -> Html msg
-mini ((selection, model, tracks) as p) signal download =
-  case selection of 
-   Nothing ->
-    if List.length tracks > 0 then 
-      Components.box [ emptyMessage ]
-    else text ""
-
-
-   Just track ->
-    let
-       change = (\msg -> signal msg)
-    in
-    div [Attr.id "mini-player"] <| List.singleton <|
-     Components.cols
-      [ Components.colSize "is-one-half" <| face track model change
-      , Components.colSize "is-two-thirds" <| actionlist p signal download
+      , Components.colSize "is-two-thirds" <| playlist isAnon p signal download
       ] 
 
 
