@@ -18,7 +18,8 @@ import Chords
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Encoders
-import Decoders
+import Comm.Decoders 
+import Comm.Post
 import Http
 import Types exposing (WithMember, GhostMember, TrackMeta)
 import Playback2 as Player
@@ -48,6 +49,7 @@ type ChartMsg
 
   | ReqTrack ScoreMeta.Model (List Arc.Model)
   | GotTrack (Result Http.Error TrackMeta)
+  | GotTracks (Result Http.Error (List TrackMeta))
 
 type State 
   = Viewing Player.Model ScoreMeta.Model (Group.Model Arc.Model)
@@ -98,7 +100,7 @@ reqTrack member meta arcs complete =
   Http.post
     { url = Configs.apiUrl "track/next"
     , body = Http.jsonBody <| encodeSongRequest member meta arcs
-    , expect = Http.expectJson complete Decoders.decodeTrack
+    , expect = Http.expectJson complete Comm.Decoders.decodeTrack
     }
 
 
@@ -126,14 +128,14 @@ isAnon member =
   member == Configs.anonMember
 
 
-init : Maybe GhostMember -> (WithMember State, Cmd msg)
-init flags = 
+init : Maybe GhostMember -> (Result Http.Error (List TrackMeta) -> msg)  -> (WithMember State, Cmd msg)
+init flags loadTracks = 
   case flags of 
     Nothing -> 
       ((Configs.anonMember, newState), Cmd.none)
     
     Just member ->
-      ((member, newState), Cmd.none)
+      ((member, newState), Comm.Post.fetchSongs member.email member.uuid loadTracks)
 
 
 
@@ -244,6 +246,44 @@ apply msg (member, state) =
 update : ChartMsg -> WithMember State -> (Result Http.Error TrackMeta -> msg) -> (WithMember State, Cmd msg)
 update msg ((member, state) as model) onComplete =
   case msg of 
+    GotTracks res ->
+      case res of 
+        Ok tracks -> 
+         case state of 
+           Requesting player meta group ->
+              let
+                prefix = if Configs.devMode == True then "http://localhost:3000" else ""
+                p =  Player.addMany player tracks
+              in 
+              ((member, Requesting p meta group), Cmd.none)
+
+
+           Viewing player meta group ->
+              let
+                prefix = if Configs.devMode == True then "http://localhost:3000" else ""
+                p =  Player.addMany player tracks
+              in 
+              ((member, Viewing p meta group), Cmd.none)
+
+
+           EditingArc player meta group arcState->
+              let
+                prefix = if Configs.devMode == True then "http://localhost:3000" else ""
+                p =  Player.addMany player tracks
+              in 
+              ((member, EditingArc p meta group arcState), Cmd.none)
+
+
+           EditingMeta player meta group metaState ->
+              let
+                prefix = if Configs.devMode == True then "http://localhost:3000" else ""
+                p =  Player.addMany player tracks
+              in 
+              ((member, EditingMeta p meta group metaState), Cmd.none)
+
+        Err error -> 
+          ((member, state), Cmd.none)
+   
     GotTrack res ->
       case res of 
         Ok track -> 
@@ -456,7 +496,7 @@ view (member, state) updatePlayer download editMeta changeMeta saveMeta closeMet
 
 main = 
   Browser.element 
-    { init = init
+    { init = (\flags -> init flags GotTracks)
     , update = (\msg model -> update msg model GotTrack)
     , view = (\(member, state) -> view (member, state) UpdatePlayer Download EditMeta UpdateMeta SaveMeta CloseMeta ViewArc EditArc UpdateArc SaveArc CloseArc CreateArc EditGroup ReqTrack)
     , subscriptions = (\_ -> Sub.none)

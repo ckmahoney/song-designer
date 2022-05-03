@@ -332,6 +332,10 @@ add : Model -> TrackMeta -> Model
 add (a, b, list) track =
   (a, b, track :: list)
 
+addMany : Model -> List TrackMeta -> Model
+addMany (a, b, list) tracks =
+  (a, b, List.append list tracks)
+
 
 emptyMessage : Html msg
 emptyMessage =
