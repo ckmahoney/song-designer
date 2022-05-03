@@ -21,7 +21,7 @@ import Encoders
 import Comm.Decoders 
 import Comm.Post
 import Http
-import Types exposing (WithMember, GhostMember, TrackMeta)
+import Types exposing (WithMember, TrackResponse, GhostMember, TrackMeta)
 import Playback2 as Player
 
 type alias ArcGroup = Group.Model Arc.Model
@@ -48,7 +48,7 @@ type ChartMsg
   | Download String
 
   | ReqTrack ScoreMeta.Model (List Arc.Model)
-  | GotTrack (Result Http.Error TrackMeta)
+  | GotTrack (Result Http.Error TrackResponse)
   | GotTracks (Result Http.Error (List TrackMeta))
 
 
@@ -104,12 +104,12 @@ encodeSongRequest member meta arcs =
     ]
 
 
-reqTrack : GhostMember -> ScoreMeta.Model -> List Arc.Model -> (Result Http.Error TrackMeta -> msg) -> Cmd msg
+reqTrack : GhostMember -> ScoreMeta.Model -> List Arc.Model -> (Result Http.Error TrackResponse -> msg) -> Cmd msg
 reqTrack member meta arcs complete =
   Http.post
     { url = Configs.apiUrl "track/next"
     , body = Http.jsonBody <| encodeSongRequest member meta arcs
-    , expect = Http.expectJson complete Comm.Decoders.decodeTrack
+    , expect = Http.expectJson complete Comm.Decoders.decodeTrackResponse
     }
 
 
@@ -152,24 +152,11 @@ init flags loadTracks =
       ((member, newState), Comm.Post.fetchSongs member.email member.uuid loadTracks)
 
 
-
 apply : ChartMsg -> WithMember State -> State
 apply msg (member, state) = 
    case state of 
       Viewing ({player, meta, arcs} as model) -> 
         case msg of  
-          GotTrack result ->
-            case result of 
-              Ok track  -> 
-                let
-                  prefix = if Configs.devMode == True then "http://localhost:3000" else ""
-                  p =  Player.add player { track  | filepath = prefix ++ track.filepath } 
-                in 
-                Viewing { model | player = p }
-
-              Err error -> 
-                state
-
           CreateArc -> 
             Viewing { model | arcs = (Tuple.first arcs, List.append (Tuple.second arcs) [Arc.create]) }
 
@@ -189,7 +176,8 @@ apply msg (member, state) =
           EditMeta ->
             EditingMeta model <| ScoreMeta.Editing meta meta
 
-          _ -> state
+          _ -> 
+            state
 
       EditingArc ({player,  meta, arcs} as model) cardState -> 
         case msg of 
@@ -217,15 +205,15 @@ apply msg (member, state) =
 
           GotTrack result ->
             case result of 
-              Ok track  -> 
+              Ok {message, track}  -> 
                 let
-                  p =  Player.add player track 
+                  
+                  p =  Player.add player track
                 in 
                 EditingArc { model | player = p } cardState
 
               Err error -> 
                 state
-
 
           _ -> state
 
@@ -243,7 +231,7 @@ apply msg (member, state) =
 
           GotTrack result -> 
             case result of 
-              Ok track  -> 
+              Ok {message, track}  -> 
                 let
                   p = Player.add player track 
                 in 
@@ -259,7 +247,7 @@ apply msg (member, state) =
         state
 
 
-update : ChartMsg -> WithMember State -> (Result Http.Error TrackMeta -> msg) -> (WithMember State, Cmd msg)
+update : ChartMsg -> WithMember State -> (Result Http.Error TrackResponse -> msg) -> (WithMember State, Cmd msg)
 update msg (member, state) onComplete =
   case msg of 
     GotTracks res ->
@@ -302,7 +290,7 @@ update msg (member, state) onComplete =
    
     GotTrack res ->
       case res of 
-        Ok track -> 
+        Ok {message, track} -> 
          case state of 
            Requesting ({player, meta, arcs} as model) ->
               let

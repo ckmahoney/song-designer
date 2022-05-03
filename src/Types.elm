@@ -180,5 +180,16 @@ type alias Template
 type alias NamedEnsemble 
   = (String, Ensemble)
 
+type alias WithMessage a =
+  { a | message : String }
+
+type alias TrackResponse  =
+  { track : TrackMeta
+  , message : String
+  } 
+
+
+
 main =
   Html.text ""
+
