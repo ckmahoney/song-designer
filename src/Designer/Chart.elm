@@ -51,11 +51,20 @@ type ChartMsg
   | GotTrack (Result Http.Error TrackMeta)
   | GotTracks (Result Http.Error (List TrackMeta))
 
+
+type alias Model = 
+  { meta : ScoreMeta.Model
+  , arcs : Group.Model Arc.Model
+  , player : Player.Model
+  , httpMessage : String 
+  }
+
+
 type State 
-  = Viewing Player.Model ScoreMeta.Model (Group.Model Arc.Model)
-  | EditingArc Player.Model ScoreMeta.Model (Group.Model Arc.Model) Arc.State
-  | EditingMeta Player.Model ScoreMeta.Model (Group.Model Arc.Model) ScoreMeta.State 
-  | Requesting Player.Model ScoreMeta.Model (Group.Model Arc.Model)
+  = Viewing Model 
+  | EditingArc Model Arc.State
+  | EditingMeta Model ScoreMeta.State 
+  | Requesting Model 
 
 
 
@@ -120,7 +129,12 @@ someArcs =
 
 newState : State
 newState = 
-  Viewing Player.new ScoreMeta.empty <| Group.from someArcs
+  Viewing 
+    { player = Player.new
+    , meta = ScoreMeta.empty
+    , arcs = Group.from someArcs
+    , httpMessage = ""
+    }
 
 
 isAnon : GhostMember -> Bool
@@ -142,7 +156,7 @@ init flags loadTracks =
 apply : ChartMsg -> WithMember State -> State
 apply msg (member, state) = 
    case state of 
-      Viewing player meta group -> 
+      Viewing ({player, meta, arcs} as model) -> 
         case msg of  
           GotTrack result ->
             case result of 
@@ -151,53 +165,55 @@ apply msg (member, state) =
                   prefix = if Configs.devMode == True then "http://localhost:3000" else ""
                   p =  Player.add player { track  | filepath = prefix ++ track.filepath } 
                 in 
-                Viewing p meta group
+                Viewing { model | player = p }
 
               Err error -> 
                 state
 
           CreateArc -> 
-            Viewing player meta (Tuple.first group, List.append (Tuple.second group) [Arc.create])
+            Viewing { model | arcs = (Tuple.first arcs, List.append (Tuple.second arcs) [Arc.create]) }
 
           ViewArc card -> 
             let
-               index = Tools.findIndex card (Tuple.second group)
-               newGroup = Group.by index (Tuple.second group)
+               index = Tools.findIndex card (Tuple.second arcs)
+               newArcs = Group.by index (Tuple.second arcs)
             in 
-            EditingArc player meta newGroup <| Arc.editArc card
+            EditingArc { model | arcs =  newArcs } <| Arc.editArc card
 
           EditGroup gMsg -> 
             let
-              group2 = Group.apply gMsg group
+              arcs2 = Group.apply gMsg arcs
             in
-            Viewing player meta group2
+            Viewing { model | arcs = arcs2 }
 
           EditMeta ->
-            EditingMeta player meta group <| ScoreMeta.Editing meta meta
+            EditingMeta model <| ScoreMeta.Editing meta meta
 
           _ -> state
 
-      EditingArc player meta ((index, cards) as group) cardState -> 
+      EditingArc ({player,  meta, arcs} as model) cardState -> 
         case msg of 
           UpdateArc cMsg ->     
-            EditingArc player meta group (Arc.apply cMsg cardState)
+            EditingArc model (Arc.apply cMsg cardState)
 
           SaveArc next -> 
             let
+              (index, cards) = arcs
               i = Maybe.withDefault -1 index
-              newGroup = (Nothing, Tools.replaceAt i next cards)
+              newArcs = (Nothing, Tools.replaceAt i next cards)
             in
-            Viewing player meta newGroup
+            Viewing { model | arcs = newArcs }
 
           CloseArc -> 
-            Viewing player meta group
+            Viewing model
 
           EditArc card -> 
             let
+              cards = Tuple.second arcs
               i = Tools.findIndex card cards
-              newGroup = (Just i, cards)
+              newArcs = (Just i, cards)
             in
-            EditingArc player meta newGroup <| Arc.Editing card card
+            EditingArc { model | arcs =  newArcs } <| Arc.Editing card card
 
           GotTrack result ->
             case result of 
@@ -205,7 +221,7 @@ apply msg (member, state) =
                 let
                   p =  Player.add player track 
                 in 
-                EditingArc p meta group cardState
+                EditingArc { model | player = p } cardState
 
               Err error -> 
                 state
@@ -214,16 +230,16 @@ apply msg (member, state) =
           _ -> state
 
 
-      EditingMeta player orig group metaState ->
+      EditingMeta ({player, arcs} as model) metaState ->
         case msg of
           UpdateMeta mMsg ->
-            EditingMeta player orig group (ScoreMeta.apply mMsg metaState)
+            EditingMeta model (ScoreMeta.apply mMsg metaState)
 
           SaveMeta meta ->
-            Viewing player meta group
+            Viewing { model | meta = meta }
 
           CloseMeta ->
-            Viewing player orig group
+            Viewing model 
 
           GotTrack result -> 
             case result of 
@@ -231,7 +247,7 @@ apply msg (member, state) =
                 let
                   p = Player.add player track 
                 in 
-                EditingMeta p orig group metaState
+                EditingMeta { model | player = p } metaState
 
               Err error -> 
                 state
@@ -244,42 +260,42 @@ apply msg (member, state) =
 
 
 update : ChartMsg -> WithMember State -> (Result Http.Error TrackMeta -> msg) -> (WithMember State, Cmd msg)
-update msg ((member, state) as model) onComplete =
+update msg (member, state) onComplete =
   case msg of 
     GotTracks res ->
       case res of 
         Ok tracks -> 
          case state of 
-           Requesting player meta group ->
+           Requesting ({player, meta, arcs} as model) ->
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
                 p =  Player.addMany player tracks
               in 
-              ((member, Requesting p meta group), Cmd.none)
+              ((member, Requesting { model | player = p }), Cmd.none)
 
 
-           Viewing player meta group ->
+           Viewing  ({player, meta, arcs} as model) ->
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
                 p =  Player.addMany player tracks
               in 
-              ((member, Viewing p meta group), Cmd.none)
+              ((member, Viewing  { model | player = p }), Cmd.none)
 
 
-           EditingArc player meta group arcState->
+           EditingArc  ({player, meta, arcs} as model) arcState->
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
                 p =  Player.addMany player tracks
               in 
-              ((member, EditingArc p meta group arcState), Cmd.none)
+              ((member, EditingArc { model | player = p } arcState), Cmd.none)
 
 
-           EditingMeta player meta group metaState ->
+           EditingMeta  ({player, meta, arcs} as model) metaState ->
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
                 p =  Player.addMany player tracks
               in 
-              ((member, EditingMeta p meta group metaState), Cmd.none)
+              ((member, EditingMeta { model | player = p } metaState), Cmd.none)
 
         Err error -> 
           ((member, state), Cmd.none)
@@ -288,29 +304,29 @@ update msg ((member, state) as model) onComplete =
       case res of 
         Ok track -> 
          case state of 
-           Requesting player meta group ->
+           Requesting ({player, meta, arcs} as model) ->
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
                 p =  Player.add player { track  | filepath = prefix ++ track.filepath } 
               in 
-              ((member, Viewing p meta group), Cmd.none)
+              ((member, Viewing { model | player = p }), Cmd.none)
 
            _ ->
-            (model, Cmd.none)
+            ((member, state), Cmd.none)
 
         Err error -> 
           ((member, state), Cmd.none)
 
     ReqTrack meta arcs ->
       case state of 
-        Viewing c a b ->
-         ((member, Requesting c a b), reqTrack member meta arcs onComplete)
+        Viewing model ->
+         ((member, Requesting model), reqTrack member meta arcs onComplete)
 
         _ ->   
          ((member, state), Cmd.none)
 
     Download path -> 
-      ((member, state), Configs.download <| Debug.log "triggerd a download" path)
+      ((member, state), Configs.download path)
 
     UpdatePlayer pMsg -> 
       let
@@ -318,20 +334,20 @@ update msg ((member, state) as model) onComplete =
         cmdr = (\p -> Player.trigger <| Tuple.second <| Player.update pMsg p) 
       in
       case state of 
-        Requesting player meta group ->
-         ((member, Requesting (next player) meta group), cmdr player)
+        Requesting  ({player, meta, arcs} as model) ->
+         ((member, Requesting { model | player = (next player)}), cmdr player)
 
-        Viewing player meta group ->
-         ((member, Viewing (next player) meta group), cmdr player)
+        Viewing  ({player, meta, arcs} as model) ->
+         ((member, Viewing { model | player = (next player) }), cmdr player)
 
-        EditingArc player meta ((index, cards) as group) cardState ->      
-         ((member, EditingArc (next player) meta group cardState), cmdr player)
+        EditingArc ({player, meta,  arcs} as model) cardState ->      
+         ((member, EditingArc { model | player = (next player)} cardState), cmdr player)
           
-        EditingMeta player orig group metaState ->
-         ((member, EditingMeta (next player) orig group metaState), cmdr player)          
+        EditingMeta ({player} as model) metaState ->
+         ((member, EditingMeta { model | player = (next player) } metaState), cmdr player)          
 
     _ -> 
-      ((member, apply msg model), Cmd.none)
+      ((member, apply msg (member, state)), Cmd.none)
 
 
 
@@ -466,23 +482,23 @@ view (member, state) updatePlayer download editMeta changeMeta saveMeta closeMet
     [ welcome
     , h2 [Attr.class "is-size-2 my-6" ] [ text "Layout Designer"]
     , case state of  
-      Requesting player meta (mIndex, arcs) ->
+      Requesting ({player, meta, arcs} as model) ->
         div [] 
-          [ editor (isAnon member) False player updatePlayer download meta editMeta editGroup openArc arcs doRequest
+          [ editor (isAnon member) False player updatePlayer download meta editMeta editGroup openArc (Tuple.second arcs) doRequest
           , p [ Attr.class "p-3 bg-info" ] [ text "Writing a song for you!" ]
           , p [ Attr.class "p-3 bg-info" ] [ text "This can take up to one minute." ]
           , p [ Attr.class "p-3 bg-info wait-a-minute" ] [ text "Looks like this song is taking longer; or maybe you lost network connection? Please try reloading the page, or contact us to report the issue." ]
           ]
 
-      Viewing player meta (mIndex, arcs) ->      
-        editor (isAnon member) True player updatePlayer download meta editMeta editGroup openArc arcs doRequest
+      Viewing ({player, meta, arcs} as model) ->      
+        editor (isAnon member) True player updatePlayer download meta editMeta editGroup openArc (Tuple.second arcs) doRequest
 
-      EditingArc player meta group arcState -> 
+      EditingArc ({player, meta, arcs} as model) arcState -> 
         case arcState of 
           Arc.Viewing card -> Arc.readonly card (editArc card) cancel
           Arc.Editing orig next -> Arc.editor next change (save next) cancel
 
-      EditingMeta player orig group metaState -> 
+      EditingMeta ({player, meta, arcs} as model) metaState -> 
         case metaState of 
           ScoreMeta.Editing prev next ->
             ScoreMeta.editor next changeMeta (saveMeta next) closeMeta
