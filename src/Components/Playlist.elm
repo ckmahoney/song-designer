@@ -37,7 +37,7 @@ update : Msg -> Model -> (Model, Cmd msg)
 update msg ((state, tracks) as model) =
   case msg of 
     Change pMsg -> 
-      ((Player.apply pMsg state, tracks), Debug.log "triggering this" <|  Player.trigger pMsg state)
+      ((Player.apply pMsg state, tracks), Player.trigger pMsg state)
 
     _ ->
       (apply msg model, Cmd.none)
@@ -103,10 +103,14 @@ card state change isSelected ({filepath, title} as track) =
         Player.Playing _ ->
           Components.button (change Player.Pause) [] "Pause"
         
+        Player.Loading _ ->
+          Components.button (change Player.Stop) [] "Cancel"
+        
         _ -> 
-          Components.button (change  <| Player.Play) [] "Play" 
+          Components.button (change <| Player.Play) [] "Play" 
      else
-      Components.button (change  <| Player.Load track) [] "Play" 
+      Components.button (change <| Player.Load track) [] "Play" 
+
     buttons = 
       [ control
       , Components.buttonDisabled []  "More"

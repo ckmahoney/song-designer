@@ -257,9 +257,9 @@ apply msg (member, (store, state) as model) =
 update : ChartMsg -> WithMember Model -> (Result Http.Error TrackResponse -> msg) -> (WithMember Model, Cmd msg)
 update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplete =
   case msg of 
-    ChangeTrack  playerMsg->
+    ChangeTrack playerMsg->
       let
-        (nextPlayer, cmdr) = Debug.log "called the playlist update" <| Playlist.update (Playlist.Change playerMsg) playlist
+        (nextPlayer, cmdr) = Playlist.update (Playlist.Change playerMsg) playlist
       in 
       ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
     
