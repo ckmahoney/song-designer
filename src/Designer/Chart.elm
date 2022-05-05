@@ -51,10 +51,11 @@ type ChartMsg
   | ReqTrack ScoreMeta.Model (List Arc.Model)
   | GotTrack (Result Http.Error TrackResponse)
   | GotTracks (Result Http.Error (List TrackMeta))
-  | LoadedTrack (Sub Player.Msg)
+  
+  | ChangeTrack (Sub Player.Msg)
 
 
-type alias Model = 
+type alias Store = 
   { meta : ScoreMeta.Model
   , arcs : Group.Model Arc.Model
   , playlist : Playlist.Model
@@ -63,10 +64,14 @@ type alias Model =
 
 
 type State 
-  = Viewing Model
-  | EditingArc Model Arc.State
-  | EditingMeta Model ScoreMeta.State 
-  | Requesting Model
+  = Viewing
+  | EditingArc Arc.State
+  | EditingMeta ScoreMeta.State 
+  | Requesting
+
+
+type alias Model =
+  (Store, State)
 
 
 encodeScoreMeta : ScoreMeta.Model -> Encode.Value
@@ -127,14 +132,15 @@ someArcs =
   ]
 
 
-newState : State
-newState = 
-  Viewing 
-    { playlist = Playlist.test
-    , meta = ScoreMeta.empty
-    , arcs = Group.from someArcs
-    , httpMessage = ""
-    }
+newModel : Model
+newModel = 
+  ({ playlist = Playlist.test
+   , meta = ScoreMeta.empty
+   , arcs = Group.from someArcs
+   , httpMessage = ""
+   } 
+  , Viewing
+  )
 
 
 isAnon : GhostMember -> Bool
@@ -142,47 +148,48 @@ isAnon member =
   member == Configs.anonMember
 
 
-init : Maybe GhostMember -> (Result Http.Error (List TrackMeta) -> msg)  -> (WithMember State, Cmd msg)
+init : Maybe GhostMember -> (Result Http.Error (List TrackMeta) -> msg)  -> (WithMember Model, Cmd msg)
 init flags loadTracks = 
   case flags of 
     Nothing -> 
-      ((Configs.anonMember, newState), Cmd.none)
+      ((Configs.anonMember, newModel), Cmd.none)
     
     Just member ->
-      ((member, newState), Comm.Post.fetchSongs member.email member.uuid loadTracks)
+      ((member, newModel), Comm.Post.fetchSongs member.email member.uuid loadTracks)
 
 
-apply : ChartMsg -> WithMember State -> State
-apply msg (member, state) = 
+apply : ChartMsg -> WithMember Model -> Model
+apply msg (member, (store, state) as model) = 
+  let {playlist, meta, arcs, httpMessage} = store in 
    case state of 
-      Viewing ({playlist, meta, arcs} as model) -> 
+      Viewing -> 
         case msg of  
           CreateArc -> 
-            Viewing { model | arcs = (Tuple.first arcs, List.append (Tuple.second arcs) [Arc.create]) }
+            ({ store | arcs = (Tuple.first arcs, List.append (Tuple.second arcs) [Arc.create]) }, Viewing)
 
           ViewArc card -> 
             let
                index = Tools.findIndex card (Tuple.second arcs)
                newArcs = Group.by index (Tuple.second arcs)
             in 
-            EditingArc { model | arcs =  newArcs } <| Arc.editArc card
+            ( { store | arcs =  newArcs }, EditingArc (Arc.editArc card) )
 
           EditGroup gMsg -> 
             let
               arcs2 = Group.apply gMsg arcs
             in
-            Viewing { model | arcs = arcs2 }
+            ({ store | arcs = arcs2 }, Viewing)
 
           EditMeta ->
-            EditingMeta model <| ScoreMeta.Editing meta meta
+            (store, EditingMeta (ScoreMeta.Editing meta meta))
 
           _ -> 
-            state
+            model
 
-      EditingArc ({playlist,  meta, arcs} as model) cardState -> 
+      EditingArc cardState -> 
         case msg of 
           UpdateArc cMsg ->     
-            EditingArc model (Arc.apply cMsg cardState)
+            (store, EditingArc (Arc.apply cMsg cardState))
 
           SaveArc next -> 
             let
@@ -190,10 +197,10 @@ apply msg (member, state) =
               i = Maybe.withDefault -1 index
               newArcs = (Nothing, Tools.replaceAt i next cards)
             in
-            Viewing { model | arcs = newArcs }
+            ({ store | arcs = newArcs }, Viewing)
 
           CloseArc -> 
-            Viewing model
+            (store, Viewing)
 
           EditArc card -> 
             let
@@ -201,7 +208,7 @@ apply msg (member, state) =
               i = Tools.findIndex card cards
               newArcs = (Just i, cards)
             in
-            EditingArc { model | arcs =  newArcs } <| Arc.Editing card card
+            ({ store | arcs =  newArcs }, EditingArc (Arc.Editing card card))
 
           GotTrack result ->
             case result of 
@@ -209,24 +216,25 @@ apply msg (member, state) =
                 let
                   p = Playlist.apply (Playlist.Add track) playlist
                 in 
-                EditingArc { model | playlist = p } cardState
+                ({ store | playlist = p }, EditingArc cardState)
 
               Err error -> 
-                state
+                model
 
-          _ -> state
+          _ -> 
+            model
 
 
-      EditingMeta ({playlist, arcs} as model) metaState ->
+      EditingMeta metaState ->
         case msg of
           UpdateMeta mMsg ->
-            EditingMeta model (ScoreMeta.apply mMsg metaState)
+            (store, EditingMeta (ScoreMeta.apply mMsg metaState))
 
-          SaveMeta meta ->
-            Viewing { model | meta = meta }
+          SaveMeta nextMeta ->
+            ({ store | meta = nextMeta }, Viewing)
 
           CloseMeta ->
-            Viewing model 
+            (store, Viewing)
 
           GotTrack result -> 
             case result of 
@@ -234,83 +242,84 @@ apply msg (member, state) =
                 let
                   p = Playlist.apply (Playlist.Add track) playlist
                 in 
-                EditingMeta { model | playlist = p } metaState
+                ({ store | playlist = p }, EditingMeta metaState)
 
               Err error -> 
-                state
+                model
 
           _ ->
-            state
+            model
 
       _ ->
-        state
+        model
 
 
-update : ChartMsg -> WithMember State -> (Result Http.Error TrackResponse -> msg) -> (WithMember State, Cmd msg)
-update msg (member, state) onComplete =
+update : ChartMsg -> WithMember Model -> (Result Http.Error TrackResponse -> msg) -> (WithMember Model, Cmd msg)
+update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplete =
   case msg of 
+    -- ChangeTrack playerMsg ->
+      -- let
+        -- (nextPlayer, cmdr) = Playlist.update playerMsg playlist
+      -- in 
+      -- ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
+    
     GotTracks res ->
       case res of 
         Ok tracks -> 
-         let addTracks = (\playlist -> Playlist.apply (Playlist.AddMany tracks) playlist) in 
+         let addTracks = (\p -> Playlist.apply (Playlist.AddMany tracks) p) in 
          case state of 
-           Requesting ({playlist, meta, arcs} as model) ->
+           Requesting  ->
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
               in 
-              ((member, Requesting { model | playlist = addTracks playlist }), Cmd.none)
+              ((member, ({ store | playlist = addTracks playlist }, Requesting)), Cmd.none)
 
 
-           Viewing  ({playlist, meta, arcs} as model) ->
+           Viewing  ->
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
               in 
-              ((member, Viewing  { model | playlist = addTracks playlist }), Cmd.none)
+              ((member, ({ store | playlist = addTracks playlist }, Viewing)), Cmd.none)
 
 
-           EditingArc  ({playlist, meta, arcs} as model) arcState->
+           EditingArc arcState->
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
               in 
-              ((member, EditingArc { model | playlist = addTracks playlist } arcState), Cmd.none)
+              ((member, ({ store | playlist = addTracks playlist }, EditingArc arcState)), Cmd.none)
 
 
-           EditingMeta  ({playlist, meta, arcs} as model) metaState ->
+           EditingMeta metaState ->
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
               in 
-              ((member, EditingMeta { model | playlist = addTracks playlist } metaState), Cmd.none)
+              ((member, ( { store | playlist = addTracks playlist }, EditingMeta  metaState)), Cmd.none)
 
         Err error -> 
-          ((member, state), Cmd.none)
+          ((member, model), Cmd.none)
    
     GotTrack res ->
       case res of 
         Ok {message, track} -> 
          case state of 
-           Requesting ({playlist, meta, arcs} as model) ->
+           Requesting ->
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
                 p = Playlist.apply (Playlist.Add  { track  | filepath = prefix ++ track.filepath }) playlist
               in 
-              ((member, Viewing { model | playlist = p }), Cmd.none)
+              ((member, ({ store | playlist = p }, Viewing)), Cmd.none)
 
            _ ->
-            ((member, state), Cmd.none)
+            ((member, model), Cmd.none)
 
         Err error -> 
-          ((member, state), Cmd.none)
+          ((member, model), Cmd.none)
 
-    ReqTrack meta arcs ->
-      case state of 
-        Viewing model ->
-         ((member, Requesting model), reqTrack member meta arcs onComplete)
-
-        _ ->   
-         ((member, state), Cmd.none)
+    ReqTrack sendMeta sendArcs ->
+      ((member, (store, Requesting)),  reqTrack member sendMeta sendArcs onComplete)
 
     Download path -> 
-      ((member, state), Configs.download path)
+      ((member, model), Configs.download path)
 
     UpdatePlaylist pMsg -> 
       let
@@ -319,20 +328,20 @@ update msg (member, state) onComplete =
         cmdr = (\p -> Cmd.none)
       in
       case state of 
-        Requesting  ({playlist, meta, arcs} as model) ->
-         ((member, Requesting { model | playlist = (next playlist)}), cmdr playlist)
+        Requesting ->
+         ((member, ({ store | playlist = (next playlist) }, Requesting)), cmdr playlist)
 
-        Viewing  ({playlist, meta, arcs} as model) ->
-         ((member, Viewing { model | playlist = (next playlist) }), cmdr playlist)
+        Viewing ->
+         ((member, ({ store | playlist = (next playlist)}, Viewing)), cmdr playlist)
 
-        EditingArc ({playlist, meta,  arcs} as model) cardState ->      
-         ((member, EditingArc { model | playlist = (next playlist)} cardState), cmdr playlist)
+        EditingArc cardState ->      
+         ((member, ({ store | playlist = (next playlist)}, EditingArc  cardState)), cmdr playlist)
           
-        EditingMeta ({playlist} as model) metaState ->
-         ((member, EditingMeta { model | playlist = (next playlist) } metaState), cmdr playlist)          
+        EditingMeta metaState ->
+         ((member, ({ store | playlist = (next playlist) }, EditingMeta  metaState)), cmdr playlist)          
 
     _ -> 
-      ((member, apply msg (member, state)), Cmd.none)
+      ((member, apply msg (member, model)), Cmd.none)
 
 
 
@@ -454,7 +463,7 @@ editor anon isUsable playlist updatePlaylist download meta editMeta editGroup op
       ]
 
 
-view : WithMember State -> 
+view : WithMember Model -> 
   (Playlist.Msg -> msg) ->
   (String -> msg) -> 
   msg -> 
@@ -463,12 +472,12 @@ view : WithMember State ->
   msg -> (Arc.Model -> msg) -> (Arc.Model -> msg) -> (Arc.Msg -> msg) -> (Arc.Model -> msg) -> msg -> msg -> (Group.Msg Arc.Model -> msg) 
   -> (ScoreMeta.Model -> (List Arc.Model) -> msg)
   -> Html msg
-view (member, state) updatePlaylist download editMeta changeMeta saveMeta closeMeta openArc editArc change save cancel createArc editGroup doRequest =
+view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylist download editMeta changeMeta saveMeta closeMeta openArc editArc change save cancel createArc editGroup doRequest =
   div [] 
     [ welcome
     , h2 [Attr.class "is-size-2 my-6" ] [ text "Layout Designer"]
     , case state of  
-      Requesting ({playlist, meta, arcs} as model) ->
+      Requesting ->
         div [] 
           [ editor (isAnon member) False playlist updatePlaylist download meta editMeta editGroup openArc (Tuple.second arcs) doRequest
           , p [ Attr.class "p-3 bg-info" ] [ text "Writing a song for you!" ]
@@ -476,15 +485,15 @@ view (member, state) updatePlaylist download editMeta changeMeta saveMeta closeM
           , p [ Attr.class "p-3 bg-info wait-a-minute" ] [ text "Looks like this song is taking longer; or maybe you lost network connection? Please try reloading the page, or contact us to report the issue." ]
           ]
 
-      Viewing ({playlist, meta, arcs} as model) ->      
+      Viewing ->      
         editor (isAnon member) True playlist updatePlaylist download meta editMeta editGroup openArc (Tuple.second arcs) doRequest
 
-      EditingArc ({playlist, meta, arcs} as model) arcState -> 
+      EditingArc arcState -> 
         case arcState of 
           Arc.Viewing card -> Arc.readonly card (editArc card) cancel
           Arc.Editing orig next -> Arc.editor next change (save next) cancel
 
-      EditingMeta ({playlist, meta, arcs} as model) metaState -> 
+      EditingMeta metaState -> 
         case metaState of 
           ScoreMeta.Editing prev next ->
             ScoreMeta.editor next changeMeta (saveMeta next) closeMeta
@@ -500,6 +509,6 @@ main =
   Browser.element 
     { init = (\flags -> init flags GotTracks)
     , update = (\msg model -> update msg model GotTrack)
-    , view = (\(member, state) -> view (member, state) UpdatePlaylist Download EditMeta UpdateMeta SaveMeta CloseMeta ViewArc EditArc UpdateArc SaveArc CloseArc CreateArc EditGroup ReqTrack)
+    , view = (\(member, model) -> view (member, model) UpdatePlaylist Download EditMeta UpdateMeta SaveMeta CloseMeta ViewArc EditArc UpdateArc SaveArc CloseArc CreateArc EditGroup ReqTrack)
     , subscriptions = (\_ -> Sub.none)
     }
