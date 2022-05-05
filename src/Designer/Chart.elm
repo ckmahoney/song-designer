@@ -52,7 +52,7 @@ type ChartMsg
   | GotTrack (Result Http.Error TrackResponse)
   | GotTracks (Result Http.Error (List TrackMeta))
   
-  | ChangeTrack (Sub Player.Msg)
+  | ChangeTrack Player.Msg Playlist.Msg
 
 
 type alias Store = 
@@ -148,7 +148,7 @@ isAnon member =
   member == Configs.anonMember
 
 
-init : Maybe GhostMember -> (Result Http.Error (List TrackMeta) -> msg)  -> (WithMember Model, Cmd msg)
+init : Maybe GhostMember -> (Result Http.Error (List TrackMeta) -> msg) -> (WithMember Model, Cmd msg)
 init flags loadTracks = 
   case flags of 
     Nothing -> 
@@ -212,7 +212,7 @@ apply msg (member, (store, state) as model) =
 
           GotTrack result ->
             case result of 
-              Ok {message, track}  -> 
+              Ok {message, track} -> 
                 let
                   p = Playlist.apply (Playlist.Add track) playlist
                 in 
@@ -238,7 +238,7 @@ apply msg (member, (store, state) as model) =
 
           GotTrack result -> 
             case result of 
-              Ok {message, track}  -> 
+              Ok {message, track} -> 
                 let
                   p = Playlist.apply (Playlist.Add track) playlist
                 in 
@@ -268,14 +268,14 @@ update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplet
         Ok tracks -> 
          let addTracks = (\p -> Playlist.apply (Playlist.AddMany tracks) p) in 
          case state of 
-           Requesting  ->
+           Requesting ->
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
               in 
               ((member, ({ store | playlist = addTracks playlist }, Requesting)), Cmd.none)
 
 
-           Viewing  ->
+           Viewing ->
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
               in 
@@ -400,7 +400,7 @@ welcome =
 showSequence : List Arc.Model -> Html msg
 showSequence arcs =
   let 
-    separator = "   ->   " 
+    separator = "  ->   " 
     seq = List.foldl (\arc chain -> chain ++ arc.title ++ separator ) "" arcs
     show = String.dropRight (String.length separator) seq
   in
@@ -438,11 +438,12 @@ editor : Bool ->
   (String -> msg) -> 
   ScoreMeta.Model -> 
   msg -> 
-  (Group.Msg Arc.Model  -> msg) -> 
+  (Group.Msg Arc.Model -> msg) -> 
   (Arc.Model -> msg) ->
   (List Arc.Model) -> 
-  (ScoreMeta.Model -> (List Arc.Model) -> msg) ->  Html msg
-editor anon isUsable playlist updatePlaylist download meta editMeta editGroup openArc arcs doRequest =
+  (ScoreMeta.Model -> (List Arc.Model) -> msg) ->  
+  (Player.Msg -> Playlist.Msg -> msg) -> Html msg
+editor anon isUsable playlist updatePlaylist download meta editMeta editGroup openArc arcs doRequest changeTrack =
   let
     nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 arcs 
   in
@@ -463,30 +464,23 @@ editor anon isUsable playlist updatePlaylist download meta editMeta editGroup op
       ]
 
 
-view : WithMember Model -> 
-  (Playlist.Msg -> msg) ->
-  (String -> msg) -> 
-  msg -> 
-  (ScoreMeta.Msg -> msg) -> 
-  (ScoreMeta.Model -> msg) ->  
-  msg -> (Arc.Model -> msg) -> (Arc.Model -> msg) -> (Arc.Msg -> msg) -> (Arc.Model -> msg) -> msg -> msg -> (Group.Msg Arc.Model -> msg) 
-  -> (ScoreMeta.Model -> (List Arc.Model) -> msg)
-  -> Html msg
-view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylist download editMeta changeMeta saveMeta closeMeta openArc editArc change save cancel createArc editGroup doRequest =
+-- lol this is the longest argument list i have ever written. oh well it works fine thanks Elm 
+view : WithMember Model -> (Playlist.Msg -> msg) -> (String -> msg) ->  msg ->  (ScoreMeta.Msg -> msg) ->  (ScoreMeta.Model -> msg) ->  msg -> (Arc.Model -> msg) -> (Arc.Model -> msg) -> (Arc.Msg -> msg) -> (Arc.Model -> msg) -> msg -> msg -> (Group.Msg Arc.Model -> msg) -> (ScoreMeta.Model -> (List Arc.Model) -> msg) -> (Player.Msg -> Playlist.Msg -> msg) -> Html msg
+view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylist download editMeta changeMeta saveMeta closeMeta openArc editArc change save cancel createArc editGroup doRequest changeTrack =
   div [] 
     [ welcome
     , h2 [Attr.class "is-size-2 my-6" ] [ text "Layout Designer"]
     , case state of  
       Requesting ->
         div [] 
-          [ editor (isAnon member) False playlist updatePlaylist download meta editMeta editGroup openArc (Tuple.second arcs) doRequest
+          [ editor (isAnon member) False playlist updatePlaylist download meta editMeta editGroup openArc (Tuple.second arcs) doRequest changeTrack
           , p [ Attr.class "p-3 bg-info" ] [ text "Writing a song for you!" ]
           , p [ Attr.class "p-3 bg-info" ] [ text "This can take up to one minute." ]
           , p [ Attr.class "p-3 bg-info wait-a-minute" ] [ text "Looks like this song is taking longer; or maybe you lost network connection? Please try reloading the page, or contact us to report the issue." ]
           ]
 
       Viewing ->      
-        editor (isAnon member) True playlist updatePlaylist download meta editMeta editGroup openArc (Tuple.second arcs) doRequest
+        editor (isAnon member) True playlist updatePlaylist download meta editMeta editGroup openArc (Tuple.second arcs) doRequest changeTrack
 
       EditingArc arcState -> 
         case arcState of 
@@ -497,8 +491,9 @@ view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylis
         case metaState of 
           ScoreMeta.Editing prev next ->
             ScoreMeta.editor next changeMeta (saveMeta next) closeMeta
+
           _ ->
-            text "How did you get here"
+            text "How did you get here? Please tell us on the Contact page."
 
     , div [Attr.class "box my-6 px-0 py-3"]
        [ div [ Attr.id "the-player"] [] ]
@@ -509,6 +504,6 @@ main =
   Browser.element 
     { init = (\flags -> init flags GotTracks)
     , update = (\msg model -> update msg model GotTrack)
-    , view = (\(member, model) -> view (member, model) UpdatePlaylist Download EditMeta UpdateMeta SaveMeta CloseMeta ViewArc EditArc UpdateArc SaveArc CloseArc CreateArc EditGroup ReqTrack)
+    , view = (\(member, model) -> view (member, model) UpdatePlaylist Download EditMeta UpdateMeta SaveMeta CloseMeta ViewArc EditArc UpdateArc SaveArc CloseArc CreateArc EditGroup ReqTrack ChangeTrack)
     , subscriptions = (\_ -> Sub.none)
     }

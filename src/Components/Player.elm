@@ -146,6 +146,21 @@ update msg model =
   (apply msg model, trigger msg model)
 
 
+isSelected : TrackMeta -> State -> Bool
+isSelected track state =
+  case state of 
+    Empty -> 
+      False
+    
+    Loading t ->
+      t == track
+
+    Paused t ->
+      t == track
+
+    Playing t ->
+      t == track
+
 -- This is the element to be taken over by WaveSurfer.js
 node : Model -> Html msg
 node (nodeId, _) =

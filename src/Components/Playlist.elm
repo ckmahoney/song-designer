@@ -85,19 +85,22 @@ termsCta =
   Html.p [] [ text "Those terms are described in more detail ", Html.a [Attr.href <| Conf.selfUrl "terms-of-service" ] [ text "here" ], text "." ]
 
 
-playlist : Bool -> Model -> (Msg -> msg) -> (String -> msg) -> Html msg
-playlist isAnon model do download =
+playlist : Bool -> Model -> (String -> msg) -> Html msg
+playlist isAnon model download =
   div [] 
    [ Html.h2 [Attr.class "title mt-6"] [text "My Music"] 
    , regCta
    , termsCta
    ]
 
-card : TrackMeta -> Html msg
-card ({filepath, title} as track) =
+card : (Msg -> msg) -> Bool -> TrackMeta -> Html msg
+card do isSelected ({filepath, title} as track) =
   let
+    control = if isSelected then 
+      Components.button (do (Change Player.Pause)) [] "Pause"  else 
+      Components.button (do (Change Player.Play)) [] "Play" 
     buttons = 
-      [ Components.buttonDisabled []  "Play" 
+      [ control
       , Components.buttonDisabled []  "More"
       , Components.buttonDisabled []  "Hide"
       ]
@@ -106,12 +109,13 @@ card ({filepath, title} as track) =
 
 
 view : Bool -> Model -> (Msg -> msg) ->  (String -> msg) -> Html msg
-view isAnon ((state, tracks) as model) do download =
+view isAnon (((nodeId, state), tracks) as model) do download =
+  let isSelected = (\track -> Player.isSelected track state) in
     if List.length tracks > 0 then 
       div [] <|
-        [ Components.cols [ Components.col1 <| playlist isAnon model do download ]
+        [ Components.cols [ Components.col1 <| playlist isAnon model download ]
         , Html.p [Attr.class "show-on-mobile"] [ text "On mobile? Make sure your mute switch is off and the volume is up." ]
-        , Components.colsMulti (List.map card tracks)
+        , Components.colsMulti <| List.map (\track -> card do (isSelected track) track) tracks
         ] 
         
 
