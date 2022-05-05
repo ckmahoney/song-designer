@@ -14,8 +14,8 @@ type alias RegEntry =
   }
 
 
-devMode = False
-useLocal = False
+devMode = True
+useLocal = True
 
  
 regUrl : String
@@ -64,6 +64,8 @@ anonMember =
   else 
     Data.anonMember
 
-
+cardWidth : Float
+cardWidth =
+  240
 
 main = text ""

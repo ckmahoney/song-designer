@@ -8,6 +8,7 @@ import Html.Events exposing (onClick)
 import View 
 import Components
 import Tools
+import Configs as Conf
 
 type alias Title = String
 type alias Key = Int
@@ -146,7 +147,7 @@ update msg state =
 
 stub : Model -> msg -> Html msg
 stub { title, style, size } click = 
-  div [Attr.class "box", Attr.style "min-width" "240px"]
+  div [Attr.class "box", Attr.style "min-width" (String.fromFloat Conf.cardWidth ++ "px")]
    [ Components.label title
    , p [ Attr.class "mt-3"] [ text <| sizeLabel size ++ " "  ++ styleLabel style ]
    , Components.button click [class "my-3"] "Edit Arc"
@@ -155,7 +156,7 @@ stub { title, style, size } click =
 
 thumb : Model ->  Html msg
 thumb { title, style, size }  = 
-  div [Attr.class "box", Attr.style "min-width" "240px"]
+  div [Attr.class "box", Attr.style "min-width" (String.fromFloat Conf.cardWidth ++ "px")]
    [ Components.label title
    , p [ Attr.class "mt-3"] [ text <| sizeLabel size ++ " "  ++ styleLabel style ]
    ]
