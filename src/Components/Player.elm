@@ -20,30 +20,129 @@ type alias NodeId = String
 type alias AudioSrc = String
 
 
-type Model
+type State
  = Playing TrackMeta
  | Paused TrackMeta
  | Loading TrackMeta
  | Empty
 
 
-type Asset
- = MixHigh
- | MixLow
- | Stems
- | Midi
-
+type alias Model =
+  (NodeId, State)
 
 type Msg
-  = Yeah
+  = Load TrackMeta
+  | Loaded
+  | Play
+  | Pause
+  | Stop
 
 
-trigger : Msg -> Cmd msg 
-trigger msg =
-  Cmd.none
+
+new : NodeId -> Model
+new nodeId =
+  (nodeId, Empty)
+
+
+default : Model
+default =
+  ("#the-player", Empty)
+
+
+noArg : String
+noArg = 
+  ""
+
+
+trigger : Msg -> Model -> Cmd msg 
+trigger msg ((nodeId, state) as model) =
+  case state of 
+    Empty -> 
+      case msg of 
+        Load track ->
+          createSource (nodeId, track.filepath)
+
+        _ ->
+          Cmd.none 
+
+    Loading track ->
+      case msg of
+        Loaded ->
+          playMusic noArg
+
+        _ ->
+          Cmd.none
+
+    Paused track ->
+      case msg of 
+        Play ->
+          playMusic noArg
+
+        Stop ->
+          stopMusic noArg
+
+        _ ->
+          Cmd.none
+
+
+    Playing track ->
+      case msg of 
+        Pause ->
+          pauseMusic noArg 
+
+        Stop ->
+          stopMusic noArg
+
+        _ ->
+          Cmd.none
+
 
 apply : Msg -> Model -> Model
-apply msg model =
-  model
+apply msg ((nodeId, state) as model) =
+  let to = (\m -> (nodeId, m)) in 
+  case state of 
+    Empty -> 
+      case msg of 
+        Load track ->
+          to <| Loading track
+
+        _ ->
+          model
+
+    Loading track ->
+      case msg of
+        Loaded ->
+          to <| Playing track
+
+        _ ->
+          model
+
+    Paused track ->
+      case msg of 
+        Play ->
+          to <| Playing track
+
+        Stop ->
+          to <| Empty
+
+        _ ->
+          model
 
 
+    Playing track ->
+      case msg of 
+        Pause ->
+          to <| Paused track
+
+        Stop ->
+          to <| Empty
+
+        _ ->
+          model
+
+    
+    
+
+update : Msg -> Model -> (Model, Cmd msg)
+update msg model = 
+  (apply msg model, trigger msg model)
