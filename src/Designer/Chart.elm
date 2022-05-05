@@ -24,6 +24,7 @@ import Http
 import Types exposing (WithMember, TrackResponse, GhostMember, TrackMeta)
 import Components.Playlist as Playlist
 import Components.Player as Player
+import PlaybackPorts exposing (NodeId, AudioSrc, loadedTrack)
 
 type alias ArcGroup = Group.Model Arc.Model
 
@@ -53,7 +54,7 @@ type ChartMsg
   | GotTracks (Result Http.Error (List TrackMeta))
   
   | ChangeTrack Player.Msg 
-
+  | LoadedTrack String
 
 type alias Store = 
   { meta : ScoreMeta.Model
@@ -260,6 +261,14 @@ update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplet
     ChangeTrack playerMsg->
       let
         (nextPlayer, cmdr) = Playlist.update (Playlist.Change playerMsg) playlist
+      in 
+      ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
+    
+    LoadedTrack _->
+
+      let
+        (nodeId, audioSrc) = ("aaa", "bbb")
+        (nextPlayer, cmdr) = Debug.log "It loaded the new thing" Playlist.update (Playlist.Change Player.Loaded) playlist
       in 
       ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
     
@@ -500,10 +509,15 @@ view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylis
     ]
 
 
+subscriptions : WithMember Model -> Sub ChartMsg
+subscriptions _ =
+  loadedTrack (\str -> LoadedTrack str)
+
+
 main = 
   Browser.element 
     { init = (\flags -> init flags GotTracks)
     , update = (\msg model -> update msg model GotTrack)
     , view = (\(member, model) -> view (member, model) UpdatePlaylist Download EditMeta UpdateMeta SaveMeta CloseMeta ViewArc EditArc UpdateArc SaveArc CloseArc CreateArc EditGroup ReqTrack ChangeTrack)
-    , subscriptions = (\_ -> Sub.none)
+    , subscriptions = subscriptions
     }
