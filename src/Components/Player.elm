@@ -141,8 +141,12 @@ apply msg ((nodeId, state) as model) =
           model
 
     
-    
-
 update : Msg -> Model -> (Model, Cmd msg)
 update msg model = 
   (apply msg model, trigger msg model)
+
+
+-- This is the element to be taken over by WaveSurfer.js
+node : Model -> Html msg
+node (nodeId, _) =
+  div [ Attr.id nodeId ] [] 

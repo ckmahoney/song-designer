@@ -43,8 +43,13 @@ update msg ((state, tracks) as model) =
       (apply msg model, Cmd.none)
 
 
-new : Model
-new =
+new : String -> Model
+new nodeId =
+  (Player.new nodeId, [])
+
+
+default : Model
+default =
   (Player.default, [])
 
 

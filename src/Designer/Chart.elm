@@ -23,6 +23,7 @@ import Comm.Post
 import Http
 import Types exposing (WithMember, TrackResponse, GhostMember, TrackMeta)
 import Components.Playlist as Playlist
+import Components.Player as Player
 
 type alias ArcGroup = Group.Model Arc.Model
 
@@ -50,6 +51,7 @@ type ChartMsg
   | ReqTrack ScoreMeta.Model (List Arc.Model)
   | GotTrack (Result Http.Error TrackResponse)
   | GotTracks (Result Http.Error (List TrackMeta))
+  | LoadedTrack (Sub Player.Msg)
 
 
 type alias Model = 
@@ -61,10 +63,10 @@ type alias Model =
 
 
 type State 
-  = Viewing Model 
+  = Viewing Model
   | EditingArc Model Arc.State
   | EditingMeta Model ScoreMeta.State 
-  | Requesting Model 
+  | Requesting Model
 
 
 encodeScoreMeta : ScoreMeta.Model -> Encode.Value
@@ -448,7 +450,7 @@ editor anon isUsable playlist updatePlaylist download meta editMeta editGroup op
           if List.length arcs > 0 && isUsable then Components.button (doRequest meta arcs) [Attr.class "mt-6 mb-3"] "Make a Song"
         else p  [] [ text "When you have at least 1 Arc in your layout, you can press the \"Make a Song\" button to produce the new music." ]
         else text ""
-
+      , Player.node (Tuple.first playlist)
       ]
 
 
