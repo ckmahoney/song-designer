@@ -1121,7 +1121,7 @@ someTracks =
     }
   , { id = 2
     , account_id = 1
-    , filepath = "http://localhost:3000/music/ecadef5f-da0f-41c9-9b7f-7d03d3e9b569/mixes/song-1.mp3"
+    , filepath = "http://localhost:3000/music/ecadef5f-da0f-41c9-9b7f-7d03d3e9b569/mixes/sample-beat.mp3"
     , title = "song 1"
     , size_bytes = 100
     , duration_seconds = 30

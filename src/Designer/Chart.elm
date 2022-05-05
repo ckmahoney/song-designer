@@ -52,7 +52,7 @@ type ChartMsg
   | GotTrack (Result Http.Error TrackResponse)
   | GotTracks (Result Http.Error (List TrackMeta))
   
-  | ChangeTrack Player.Msg Playlist.Msg
+  | ChangeTrack Player.Msg 
 
 
 type alias Store = 
@@ -257,11 +257,11 @@ apply msg (member, (store, state) as model) =
 update : ChartMsg -> WithMember Model -> (Result Http.Error TrackResponse -> msg) -> (WithMember Model, Cmd msg)
 update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplete =
   case msg of 
-    -- ChangeTrack playerMsg ->
-      -- let
-        -- (nextPlayer, cmdr) = Playlist.update playerMsg playlist
-      -- in 
-      -- ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
+    ChangeTrack  playerMsg->
+      let
+        (nextPlayer, cmdr) = Debug.log "called the playlist update" <| Playlist.update (Playlist.Change playerMsg) playlist
+      in 
+      ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
     
     GotTracks res ->
       case res of 
@@ -442,13 +442,13 @@ editor : Bool ->
   (Arc.Model -> msg) ->
   (List Arc.Model) -> 
   (ScoreMeta.Model -> (List Arc.Model) -> msg) ->  
-  (Player.Msg -> Playlist.Msg -> msg) -> Html msg
+  (Player.Msg -> msg) -> Html msg
 editor anon isUsable playlist updatePlaylist download meta editMeta editGroup openArc arcs doRequest changeTrack =
   let
     nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 arcs 
   in
     Components.boxWith  (if isUsable then "" else "overlay-disabled")
-      [ Playlist.view anon playlist updatePlaylist download 
+      [ Playlist.view anon playlist updatePlaylist download changeTrack
       , label [Attr.class "is-size-3 is-block mt-3 mb-6"] [ text "Title, BPM and Color" ]
       , ScoreMeta.readonly nCycles meta editMeta
       , label [Attr.class "is-size-3 is-block my-6"] [ text "Layout" ]
@@ -465,7 +465,7 @@ editor anon isUsable playlist updatePlaylist download meta editMeta editGroup op
 
 
 -- lol this is the longest argument list i have ever written. oh well it works fine thanks Elm 
-view : WithMember Model -> (Playlist.Msg -> msg) -> (String -> msg) ->  msg ->  (ScoreMeta.Msg -> msg) ->  (ScoreMeta.Model -> msg) ->  msg -> (Arc.Model -> msg) -> (Arc.Model -> msg) -> (Arc.Msg -> msg) -> (Arc.Model -> msg) -> msg -> msg -> (Group.Msg Arc.Model -> msg) -> (ScoreMeta.Model -> (List Arc.Model) -> msg) -> (Player.Msg -> Playlist.Msg -> msg) -> Html msg
+view : WithMember Model -> (Playlist.Msg -> msg) -> (String -> msg) ->  msg ->  (ScoreMeta.Msg -> msg) ->  (ScoreMeta.Model -> msg) ->  msg -> (Arc.Model -> msg) -> (Arc.Model -> msg) -> (Arc.Msg -> msg) -> (Arc.Model -> msg) -> msg -> msg -> (Group.Msg Arc.Model -> msg) -> (ScoreMeta.Model -> (List Arc.Model) -> msg) -> (Player.Msg -> msg) -> Html msg
 view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylist download editMeta changeMeta saveMeta closeMeta openArc editArc change save cancel createArc editGroup doRequest changeTrack =
   div [] 
     [ welcome

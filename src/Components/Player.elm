@@ -60,7 +60,7 @@ trigger msg ((nodeId, state) as model) =
     Empty -> 
       case msg of 
         Load track ->
-          createSource (nodeId, track.filepath)
+          createSource <| Debug.log "args:" (nodeId, track.filepath)
 
         _ ->
           Cmd.none 
@@ -99,12 +99,12 @@ trigger msg ((nodeId, state) as model) =
 
 apply : Msg -> Model -> Model
 apply msg ((nodeId, state) as model) =
-  let to = (\m -> (nodeId, m)) in 
+  let to = (\s -> (nodeId, s)) in 
   case state of 
     Empty -> 
       case msg of 
         Load track ->
-          to <| Loading track
+          Debug.log "Making a loading state" <| to <| Loading track
 
         _ ->
           model
@@ -112,7 +112,7 @@ apply msg ((nodeId, state) as model) =
     Loading track ->
       case msg of
         Loaded ->
-          to <| Playing track
+          Debug.log "Making a play state 1" <| to <| Playing track
 
         _ ->
           model
@@ -120,7 +120,7 @@ apply msg ((nodeId, state) as model) =
     Paused track ->
       case msg of 
         Play ->
-          to <| Playing track
+          Debug.log "Making a play state 2" <| to <| Playing track
 
         Stop ->
           to <| Empty
@@ -148,7 +148,7 @@ update msg model =
 
 isSelected : TrackMeta -> State -> Bool
 isSelected track state =
-  case state of 
+  case Debug.log "checking against current state:"  state of 
     Empty -> 
       False
     

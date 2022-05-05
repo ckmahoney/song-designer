@@ -37,7 +37,7 @@ update : Msg -> Model -> (Model, Cmd msg)
 update msg ((state, tracks) as model) =
   case msg of 
     Change pMsg -> 
-      ((Player.apply pMsg state, tracks), Player.trigger pMsg state)
+      ((Player.apply pMsg state, tracks), Debug.log "triggering this" <|  Player.trigger pMsg state)
 
     _ ->
       (apply msg model, Cmd.none)
@@ -93,12 +93,20 @@ playlist isAnon model download =
    , termsCta
    ]
 
-card : (Msg -> msg) -> Bool -> TrackMeta -> Html msg
-card do isSelected ({filepath, title} as track) =
+
+card : Player.State -> (Player.Msg -> msg) -> Bool -> TrackMeta -> Html msg
+card state change isSelected ({filepath, title} as track) =
   let
-    control = if isSelected then 
-      Components.button (do (Change Player.Pause)) [] "Pause"  else 
-      Components.button (do (Change Player.Play)) [] "Play" 
+    control = 
+     if isSelected then 
+      case state of 
+        Player.Playing _ ->
+          Components.button (change Player.Pause) [] "Pause"
+        
+        _ -> 
+          Components.button (change  <| Player.Play) [] "Play" 
+     else
+      Components.button (change  <| Player.Load track) [] "Play" 
     buttons = 
       [ control
       , Components.buttonDisabled []  "More"
@@ -108,14 +116,15 @@ card do isSelected ({filepath, title} as track) =
   Components.col1 <| Components.card3 (text title) (text "") buttons 
 
 
-view : Bool -> Model -> (Msg -> msg) ->  (String -> msg) -> Html msg
-view isAnon (((nodeId, state), tracks) as model) do download =
-  let isSelected = (\track -> Player.isSelected track state) in
+view : Bool -> Model -> (Msg -> msg) ->  (String -> msg) -> (Player.Msg -> msg) -> Html msg
+view isAnon (((nodeId, state), tracks) as model) updatePlaylist download do =
+  let isSelected = (\track -> Player.isSelected track state)
+  in
     if List.length tracks > 0 then 
       div [] <|
         [ Components.cols [ Components.col1 <| playlist isAnon model download ]
         , Html.p [Attr.class "show-on-mobile"] [ text "On mobile? Make sure your mute switch is off and the volume is up." ]
-        , Components.colsMulti <| List.map (\track -> card do (isSelected track) track) tracks
+        , Components.colsMulti <| List.map (\track -> card state do (isSelected track) track) tracks
         ] 
         
 
