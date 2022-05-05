@@ -37,7 +37,7 @@ update : Msg -> Model -> (Model, Cmd msg)
 update msg ((state, tracks) as model) =
   case msg of 
     Change pMsg -> 
-      ((Player.apply pMsg state, tracks), Player.trigger pMsg)
+      ((Player.apply pMsg state, tracks), Player.trigger pMsg state)
 
     _ ->
       (apply msg model, Cmd.none)
@@ -45,12 +45,12 @@ update msg ((state, tracks) as model) =
 
 new : Model
 new =
-  (Player.Empty, [])
+  (Player.default, [])
 
 
 test : Model
 test =
-  (Player.Empty, Data.someTracks)
+  (Player.default, Data.someTracks)
 
 
 listing : Bool -> Model -> (Msg -> msg)-> TrackMeta -> (String -> msg) -> Html msg
