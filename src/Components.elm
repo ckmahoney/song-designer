@@ -2,7 +2,7 @@ module Components exposing (..)
 -- Generic Html components with Bulma.css selectors
 
 import Types exposing (..)
-import Html exposing (Html, text, div)
+import Html exposing (Html, text, div, footer, p)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Data as D
@@ -392,17 +392,24 @@ card : String -> Html msg-> Html msg
 card title content = 
   div [ class "card my-3" ] 
     [ Html.header [ class "card-header" ] 
-      [ Html.p [ class "card-header-title" ] [ text title ]
+      [ p [ class "card-header-title" ] [ text title ]
       ]
    , div [ class "card-content" ] [ content ]
    ]
 
+card3 : (Html msg) -> (Html msg) -> (List ( Html msg)) -> Html msg
+card3 head body feet =
+  div [ class "card" ]
+    [ div [ class "card-header" ] [ p [ class "card-header-title" ] [ head ] ]
+    , div [ class "card-content"] [ div [ class "content" ] [ body ] ]
+    , footer [ class "card-footer" ] <| List.map (\el -> div [class "card-footer-item"] [ el ]) feet
+    ]
 
 cardWith : String -> String -> Html msg-> Html msg
 cardWith classes  title content = 
   div [ class "card my-3", class classes ] 
     [ Html.header [ class "card-header has-background-black" ] 
-      [ Html.p [ class "has-text-weight-normal card-header-title  has-text-light" ] [ text title ]
+      [ p [ class "has-text-weight-normal card-header-title  has-text-light" ] [ text title ]
       ]
    , div [ class "card-content" ] [ content ]
    ]
@@ -412,7 +419,7 @@ card2 : String -> List (Html msg) -> Html msg-> Html msg
 card2 title titleMore content = 
   div [ class "card my-3" ] 
     [ Html.header [ class "card-header level" ] 
-      [ Html.p [ class "card-header-title" ] [ text title ] 
+      [ p [ class "card-header-title" ] [ text title ] 
       , div [ class "mr-4" ] titleMore ] 
       
    , div [ class "card-content" ] 
@@ -578,7 +585,7 @@ songCard title icons =
 
 paragraph : String -> Html msg
 paragraph c =
-  Html.p [ class "content" ] [ text c ] 
+  p [ class "content" ] [ text c ] 
   
 
 main = 
