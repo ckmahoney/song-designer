@@ -98,8 +98,8 @@ playlist : Bool -> Model -> (String -> msg) -> Html msg
 playlist isAnon model download =
   div [] 
    [ Html.h2 [Attr.class "title mt-6"] [text "My Music"] 
-   , regCta
-   , termsCta
+   , if isAnon then regCta else text ""
+   , if isAnon then termsCta else text ""
    ]
 
 
