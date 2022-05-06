@@ -8,54 +8,63 @@ import Data
 import Configs as Conf
 import Components
 import Components.Player as Player
-
+import Tools
 
 type alias Model = 
-  (Player.Model, List TrackMeta)
+  (List Player.Model, List TrackMeta)
 
 
 type Msg 
-  = Change Player.Msg
+  = Change Int Player.Msg
   | Add TrackMeta
   | AddMany (List TrackMeta)
 
 
-apply : Msg -> Model -> Model
-apply msg (player, list) =
-  case msg of 
-    Add track ->
-      (player, track :: list)
+id : Int -> String
+id index =
+  "player-" ++ String.fromInt index
 
-    AddMany tracks -> 
-      (player, List.append list tracks)
+
+
+apply : Msg -> Model -> Model
+apply msg (players, tracks) =
+  case msg of 
+    Add track ->  
+      let 
+        index = List.length tracks 
+        player = Player.new (id index)
+      in 
+        (player :: players, track :: tracks)
+
+    AddMany moreTracks -> 
+      let 
+        size = List.length tracks 
+        morePlayers = List.indexedMap (\i track -> 
+          Player.new (id (i + size)) ) moreTracks
+      in 
+      (List.append players morePlayers, List.append tracks moreTracks)
 
     _ ->
-      (player, list)
+      (players, tracks)
 
 
 update : Msg -> Model -> (Model, Cmd msg)
-update msg ((state, tracks) as model) =
+update msg ((players, tracks) as model) =
   case msg of 
-    Change pMsg -> 
-      ((Player.apply pMsg state, tracks), Player.trigger pMsg state)
+    Change index pMsg -> 
+      let 
+        state = Tools.getOr index players (Player.new (id index))
+        player = Player.apply pMsg state
+      in 
+      ((Tools.replaceAt index player players, tracks), Player.trigger pMsg state)
 
     _ ->
       (apply msg model, Cmd.none)
 
 
-new : String -> Model
-new nodeId =
-  (Player.new nodeId, [])
-
-
-default : Model
-default =
-  (Player.default, [])
-
-
-test : Model
-test =
-  (Player.default, Data.someTracks)
+new : Model
+new =
+  ([], [])
 
 
 listing : Bool -> Model -> (Msg -> msg)-> TrackMeta -> (String -> msg) -> Html msg
@@ -94,8 +103,9 @@ playlist isAnon model download =
    ]
 
 
-card : Player.State -> (Player.Msg -> msg) -> Bool -> TrackMeta -> Html msg
-card state change isSelected ({filepath, title} as track) =
+-- instance of card when there is only 1 allowed waveform
+card0 : Player.State -> (Player.Msg -> msg) -> Bool -> TrackMeta -> Html msg
+card0 state change isSelected ({filepath, title} as track) =
   let
     control = 
      if isSelected then 
@@ -119,21 +129,60 @@ card state change isSelected ({filepath, title} as track) =
   in 
   Components.col1 <| Components.card3 (text title) (text "") buttons 
 
-
-view : Bool -> Model -> (Msg -> msg) ->  (String -> msg) -> (Player.Msg -> msg) -> Html msg
-view isAnon (((nodeId, state), tracks) as model) updatePlaylist download do =
-  let isSelected = (\track -> Player.isSelected track state)
-  in
-    if List.length tracks > 0 then 
-      div [] <|
-        [ Components.cols [ Components.col1 <| playlist isAnon model download ]
-        , Html.p [Attr.class "show-on-mobile"] [ text "On mobile? Make sure your mute switch is off and the volume is up." ]
-        , Components.colsMulti <| List.map (\track -> card state do (isSelected track) track) tracks
-        ] 
+-- instance of card with arbitrary number of waveforms
+card : Bool -> Int -> Player.State -> (Int -> Player.Msg -> msg) ->  TrackMeta -> (String -> msg) -> Html msg
+card isAnon index state change ({filepath, title} as track) download =
+  let
+    control = 
+      case state of 
+        Player.Playing _ ->
+          Components.button (change index Player.Pause) [] "Pause"
         
+        Player.Paused _ ->
+          Components.button (change index Player.Play) [] "Play"
+        
+        Player.Loading _ ->
+          Components.button (change index Player.Stop) [] "Cancel"
+        
+        _ -> 
+          Components.button (change index <| Player.Load track) [] "Play"
+    
+    body = div []
+      [ div [ Attr.id (id index) ] [] 
+      , case state of 
+          Player.Loading _ -> 
+            text "Loading your track"
+          _ ->
+            p [ Attr.class "content has-text-centered" ] [ text <| Tools.timeString track.duration_seconds ]
+      ]
 
-    else   
-      p [] [ text "Make a song to start your collection." ]
+    dlButton = if isAnon then 
+       Components.buttonDisabled [] "Download"          
+      else 
+       Components.col1 <| Components.button (download track.filepath) [] "Download"
+
+    buttons = 
+      [ control
+      , dlButton
+      ]
+  in 
+  div [Attr.class "column is-one-third"] [ Components.card3 (text title) body buttons ]
+
+
+
+view : Bool -> Model -> (Msg -> msg) ->  (String -> msg) -> (Int -> Player.Msg -> msg) -> Html msg
+view isAnon ((players, tracks) as model) updatePlaylist download do =
+  if List.length tracks > 0 then 
+    let pairs = List.map2 Tuple.pair players tracks in 
+
+    div [] <|
+      [ Components.cols [ Components.col1 <| playlist isAnon model download ]
+      , Html.p [Attr.class "show-on-mobile"] [ text "On mobile? Make sure your mute switch is off and the volume is up." ]
+      , Components.colsMulti <| List.indexedMap (\i (state, track) -> card isAnon i (Tuple.second state) do track download) pairs
+      ]
+
+  else   
+    p [] [ text "Make a song to start your collection." ]
 
 
 main = Html.text ""

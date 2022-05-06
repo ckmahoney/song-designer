@@ -1,4 +1,4 @@
-port module MiniMaker exposing (Model, view)
+module MiniMaker exposing (Model, view)
 -- Instance of a song maker with limited options
 
 import Browser exposing (element)
@@ -21,11 +21,8 @@ import Playback
 import View
 import Tools
 import Embeds
+import Ports exposing (scrollTo, setStorage)
 
-port scrollTo : String -> Cmd msg
-
-
-port setStorage : (String, Encode.Value) -> Cmd msg
 
 
 scroll : String -> Cmd  Msg

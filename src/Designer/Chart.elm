@@ -53,9 +53,10 @@ type ChartMsg
   | GotTrack (Result Http.Error TrackResponse)
   | GotTracks (Result Http.Error (List TrackMeta))
   
-  | ChangeTrack Player.Msg 
+  | ChangeTrack Int Player.Msg 
   | LoadedTrack (NodeId, AudioSrc)
   | FinishedTrack (NodeId, AudioSrc)
+
 
 type alias Store = 
   { meta : ScoreMeta.Model
@@ -136,7 +137,7 @@ someArcs =
 
 newModel : Model
 newModel = 
-  ({ playlist = Playlist.test
+  ({ playlist = Playlist.new
    , meta = ScoreMeta.empty
    , arcs = Group.from someArcs
    , httpMessage = ""
@@ -258,55 +259,57 @@ apply msg (member, (store, state) as model) =
 
 update : ChartMsg -> WithMember Model -> (Result Http.Error TrackResponse -> msg) -> (WithMember Model, Cmd msg)
 update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplete =
+ let players = Tuple.first playlist 
+     (ids, states) = List.unzip players 
+ in 
   case msg of 
-    ChangeTrack playerMsg->
+    ChangeTrack index playerMsg->
       let
-        (nextPlayer, cmdr) = Playlist.update (Playlist.Change playerMsg) playlist
+        (nextPlayer, cmdr) = Playlist.update (Playlist.Change index playerMsg) playlist
       in 
       ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
     
     LoadedTrack (nodeId, audioSrc)->
       let
-        (nextPlayer, cmdr) = Playlist.update (Playlist.Change Player.Loaded) playlist
+        index = Tools.findIndex nodeId ids
+        (nextPlayer, cmdr) = Playlist.update (Playlist.Change index Player.Loaded) playlist
       in 
       ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
     
     FinishedTrack (nodeId, audioSrc) ->
       let
-        (nextPlayer, cmdr) = Playlist.update (Playlist.Change Player.Finished) playlist
+        index = Tools.findIndex nodeId ids
+        (nextPlayer, cmdr) = Playlist.update (Playlist.Change index Player.Finished) playlist
       in 
       ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
     
     GotTracks res ->
       case res of 
         Ok tracks -> 
-         let addTracks = (\p -> Playlist.apply (Playlist.AddMany tracks) p) in 
+         let 
+          addTracks = (\prevlist -> 
+           if Configs.devMode == False then 
+             Playlist.apply (Playlist.AddMany tracks) prevlist
+           else 
+            let 
+              ts = List.map (\track -> { track  | filepath = "http://localhost:3000" ++ track.filepath }) tracks
+            in
+             Playlist.apply (Playlist.AddMany ts) prevlist)
+         in 
          case state of 
            Requesting ->
-              let
-                prefix = if Configs.devMode == True then "http://localhost:3000" else ""
-              in 
               ((member, ({ store | playlist = addTracks playlist }, Requesting)), Cmd.none)
 
 
            Viewing ->
-              let
-                prefix = if Configs.devMode == True then "http://localhost:3000" else ""
-              in 
               ((member, ({ store | playlist = addTracks playlist }, Viewing)), Cmd.none)
 
 
            EditingArc arcState->
-              let
-                prefix = if Configs.devMode == True then "http://localhost:3000" else ""
-              in 
               ((member, ({ store | playlist = addTracks playlist }, EditingArc arcState)), Cmd.none)
 
 
            EditingMeta metaState ->
-              let
-                prefix = if Configs.devMode == True then "http://localhost:3000" else ""
-              in 
               ((member, ( { store | playlist = addTracks playlist }, EditingMeta  metaState)), Cmd.none)
 
         Err error -> 
@@ -456,7 +459,7 @@ editor : Bool ->
   (Arc.Model -> msg) ->
   (List Arc.Model) -> 
   (ScoreMeta.Model -> (List Arc.Model) -> msg) ->  
-  (Player.Msg -> msg) -> Html msg
+  (Int -> Player.Msg -> msg) -> Html msg
 editor anon isUsable playlist updatePlaylist download meta editMeta editGroup openArc arcs doRequest changeTrack =
   let
     nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 arcs 
@@ -474,12 +477,11 @@ editor anon isUsable playlist updatePlaylist download meta editMeta editGroup op
           if List.length arcs > 0 && isUsable then Components.button (doRequest meta arcs) [Attr.class "mt-6 mb-3"] "Make a Song"
         else p  [] [ text "When you have at least 1 Arc in your layout, you can press the \"Make a Song\" button to produce the new music." ]
         else text ""
-      , Player.node (Tuple.first playlist)
       ]
 
 
 -- lol this is the longest argument list i have ever written. oh well it works fine thanks Elm 
-view : WithMember Model -> (Playlist.Msg -> msg) -> (String -> msg) ->  msg ->  (ScoreMeta.Msg -> msg) ->  (ScoreMeta.Model -> msg) ->  msg -> (Arc.Model -> msg) -> (Arc.Model -> msg) -> (Arc.Msg -> msg) -> (Arc.Model -> msg) -> msg -> msg -> (Group.Msg Arc.Model -> msg) -> (ScoreMeta.Model -> (List Arc.Model) -> msg) -> (Player.Msg -> msg) -> Html msg
+view : WithMember Model -> (Playlist.Msg -> msg) -> (String -> msg) ->  msg ->  (ScoreMeta.Msg -> msg) ->  (ScoreMeta.Model -> msg) ->  msg -> (Arc.Model -> msg) -> (Arc.Model -> msg) -> (Arc.Msg -> msg) -> (Arc.Model -> msg) -> msg -> msg -> (Group.Msg Arc.Model -> msg) -> (ScoreMeta.Model -> (List Arc.Model) -> msg) -> (Int -> Player.Msg -> msg) -> Html msg
 view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylist download editMeta changeMeta saveMeta closeMeta openArc editArc change save cancel createArc editGroup doRequest changeTrack =
   div [] 
     [ welcome

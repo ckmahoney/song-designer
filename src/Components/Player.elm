@@ -14,6 +14,7 @@ import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Configs as Conf
+import Ports
 import PlaybackPorts exposing (playMusic, pauseMusic, stopMusic, setSource, setAndPlaySource, kill, createSource, createAndPlaySource, getAsset)
 
 type alias NodeId = String
@@ -39,6 +40,10 @@ type Msg
   | Stop
 
 
+jsId : String -> String
+jsId id =
+  "#" ++ id
+
 
 new : NodeId -> Model
 new nodeId =
@@ -61,7 +66,7 @@ trigger msg ((nodeId, state) as model) =
     Empty -> 
       case msg of 
         Load track ->
-          createSource (nodeId, track.filepath)
+          createSource (jsId nodeId, track.filepath)
 
         _ ->
           Cmd.none 
@@ -70,7 +75,10 @@ trigger msg ((nodeId, state) as model) =
     Loading track ->
       case msg of
         Loaded ->
-          playMusic nodeId
+          Cmd.batch 
+            [ playMusic <| jsId nodeId
+            , Ports.scrollTo <| jsId nodeId 
+            ]
 
         _ ->
           Cmd.none
@@ -78,10 +86,10 @@ trigger msg ((nodeId, state) as model) =
     Paused track ->
       case msg of 
         Play ->
-          playMusic nodeId
+          playMusic <| jsId nodeId
 
         Stop ->
-          stopMusic nodeId
+          stopMusic <| jsId nodeId
 
         _ ->
           Cmd.none
@@ -90,13 +98,13 @@ trigger msg ((nodeId, state) as model) =
     Playing track ->
       case msg of 
         Pause ->
-          pauseMusic nodeId 
+          pauseMusic <| jsId nodeId 
 
         Stop ->
-          stopMusic nodeId
+          stopMusic <| jsId nodeId
 
         Finished ->
-          pauseMusic nodeId
+          pauseMusic <| jsId nodeId
 
         _ ->
           Cmd.none

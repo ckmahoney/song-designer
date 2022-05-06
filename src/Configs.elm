@@ -53,7 +53,11 @@ apiUrl endpoint =
 
 download : String -> Cmd msg
 download url =
-  Download.url (hostname ++ url)
+  let
+     target = if "http" == (String.left 4 url) then url 
+       else hostname ++ url
+  in
+  Download.url target
 
 
 -- used to demo the MiniMaker on the frontpage
