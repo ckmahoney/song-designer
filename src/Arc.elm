@@ -53,33 +53,33 @@ init flag =
   (initState, Cmd.none)
 
 
-sizeMin = 2
-sizeMax = 4
+sizeMin = 3
+sizeMax = 5
 
 empty : Model
 empty = 
-  Model "New Arc" 3 Mix
+  Model "New Arc" 4 Mix
 
 new : Model
 new = 
-  Model "intro/outro" 2 Beat
+  Model "intro/outro" 3 Beat
 
 
 new2 : Model
 new2 = 
-  Model "Verse" 3 Mix
+  Model "Verse" 4 Mix
 
 new3 : Model
 new3 = 
-  Model "Chorus" 2 Groove
+  Model "Chorus" 3 Groove
 
 new4 : Model
 new4 = 
-  Model "Break" 2 Abstract
+  Model "Break" 3 Abstract
 
 create : Model
 create = 
-  Model "New Arc" 4 Mix
+  Model "New Arc" 5 Mix
 
 stateFrom : Model -> State
 stateFrom arc = 
@@ -103,9 +103,9 @@ styleLabel style =
 sizeLabel : Int -> String
 sizeLabel size = 
   case size of 
-    2 -> "Short"
-    3 -> "Medium"
-    4 -> "Long"
+    3 -> "Short"
+    4 -> "Medium"
+    5 -> "Long"
     _ -> "? mystery size ?"
 
 
@@ -163,7 +163,7 @@ thumb { title, style, size }  =
 
 
 sizes : List Int
-sizes = [2, 3, 4]
+sizes = [3, 4, 5]
 
 
 styles : List Style

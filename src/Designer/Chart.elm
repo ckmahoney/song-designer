@@ -25,6 +25,7 @@ import Types exposing (WithMember, TrackResponse, GhostMember, TrackMeta)
 import Components.Playlist as Playlist
 import Components.Player as Player
 import PlaybackPorts exposing (NodeId, AudioSrc, loadedTrack, finishedTrack)
+import Ports exposing (scrollTo)
 
 type alias ArcGroup = Group.Model Arc.Model
 
@@ -333,7 +334,10 @@ update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplet
           ((member, model), Cmd.none)
 
     ReqTrack sendMeta sendArcs ->
-      ((member, (store, Requesting)),  reqTrack member sendMeta sendArcs onComplete)
+      ((member, (store, Requesting)), Cmd.batch 
+        [ reqTrack member sendMeta sendArcs onComplete
+        , scrollTo "#req-message"
+        ])
 
     Download path -> 
       ((member, model), Configs.download path)
@@ -445,8 +449,6 @@ arcSummary arcs =
     [ showUniques arcs
     ]
 
--- the summary shows you how many of each arc are present 
--- and a list of the names separated by arrows 
 
 editor : Bool ->
   Bool ->
@@ -465,8 +467,7 @@ editor anon isUsable playlist updatePlaylist download meta editMeta editGroup op
     nCycles = List.foldl (\card sum -> sum + (2 ^ card.size) ) 0 arcs 
   in
     Components.boxWith  (if isUsable then "" else "overlay-disabled")
-      [ Playlist.view anon playlist updatePlaylist download changeTrack
-      , label [Attr.class "is-size-3 is-block mt-3 mb-6"] [ text "Title, BPM and Color" ]
+      [ label [Attr.class "is-size-3 is-block mt-3 mb-6"] [ text "Title, BPM and Color" ]
       , ScoreMeta.readonly nCycles meta editMeta
       , label [Attr.class "is-size-3 is-block my-6"] [ text "Layout" ]
       , details [] [ summary [Attr.class "is-size-5"] [ text "Show Summary" ], arcSummary arcs ]
@@ -490,7 +491,7 @@ view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylis
       Requesting ->
         div [] 
           [ editor (isAnon member) False playlist updatePlaylist download meta editMeta editGroup openArc (Tuple.second arcs) doRequest changeTrack
-          , p [ Attr.class "p-3 bg-info" ] [ text "Writing a song for you!" ]
+          , p [ Attr.id "req-message", Attr.class "p-3 bg-info" ] [ text "Writing a song for you!" ]
           , p [ Attr.class "p-3 bg-info" ] [ text "This can take up to one minute." ]
           , p [ Attr.class "p-3 bg-info wait-a-minute" ] [ text "Looks like this song is taking longer; or maybe you lost network connection? Please try reloading the page, or contact us to report the issue." ]
           ]
@@ -510,9 +511,7 @@ view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylis
 
           _ ->
             text "How did you get here? Please tell us on the Contact page."
-
-    , div [Attr.class "box my-6 px-0 py-3"]
-       [ div [ Attr.id "the-player"] [] ]
+    , Playlist.view (isAnon member) playlist updatePlaylist download changeTrack
     ]
 
 
