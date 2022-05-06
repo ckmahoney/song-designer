@@ -35,6 +35,7 @@ type Msg
   | Loaded
   | Play
   | Pause
+  | Finished
   | Stop
 
 
@@ -65,6 +66,7 @@ trigger msg ((nodeId, state) as model) =
         _ ->
           Cmd.none 
 
+
     Loading track ->
       case msg of
         Loaded ->
@@ -92,6 +94,9 @@ trigger msg ((nodeId, state) as model) =
 
         Stop ->
           stopMusic noArg
+
+        Finished ->
+          pauseMusic noArg
 
         _ ->
           Cmd.none

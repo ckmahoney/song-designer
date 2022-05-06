@@ -1,4 +1,4 @@
-port module PlaybackPorts exposing (playMusic, pauseMusic, stopMusic, setSource, setAndPlaySource, kill, createSource, createAndPlaySource, getAsset, loadedTrack, NodeId, AudioSrc)
+port module PlaybackPorts exposing (..)
 
 import Html exposing (text)
 
@@ -27,6 +27,8 @@ port createAndPlaySource : (NodeId, AudioSrc) -> Cmd msg
 port getAsset : String -> Cmd msg
 
 port loadedTrack : ((NodeId, AudioSrc) -> msg) -> Sub msg
+
+port finishedTrack : ((NodeId, AudioSrc) -> msg) -> Sub msg
 
 
 main = text "" 

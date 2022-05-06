@@ -24,7 +24,7 @@ import Http
 import Types exposing (WithMember, TrackResponse, GhostMember, TrackMeta)
 import Components.Playlist as Playlist
 import Components.Player as Player
-import PlaybackPorts exposing (NodeId, AudioSrc, loadedTrack)
+import PlaybackPorts exposing (NodeId, AudioSrc, loadedTrack, finishedTrack)
 
 type alias ArcGroup = Group.Model Arc.Model
 
@@ -55,6 +55,7 @@ type ChartMsg
   
   | ChangeTrack Player.Msg 
   | LoadedTrack (NodeId, AudioSrc)
+  | FinishedTrack (NodeId, AudioSrc)
 
 type alias Store = 
   { meta : ScoreMeta.Model
@@ -266,7 +267,13 @@ update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplet
     
     LoadedTrack (nodeId, audioSrc)->
       let
-        (nextPlayer, cmdr) = Debug.log "Loaded the track" <| Playlist.update (Playlist.Change Player.Loaded) playlist
+        (nextPlayer, cmdr) = Playlist.update (Playlist.Change Player.Loaded) playlist
+      in 
+      ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
+    
+    FinishedTrack (nodeId, audioSrc)->
+      let
+        (nextPlayer, cmdr) = Debug.log "finished track" <| Playlist.update (Playlist.Change Player.Finished) playlist
       in 
       ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
     
@@ -509,8 +516,10 @@ view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylis
 
 subscriptions : WithMember Model -> Sub ChartMsg
 subscriptions _ =
-  loadedTrack (\tuple -> LoadedTrack tuple)
-
+  Sub.batch 
+    [ loadedTrack (\tuple -> LoadedTrack tuple)
+    , finishedTrack (\tuple -> FinishedTrack tuple)
+    ]
 
 main = 
   Browser.element 
