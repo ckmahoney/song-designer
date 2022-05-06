@@ -54,7 +54,7 @@ type ChartMsg
   | GotTracks (Result Http.Error (List TrackMeta))
   
   | ChangeTrack Player.Msg 
-  | LoadedTrack String
+  | LoadedTrack (NodeId, AudioSrc)
 
 type alias Store = 
   { meta : ScoreMeta.Model
@@ -264,11 +264,9 @@ update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplet
       in 
       ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
     
-    LoadedTrack _->
-
+    LoadedTrack (nodeId, audioSrc)->
       let
-        (nodeId, audioSrc) = ("aaa", "bbb")
-        (nextPlayer, cmdr) = Debug.log "It loaded the new thing" Playlist.update (Playlist.Change Player.Loaded) playlist
+        (nextPlayer, cmdr) = Debug.log "Loaded the track" <| Playlist.update (Playlist.Change Player.Loaded) playlist
       in 
       ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
     
@@ -511,7 +509,7 @@ view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylis
 
 subscriptions : WithMember Model -> Sub ChartMsg
 subscriptions _ =
-  loadedTrack (\str -> LoadedTrack str)
+  loadedTrack (\tuple -> LoadedTrack tuple)
 
 
 main = 

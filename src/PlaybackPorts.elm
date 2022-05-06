@@ -26,7 +26,7 @@ port createAndPlaySource : (NodeId, AudioSrc) -> Cmd msg
 
 port getAsset : String -> Cmd msg
 
-port loadedTrack : (String -> msg) -> Sub msg
+port loadedTrack : ((NodeId, AudioSrc) -> msg) -> Sub msg
 
 
 main = text "" 
