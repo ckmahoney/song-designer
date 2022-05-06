@@ -5,14 +5,14 @@ import Html exposing (text)
 
 type alias NodeId = String
 type alias AudioSrc = String
-type alias NoArgs = String
+type alias NoArgs = Int
 
 
-port playMusic : NoArgs -> Cmd msg
+port playMusic : NodeId -> Cmd msg
 
-port pauseMusic : NoArgs -> Cmd msg
+port pauseMusic : NodeId -> Cmd msg
 
-port stopMusic : NoArgs -> Cmd msg
+port stopMusic : NodeId -> Cmd msg
 
 port setSource : (NodeId, AudioSrc) -> Cmd msg
 

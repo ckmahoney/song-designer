@@ -271,9 +271,9 @@ update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplet
       in 
       ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
     
-    FinishedTrack (nodeId, audioSrc)->
+    FinishedTrack (nodeId, audioSrc) ->
       let
-        (nextPlayer, cmdr) = Debug.log "finished track" <| Playlist.update (Playlist.Change Player.Finished) playlist
+        (nextPlayer, cmdr) = Playlist.update (Playlist.Change Player.Finished) playlist
       in 
       ((member, ({ store | playlist  = nextPlayer }, state)), cmdr)
     

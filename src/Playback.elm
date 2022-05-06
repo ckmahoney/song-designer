@@ -82,7 +82,7 @@ trigger msg =
   case msg of 
     Cue filepath -> setSource ("#the-player", filepath)
     Load filepath -> setAndPlaySource ("#the-player", filepath)
-    Select Nothing -> kill ""
+    Select Nothing -> kill 0
     Select (Just track) -> createSource ("#the-player", track.filepath)
     Play -> playMusic ""
     Pause -> pauseMusic ""

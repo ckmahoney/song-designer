@@ -70,7 +70,7 @@ trigger msg ((nodeId, state) as model) =
     Loading track ->
       case msg of
         Loaded ->
-          playMusic noArg
+          playMusic nodeId
 
         _ ->
           Cmd.none
@@ -78,10 +78,10 @@ trigger msg ((nodeId, state) as model) =
     Paused track ->
       case msg of 
         Play ->
-          playMusic noArg
+          playMusic nodeId
 
         Stop ->
-          stopMusic noArg
+          stopMusic nodeId
 
         _ ->
           Cmd.none
@@ -90,13 +90,13 @@ trigger msg ((nodeId, state) as model) =
     Playing track ->
       case msg of 
         Pause ->
-          pauseMusic noArg 
+          pauseMusic nodeId 
 
         Stop ->
-          stopMusic noArg
+          stopMusic nodeId
 
         Finished ->
-          pauseMusic noArg
+          pauseMusic nodeId
 
         _ ->
           Cmd.none
@@ -144,6 +144,9 @@ apply msg ((nodeId, state) as model) =
 
         Stop ->
           to Empty
+
+        Finished ->
+           to <| Paused track
 
         _ ->
           model
