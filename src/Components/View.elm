@@ -1,4 +1,4 @@
-module View exposing (..)
+module Components.View exposing (..)
 -- Html components specific to Synthony 
 
 import Html exposing (..)

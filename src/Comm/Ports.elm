@@ -1,4 +1,4 @@
-port module Ports exposing (..)
+port module Comm.Ports exposing (..)
 
 import Html
 import Json.Encode as Encode

@@ -1,4 +1,4 @@
-module Decoders exposing (..)
+module Comm.Decoders exposing (..)
 
 import Json.Decode as Decode
 import Defs.Types exposing (..)

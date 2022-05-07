@@ -1,4 +1,4 @@
-module Components exposing (..)
+module Components.Components exposing (..)
 -- Generic Html components with Bulma.css selectors
 
 import Defs.Types exposing (..)

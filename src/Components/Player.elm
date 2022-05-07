@@ -4,7 +4,7 @@ import Html exposing (Html, div, text, p)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)
 import Defs.Types exposing (TrackMeta)
-import Defs.Data
+import Defs.Data as Data
 import Components.View as View 
 import Components.Components as Components
 import Tools
@@ -14,7 +14,7 @@ import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Defs.Configs as Conf
-import Comm.Ports
+import Comm.Ports as Ports
 import Comm.PlaybackPorts exposing (playMusic, pauseMusic, stopMusic, setSource, setAndPlaySource, kill, createSource, createAndPlaySource, getAsset)
 
 type alias NodeId = String

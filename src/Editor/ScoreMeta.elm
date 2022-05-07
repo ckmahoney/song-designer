@@ -1,4 +1,4 @@
-module ScoreMeta exposing (..)
+module Editor.ScoreMeta exposing (..)
 
 import Browser
 import Html exposing (Html, h1, button, div, text, label, p)
@@ -14,7 +14,7 @@ import Http
 import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Encoders as JE
+import Comm.Encoders as JE
 import Defs.Configs as Conf
 
 

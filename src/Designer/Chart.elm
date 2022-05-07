@@ -5,25 +5,23 @@ import Html exposing (Html, h1, h2, h3, button, div, text, label, p, input,b, de
 import Html.Attributes as Attr
 import Html.Events as Events exposing (onClick, onInput)
 
-import Defs.Configs
+import Defs.Configs as Configs
 import Components.View as View 
-import Elements
 import Tools
 import Components.Components as Components
 import Defs.Data
-import Components.Components as Components.Group as Group
-import Components.Components as Components.Arc as Arc
-import Editor.ScoreMeta as ScoreMeta as ScoreMeta
-import Chords
+import Components.Group as Group
+import Components.Arc as Arc
+import Editor.ScoreMeta as ScoreMeta
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Encoders
-import Comm.Decoders 
+import Comm.Encoders as Encoders
+import Comm.Decoders as Decoders
 import Comm.Post
 import Http
 import Defs.Types exposing (WithMember, TrackResponse, GhostMember, TrackMeta)
-import Components.Components as Components.Playlist as Playlist
-import Components.Components as Components.Player as Player
+import Components.Playlist as Playlist
+import Components.Player as Player
 import Comm.PlaybackPorts exposing (NodeId, AudioSrc, loadedTrack, finishedTrack)
 import Comm.Ports exposing (scrollTo)
 
@@ -118,7 +116,7 @@ reqTrack member meta arcs complete =
   Http.post
     { url = Configs.apiUrl "track/next"
     , body = Http.jsonBody <| encodeSongRequest member meta arcs
-    , expect = Http.expectJson complete Comm.Decoders.decodeTrackResponse
+    , expect = Http.expectJson complete Decoders.decodeTrackResponse
     }
 
 

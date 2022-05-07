@@ -8,7 +8,7 @@ import Html.Events as Events exposing (onClick, onInput)
 import Task
 import Tools
 
-import Components.Components as Components
+import Components
 
 
 type alias Index = Int

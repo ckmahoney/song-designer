@@ -6,7 +6,7 @@ import Html.Events exposing (onClick)
 import Defs.Types exposing (TrackMeta)
 import Defs.Data
 import Components.View as View 
-import Components.Components as Components
+import Components
 import Tools
 import Array
 import Http

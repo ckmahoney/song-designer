@@ -1,4 +1,4 @@
-module Arc exposing (..)
+module Components.Arc exposing (..)
 
 import Browser
 import Html exposing (Html, h1, h3, button, div, text, label, p, b)

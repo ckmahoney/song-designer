@@ -11,7 +11,7 @@ import Defs exposing (ScoreMeta, SynthRole)
 import Components.View as View 
 import Elements
 import Tools
-import Components.Components as Components
+import Components
 import Defs.Data
 
 import Editor.SketchEditor

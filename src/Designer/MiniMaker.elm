@@ -16,7 +16,7 @@ import Json.Encode as Encode
 import Defs.Types exposing (GhostMember, SynthRole(..), ScoreMeta, TrackMeta, Template, Layout, Combo, SynthRole, Scope, Ensemble, Voice)
 import Defs.Data exposing (synthRoles)
 import Defs.Configs as Conf
-import Components.Components as Components
+import Components
 import Comm.Playback
 import Components.View as View
 import Tools

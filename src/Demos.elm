@@ -6,7 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
 import Defs.Types as T
-import Defs.Data
+import Defs.Data as Data
 import Components.View as View 
 import Components.Components as Components
 

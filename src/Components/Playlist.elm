@@ -4,10 +4,10 @@ import Html exposing (Html, div, text, p)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)
 import Defs.Types exposing (TrackMeta)
-import Defs.Data
+import Defs.Data as Data
 import Defs.Configs as Conf
 import Components.Components as Components
-import Components.Components as Components.Player as Player
+import Components.Player as Player
 import Tools
 
 type alias Model = 
