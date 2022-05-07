@@ -78,7 +78,7 @@ listing isAnon ((state, tracks) as model) do track download =
     <| Components.colsWith [Attr.class "is-vcentered"]
        [ Components.col1 <| Components.label track.title 
        , if isAnon then 
-          Components.buttonDisabled [] "Download"          
+          Components.buttonDisabled [] "Login to Download"          
          else 
           Components.col1 <| Components.button (download track.filepath) [] "Download"
        ]
@@ -96,7 +96,7 @@ termsCta =
 
 playlist : Bool -> Model -> (String -> msg) -> Html msg
 playlist isAnon model download =
-  div [] 
+  Components.box
    [ Html.h2 [Attr.class "title mt-6"] [text "My Music"] 
    , if isAnon then regCta else text ""
    , if isAnon then termsCta else text ""
@@ -166,7 +166,7 @@ card isAnon index state change ({filepath, title} as track) download =
       , dlButton
       ]
   in 
-  div [Attr.class "column is-one-third"] [ Components.card3 (text title) body buttons ]
+  div [Attr.class "column is-half"] [ Components.card3 (text title) body buttons ]
 
 
 

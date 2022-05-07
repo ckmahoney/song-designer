@@ -14,8 +14,8 @@ type alias RegEntry =
   }
 
 
-devMode = True
-useLocal = True
+devMode = False
+useLocal = False
 
  
 regUrl : String

@@ -1,4 +1,4 @@
-module Comm.Decoders exposing (..)
+module Decoders exposing (..)
 
 import Json.Decode as Decode
 import Types exposing (..)
@@ -13,13 +13,6 @@ decodeTrack =
     (Decode.field "title" Decode.string)
     (Decode.field "size_bytes" Decode.int)
     (Decode.field "duration_seconds" Decode.float)
-
-decodeTrackResponse : Decode.Decoder TrackResponse
-decodeTrackResponse =
-  Decode.map2 TrackResponse
-    (Decode.field "track" decodeTrack)
-    (Decode.field "message" Decode.string)
-
 
 
 main = text ""
