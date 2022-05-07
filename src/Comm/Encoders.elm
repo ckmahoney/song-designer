@@ -1,9 +1,9 @@
 module Encoders exposing (..)
 -- Common data types encoded to JSON 
 
-import Configs as Conf
-import Types exposing (..)
-import Data
+import Defs.Configs as Conf
+import Defs.Types exposing (..)
+import Defs.Data
 import Json.Encode as Encode
 import Html exposing (text)
 import Url.Builder

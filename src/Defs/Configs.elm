@@ -1,7 +1,7 @@
 module Configs exposing (..)
 
-import Data
-import Types exposing (GhostMember)
+import Defs.Data
+import Defs.Types exposing (GhostMember)
 import Html exposing (text)
 import File.Download as Download
 import Url.Builder as Url

@@ -3,9 +3,9 @@ module Comm.Post exposing (..)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Configs as Conf
+import Defs.Configs as Conf
 import Comm.Decoders as JD
-import Types exposing (TrackMeta)
+import Defs.Types exposing (TrackMeta)
 
 
 bodyFetchSongs : String -> String -> Encode.Value

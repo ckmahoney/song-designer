@@ -1,11 +1,11 @@
 module Components exposing (..)
 -- Generic Html components with Bulma.css selectors
 
-import Types exposing (..)
+import Defs.Types exposing (..)
 import Html exposing (Html, text, div, footer, p)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Data as D
+import Defs.Data as D
 import Tools
 
 

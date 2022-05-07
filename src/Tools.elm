@@ -2,8 +2,8 @@ module Tools exposing (..)
 
 import Html
 import Array
-import Types exposing (..)
-import Data 
+import Defs.Types exposing (..)
+import Defs.Data 
 
 
 cpsToBPM : Float -> Float

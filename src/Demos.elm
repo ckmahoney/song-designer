@@ -5,10 +5,10 @@ import Html exposing (Html, button, div, text, label, p)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
-import Types as T
-import Data
-import View 
-import Components
+import Defs.Types as T
+import Defs.Data
+import Components.View as View 
+import Components.Components as Components
 
 type Model
   = None

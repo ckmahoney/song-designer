@@ -10,10 +10,10 @@ import Time
 
 
 import App
-import Types as T
-import Data exposing (p1, p2, p3, p4)
-import View 
-import Router 
+import Defs.Types as T
+import Defs.Data exposing (p1, p2, p3, p4)
+import Components.View as View 
+import Designer.Song 
 import Designer.Chart as Chart
 import Editor.SketchEditor
 import Chords

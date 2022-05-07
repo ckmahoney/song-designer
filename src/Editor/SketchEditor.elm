@@ -6,8 +6,8 @@ import Html.Attributes as Attr
 import Html.Events as Events exposing (onClick, onInput)
 
 import Defs exposing (Sketch, Duty(..), Relation(..), RelationRef(..))
-import View 
-import Components
+import Components.View as View 
+import Components.Components as Components
 
 type alias Original = Sketch
 type alias Updating = Sketch

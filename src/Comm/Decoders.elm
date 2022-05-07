@@ -1,7 +1,7 @@
 module Decoders exposing (..)
 
 import Json.Decode as Decode
-import Types exposing (..)
+import Defs.Types exposing (..)
 import Html exposing (text)
 
 decodeTrack : Decode.Decoder TrackMeta

@@ -3,11 +3,11 @@ module Components.Playlist exposing (..)
 import Html exposing (Html, div, text, p)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)
-import Types exposing (TrackMeta)
-import Data
-import Configs as Conf
-import Components
-import Components.Player as Player
+import Defs.Types exposing (TrackMeta)
+import Defs.Data
+import Defs.Configs as Conf
+import Components.Components as Components
+import Components.Components as Components.Player as Player
 import Tools
 
 type alias Model = 

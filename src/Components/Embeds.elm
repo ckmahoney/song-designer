@@ -1,7 +1,7 @@
 module Embeds exposing (..)
 
 import Html exposing (Html, Attribute, iframe, div, a, text)
-import Types exposing (SynthRole(..))
+import Defs.Types exposing (SynthRole(..))
 import Html.Attributes exposing (attribute, class, href, width, height, src, title, target, style)
 import Json.Encode as Encode
 

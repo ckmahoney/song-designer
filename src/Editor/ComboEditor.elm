@@ -4,15 +4,15 @@ import Browser
 import Html exposing (Html, button, div, text, label, p, input)
 import Html.Attributes as Attr
 
-import Types exposing (..)
-import View
+import Defs.Types exposing (..)
+import Components.View as View
 import Elements
 import Tools
-import Components
-import Data
-import ScopeEditor
-import EnsembleEditor
-import VoiceEditor
+import Components.Components as Components
+import Defs.Data
+import Editor.Scope
+import Editor.Ensemble
+import Editor.Voice as VoiceEditor
 
 
 type alias State = Combo

@@ -5,10 +5,10 @@ import Html exposing (Html, h1, h3, button, div, text, label, p, b)
 import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (onClick)
 
-import View 
-import Components
+import Components.View as View 
+import Components.Components as Components
 import Tools
-import Configs as Conf
+import Defs.Configs as Conf
 
 type alias Title = String
 type alias Key = Int

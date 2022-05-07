@@ -3,19 +3,19 @@ module Components.Player exposing (..)
 import Html exposing (Html, div, text, p)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)
-import Types exposing (TrackMeta)
-import Data
-import View 
-import Components
+import Defs.Types exposing (TrackMeta)
+import Defs.Data
+import Components.View as View 
+import Components.Components as Components
 import Tools
 import Array
 import Http
 import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Configs as Conf
-import Ports
-import PlaybackPorts exposing (playMusic, pauseMusic, stopMusic, setSource, setAndPlaySource, kill, createSource, createAndPlaySource, getAsset)
+import Defs.Configs as Conf
+import Comm.Ports
+import Comm.PlaybackPorts exposing (playMusic, pauseMusic, stopMusic, setSource, setAndPlaySource, kill, createSource, createAndPlaySource, getAsset)
 
 type alias NodeId = String
 type alias AudioSrc = String

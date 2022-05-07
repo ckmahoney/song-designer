@@ -5,15 +5,15 @@ import Html exposing (Html, h1, h2, h3, button, div, text, label, p, input,b, de
 import Html.Attributes as Attr
 import Html.Events as Events exposing (onClick, onInput)
 
-import Configs
-import View 
+import Defs.Configs
+import Components.View as View 
 import Elements
 import Tools
-import Components
-import Data
-import Components.Group as Group
-import Arc as Arc
-import ScoreMeta as ScoreMeta
+import Components.Components as Components
+import Defs.Data
+import Components.Components as Components.Group as Group
+import Components.Components as Components.Arc as Arc
+import Editor.ScoreMeta as ScoreMeta as ScoreMeta
 import Chords
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -21,11 +21,11 @@ import Encoders
 import Comm.Decoders 
 import Comm.Post
 import Http
-import Types exposing (WithMember, TrackResponse, GhostMember, TrackMeta)
-import Components.Playlist as Playlist
-import Components.Player as Player
-import PlaybackPorts exposing (NodeId, AudioSrc, loadedTrack, finishedTrack)
-import Ports exposing (scrollTo)
+import Defs.Types exposing (WithMember, TrackResponse, GhostMember, TrackMeta)
+import Components.Components as Components.Playlist as Playlist
+import Components.Components as Components.Player as Player
+import Comm.PlaybackPorts exposing (NodeId, AudioSrc, loadedTrack, finishedTrack)
+import Comm.Ports exposing (scrollTo)
 
 type alias ArcGroup = Group.Model Arc.Model
 

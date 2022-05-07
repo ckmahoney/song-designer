@@ -3,18 +3,18 @@ module Playback exposing (..)
 import Html exposing (Html, div, text)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)
-import Types exposing (TrackMeta)
-import Data
-import View 
-import Components
+import Defs.Types exposing (TrackMeta)
+import Defs.Data
+import Components.View as View 
+import Components.Components as Components
 import Tools
 import Array
 import Http
 import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Configs as Conf
-import PlaybackPorts exposing (..)
+import Defs.Configs as Conf
+import Comm.PlaybackPorts exposing (..)
 
 
 type alias NodeId = String
