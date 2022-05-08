@@ -312,6 +312,7 @@ async function initQuickEditor(member) {
 
 
 async function init() {
+   console.log("Loading the new js");
   if (typeof Elm == "undefined") {
     console.error("Unable to initialize application. Load the elm scripts.");
     return;
