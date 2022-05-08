@@ -1,4 +1,4 @@
-module Embeds exposing (..)
+module Components.Embeds exposing (..)
 
 import Html exposing (Html, Attribute, iframe, div, a, text)
 import Defs.Types exposing (SynthRole(..))
