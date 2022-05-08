@@ -6,7 +6,7 @@
   "scripts": {
     "build": "babel assets/song-designer.js -d out && uglifyjs -c -m -o out/song-designer.min.js -- out/song-designer.js ",
     "dev": "elm-live src/*.elm --start-page=elm-dev.html -- --output=elm-dev-mode.js",
-    "make" : "elm make src/*.elm --output=assets/song-designer.js"
+    "make" : "elm make src/Main.elm src/MiniMaker.elm src/Designer/Chart.elm --output=assets/song-designer.js"
   },
   "devDependencies": {
     "elm-live": "^4.0.2",
