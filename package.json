@@ -15,7 +15,7 @@
     "whatwg-fetch": "^3.6.2"
   },
   "scripts": {
-    "dev-build-js": "webpack --mode development",
+    "dev-build-js": "npm run make && webpack --mode development",
     "build": "babel assets/song-designer.js -d out && uglifyjs -c -m -o out/song-designer.min.js -- out/song-designer.js ",
     "dev": "elm-live src/*.elm --start-page=elm-dev.html -- --output=elm-dev-mode.js",
     "make": "elm make src/Main.elm src/MiniMaker.elm src/Designer/Chart.elm --output=assets/song-designer.js"
