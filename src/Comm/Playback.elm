@@ -1,4 +1,4 @@
-module Playback exposing (..)
+module Comm.Playback exposing (..)
 
 import Html exposing (Html, div, text)
 import Html.Attributes as Attr
@@ -6,7 +6,7 @@ import Html.Events exposing (onClick)
 import Defs.Types exposing (TrackMeta)
 import Defs.Data
 import Components.View as View 
-import Components
+import Components.Components as Components
 import Tools
 import Array
 import Http

@@ -8,16 +8,16 @@ import Html.Events exposing (onClick)
 import Http
 import Random
 import Random.Extra
-import Encoders as JE
-import Decoders as JD
+import Comm.Encoders as JE
+import Comm.Decoders as JD
 import Json.Decode as Decode
 import Json.Encode as Encode
 
-import Defs.Types exposing (GhostMember, SynthRole(..), ScoreMeta, TrackMeta, Template, Layout, Combo, SynthRole, Scope, Ensemble, Voice)
-import Defs.Data exposing (synthRoles)
+import Defs.Types as Types exposing (GhostMember, SynthRole(..), ScoreMeta, TrackMeta, Template, Layout, Combo, SynthRole, Scope, Ensemble, Voice)
+import Defs.Data as Data exposing (synthRoles)
 import Defs.Configs as Conf
 import Components.Components as Components
-import Comm.Playback
+import Comm.Playback as Playback
 import Components.View as View
 import Tools
 import Components.Embeds as Embeds
