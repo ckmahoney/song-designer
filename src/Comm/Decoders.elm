@@ -1,7 +1,7 @@
 module Comm.Decoders exposing (..)
 
 import Json.Decode as Decode
-import Types exposing (..)
+import Defs.Types exposing (..)
 import Html exposing (text)
 
 decodeTrack : Decode.Decoder TrackMeta
@@ -14,12 +14,12 @@ decodeTrack =
     (Decode.field "size_bytes" Decode.int)
     (Decode.field "duration_seconds" Decode.float)
 
+
 decodeTrackResponse : Decode.Decoder TrackResponse
 decodeTrackResponse =
   Decode.map2 TrackResponse
     (Decode.field "track" decodeTrack)
     (Decode.field "message" Decode.string)
-
 
 
 main = text ""

@@ -5,12 +5,12 @@ import Html exposing (Html, button, div, text, label, p, input)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick, onInput)
 
-import Types exposing (..)
-import View
+import Defs.Types exposing (..)
+import Components.View as View
 import Elements
 import Tools
 import Components
-import Data
+import Defs.Data
 
 
 type alias State = Voice

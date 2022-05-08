@@ -8,11 +8,11 @@ import Html.Events as Events exposing (onClick, onInput)
 
 
 import Defs exposing (ScoreMeta, SynthRole)
-import View 
+import Components.View as View 
 import Elements
 import Tools
 import Components
-import Data
+import Defs.Data
 
 import Editor.SketchEditor
 

@@ -13,15 +13,15 @@ import Decoders as JD
 import Json.Decode as Decode
 import Json.Encode as Encode
 
-import Types exposing (GhostMember, SynthRole(..), ScoreMeta, TrackMeta, Template, Layout, Combo, SynthRole, Scope, Ensemble, Voice)
-import Data exposing (synthRoles)
-import Configs as Conf
+import Defs.Types exposing (GhostMember, SynthRole(..), ScoreMeta, TrackMeta, Template, Layout, Combo, SynthRole, Scope, Ensemble, Voice)
+import Defs.Data exposing (synthRoles)
+import Defs.Configs as Conf
 import Components
-import Playback
-import View
+import Comm.Playback
+import Components.View as View
 import Tools
-import Embeds
-import Ports exposing (scrollTo, setStorage)
+import Components.Embeds as Embeds
+import Comm.Ports exposing (scrollTo, setStorage)
 
 
 

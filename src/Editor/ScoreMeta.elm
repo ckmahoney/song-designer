@@ -1,21 +1,21 @@
-module ScoreMeta exposing (..)
+module Editor.ScoreMeta exposing (..)
 
 import Browser
 import Html exposing (Html, h1, button, div, text, label, p)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
-import Types exposing (..)
-import Data
-import View 
-import Components
+import Defs.Types exposing (..)
+import Defs.Data
+import Components.View as View 
+import Components.Components as Components
 import Tools
 import Http
 import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Encoders as JE
-import Configs as Conf
+import Comm.Encoders as JE
+import Defs.Configs as Conf
 
 
 type alias Title = String

@@ -1,13 +1,13 @@
-module Router exposing (..)
+module Designer.Song exposing (..)
 
 import Browser
 import Html exposing (Html, button, div, text, label, p)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
-import Types exposing (..)
-import Data
-import View 
+import Defs.Types exposing (..)
+import Defs.Data
+import Components.View as View 
 import Components
 import Tools
 import Http
@@ -15,13 +15,13 @@ import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Encoders as JE
-import Configs as Conf
+import Defs.Configs as Conf
 
-import ScopeEditor
-import EnsembleEditor
-import ComboEditor
-import LayoutEditor
-import Playback
+import Editor.Scope
+import Editor.Ensemble
+import Editor.Combo
+import Editor.Layout
+import Comm.Playback
 
 
 type alias ID = Int

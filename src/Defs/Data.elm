@@ -1,6 +1,6 @@
-module Data exposing (..)
+module Defs.Data exposing (..)
 
-import Types exposing (..)
+import Defs.Types exposing (..)
 import Array
 import Html
 

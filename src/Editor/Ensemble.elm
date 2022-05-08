@@ -7,13 +7,13 @@ import Html.Attributes as Attr
 import Html.Events exposing (onClick, onInput)
 
 
-import Types exposing (..)
-import Data
-import View
+import Defs.Types exposing (..)
+import Defs.Data
+import Components.View as View
 import Elements
 import Tools
 import Components
-import VoiceEditor
+import Editor.Voice as VoiceEditor
 
 
 type alias Child = Voice

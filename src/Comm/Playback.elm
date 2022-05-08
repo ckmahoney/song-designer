@@ -1,11 +1,11 @@
-module Playback2 exposing (..)
+module Playback exposing (..)
 
-import Html exposing (Html, div, text, p)
+import Html exposing (Html, div, text)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)
-import Types exposing (TrackMeta)
-import Data
-import View 
+import Defs.Types exposing (TrackMeta)
+import Defs.Data
+import Components.View as View 
 import Components
 import Tools
 import Array
@@ -13,8 +13,9 @@ import Http
 import Url.Builder as Url
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Configs as Conf
-import PlaybackPorts exposing (..)
+import Defs.Configs as Conf
+import Comm.PlaybackPorts exposing (..)
+
 
 type alias NodeId = String
 type alias AudioSrc = String
@@ -51,14 +52,12 @@ type Msg
 
 
 type alias Model = 
-  (Maybe TrackMeta, State, List TrackMeta)
+  (Maybe TrackMeta, State)
 
 
 new : Model
 new = 
-  -- (Nothing, Empty, [])
-  (Nothing, Empty, Data.someTracks)
-
+  (Nothing, Empty)
 
 
 assetName : Asset -> String
@@ -92,16 +91,17 @@ trigger msg =
 
 
 apply : Msg -> Model -> Model
-apply msg ((track, model, tracks) as p) =
+apply msg ((track, model) as p) =
   case msg of  
     Select Nothing -> new
-    Play ->  (track, Playing, tracks)
-    Pause -> (track, Paused, tracks)
-    Stop -> (track, Stopped, tracks)
-    Cue src -> (track, Stopped, tracks)
-    Load src -> (track, Playing, tracks)
-    Select next -> (next, Stopped, tracks)
-    CreateAndPlay (nodeId, src) -> (track, Playing, tracks)
+    Play ->  (track, Playing)
+    Pause -> (track, Paused)
+    Stop -> (track, Stopped)
+    Cue src -> (track, Stopped)
+    Load src -> (track, Playing)
+    Select next -> (next, Stopped)
+    CreateAndPlay (nodeId, src) -> (track, Playing)
+
 
 
 update : Msg -> Model -> (Model, Msg)
@@ -148,33 +148,33 @@ assets track req  =
    , Components.colsMulti
        [ Components.colHalf <| div [] 
            [ Html.button [onClick (req MixLow), Attr.class "is-success"] [text "Mixdown mp3"]  
-           , p [] [text "Low resolution master recording" ]
+           , Html.p [] [text "Low resolution master recording" ]
            ] 
        , Components.colHalf <| div [] 
            [ Html.button [onClick (req MixHigh), Attr.class "is-success"] [text "Mixdown aiff"]
-           , p [] [text "Original high resolution master recording" ]
+           , Html.p [] [text "Original high resolution master recording" ]
            ]
        , Components.colHalf <| div [] 
            [ Components.buttonDisabled [Attr.class "is-success"] "MIDI Stems"
-           , p [] [text "All the stems in MIDI format"]
-           , p [] [text "Coming in version 0.5.0!"]
-           , p [] [ text "Do you want MIDI stems sooner? Please support me "
+           , Html.p [] [text "All the stems in MIDI format"]
+           , Html.p [] [text "Coming in version 0.5.0!"]
+           , Html.p [] [ text "Do you want MIDI stems sooner? Please support me "
                        , Html.a [Attr.href patreonLink] [text "on Patreon."]
                        , text "It would really help a lot. Thank you!" 
                        ]
            ]
        , Components.colHalf <| div [] 
            [ Components.buttonDisabled [Attr.class "is-success"] "Sheet Music"
-           , p [] [text "Sheet Music in PDF"]
-           , p [] [text "Coming in version 0.6.0!"]
-           , p [] [ text "Do you want Sheet Music sooner? Please support me "
+           , Html.p [] [text "Sheet Music in PDF"]
+           , Html.p [] [text "Coming in version 0.6.0!"]
+           , Html.p [] [ text "Do you want Sheet Music sooner? Please support me "
                        , Html.a [Attr.href patreonLink] [text "on Patreon."]
                        , text "It would really help a lot. Thank you!" 
                        ]
            ]
        -- , Components.colHalf <| div [] 
            -- [ Html.button [] [text "Stem Pack mp3"]
-           -- , p [] [text "Recordings required to create the mixdown, in low resolution format"]
+           -- , Html.p [] [text "Recordings required to create the mixdown, in low resolution format"]
            -- ]
        , Components.colSize "is-full" <| div [] 
            [ Html.button [onClick (req Stems)] [text "Stem Pack aiff"]
@@ -210,11 +210,12 @@ face track state trig =
     ]
 
 
-feature : TrackMeta -> State ->  (Msg -> msg) -> Html msg 
-feature track state trig  =
+feature : TrackMeta -> State ->  (Msg -> msg) -> (Int -> Asset -> msg) -> Html msg 
+feature track state trig req =
   div []
     [ face track state trig 
     , meta track
+    , assets track (req track.id)
     ]
 
 
@@ -223,10 +224,10 @@ player track state trig =
   face track state trig 
 
 
-card : Model -> (Msg -> msg)-> TrackMeta -> Html msg
-card ((selection, state, tracks) as p) signal track = 
+card : Model -> ((Model, Msg) -> msg)-> TrackMeta -> Html msg
+card ((selection, state) as p) signal track = 
   let 
-    change = (\msg -> signal msg)
+    change = (\msg -> signal <| update msg (Just track, state))
     children = case selection of 
       Nothing -> 
          div [onClick <| change <| Load track.filepath] [Components.svg "play"]
@@ -239,10 +240,10 @@ card ((selection, state, tracks) as p) signal track =
   Components.col [ Attr.class "is-half"] [ Components.songCard track.title <| List.singleton children]
 
 
-listing : Bool -> Model -> (Msg -> msg)-> TrackMeta -> (String -> msg) -> Html msg
-listing isAnon ((selection, state, tracks) as p) signal track download = 
+listing : Model -> ((Model, Msg) -> msg)-> TrackMeta -> (String -> msg) -> Html msg
+listing ((selection, state) as p) signal track download = 
   let 
-    change = (\msg -> signal  msg)
+    change = (\msg -> signal <| update msg (Just track, state))
     children = case selection of 
       Nothing -> 
          div [onClick <| change <| Load track.filepath] [Components.svg "play"]
@@ -257,59 +258,74 @@ listing isAnon ((selection, state, tracks) as p) signal track download =
     <| Components.colsWith [Attr.class "is-vcentered"]
        [ Components.col1 <| Components.label track.title 
        , Components.col1 <| selectPlay track change
-       , if isAnon then 
-          Components.buttonDisabled [] "Download"          
-         else 
-          Components.col1 <| Components.button (download track.filepath) [] "Download"
+       , Components.col1 <| Components.button (download track.filepath) [] "Download"
        ]
 
 
-playlist : Bool -> Model -> (Msg -> msg) ->   (String -> msg) -> Html msg
-playlist isAnon  model signal  download =
+playlist : Model -> ((Model, Msg) -> msg) ->  List TrackMeta -> (String -> msg) -> Html msg
+playlist  ((selection, model) as p) signal tracks download =
   div [] 
-   [ Html.h2 [Attr.class "title mt-6"] [text "My Songs"] 
-   , Html.p [Attr.class " mb-3"] [ text "To download these songs and keep them as your own, log into your account. Every song you make while logged is yours. You can anything you want with it! We do not claim any rights, license, or ownership over the songs you make." ]
-   , Html.p [] [ text "Those terms are described in more detail ", Html.a [Attr.href <| Conf.selfUrl "terms-of-service" ] [ text "here" ], text "." ]
+   [ Html.h2 [Attr.class "title"] [text "My Songs"]
    , Components.box <| List.singleton  <|
-       actionlist isAnon model signal download 
+       actionlist p signal tracks download
    ] 
 
 
-actionlist : Bool -> Model -> (Msg -> msg) ->  (String -> msg) -> Html msg
-actionlist isAnon  ((selection, model, tracks) as p) signal  download =
+actionlist : Model -> ((Model, Msg) -> msg) ->  List TrackMeta -> (String -> msg) -> Html msg
+actionlist  ((selection, model) as p) signal tracks download =
   Components.box <| List.singleton  <| Components.colsMulti <|
-    List.map ((\x -> listing isAnon p signal x download)) tracks
+    List.map ((\x -> listing p signal x download)) tracks
 
 
-minilist : Model -> (Msg -> msg) ->   Html msg
-minilist  ((selection, model, tracks) as p) signal  =
+minilist : Model -> ((Model, Msg) -> msg) ->  List TrackMeta -> Html msg
+minilist  ((selection, model) as p) signal tracks =
   Components.box <| List.singleton <| Components.colsMulti <|
    List.map (card p signal) tracks
 
 
-view : Bool -> Model -> (Msg -> msg) ->  (String -> msg) -> Html msg
-view isAnon ((selection, model, tracks) as p) signal download =
+clear : (Model, Msg)
+clear  =
+  ((apply (Select Nothing) (Nothing, Stopped)), Select Nothing)
+
+
+view : Model -> ((Model, Msg) -> msg) -> (Int -> Asset -> msg) -> List TrackMeta -> (String -> msg) -> Html msg
+view ((selection, model) as p) signal req tracks download =
   case selection of 
    Nothing ->
-    if List.length tracks > 0 then 
-      div [] 
-        [ Components.cols [ Components.col1 <| playlist isAnon p signal download ]
-        , Html.p [Attr.class "show-on-mobile"] [ text "On mobile? Make sure your mute switch is off and the volume is up." ]
-        ]
-    else   
-      text ""
+    Components.cols
+      [ Components.col1 <| playlist p signal tracks download
+      ] 
 
    Just track ->
     let
-       change = (\msg -> signal msg)
+       change = (\msg -> signal <| update msg (Just track, model))
     in
     Components.cols
-      [ Components.colSize "is-one-third" <| feature track model change
-      , Components.colSize "is-two-thirds" <| playlist isAnon p signal download
+      [ Components.colSize "is-one-third" <| feature track model change req
+      , Components.colSize "is-two-thirds" <| playlist p signal tracks download
       ] 
 
 
--- wip for a soundcloud style sticky player at the bottom of the screen
+mini : Model -> ((Model, Msg) -> msg) -> List TrackMeta -> (String -> msg) -> Html msg
+mini ((selection, model) as p) signal tracks download =
+  case selection of 
+   Nothing ->
+    if List.length tracks > 0 then 
+      Components.box [ emptyMessage ]
+    else text ""
+
+
+   Just track ->
+    let
+       change = (\msg -> signal <| update msg p)
+    in
+    div [Attr.id "mini-player"] <| List.singleton <|
+     Components.cols
+      [ Components.colSize "is-one-half" <| face track model change
+      , Components.colSize "is-two-thirds" <| actionlist p signal tracks download
+      ] 
+
+
 bottomPlayer : (Maybe TrackMeta) -> Html msg -> Html msg
 bottomPlayer selection audio =
   let
@@ -326,15 +342,6 @@ bottomPlayer selection audio =
    , audio
    , text "3:24"
    ]
-
-
-add : Model -> TrackMeta -> Model
-add (a, b, list) track =
-  (a, b, track :: list)
-
-addMany : Model -> List TrackMeta -> Model
-addMany (a, b, list) tracks =
-  (a, b, List.append list tracks)
 
 
 emptyMessage : Html msg

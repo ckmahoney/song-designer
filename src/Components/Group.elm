@@ -6,7 +6,7 @@ import Html.Attributes as Attr
 import Html.Events as Events exposing (onClick, onInput)
 import Tools
 
-import Components
+import Components.Components as Components
 
 type alias Index = Int
 

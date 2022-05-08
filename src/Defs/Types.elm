@@ -1,4 +1,4 @@
-module Types exposing (..)
+module Defs.Types exposing (..)
 
 
 import Html

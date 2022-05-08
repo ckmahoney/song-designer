@@ -6,16 +6,16 @@ import Html.Attributes as Attr
 import Html.Events as Events exposing (onClick, onInput)
 
 
-import Types exposing (..)
-import View 
+import Defs.Types exposing (..)
+import Components.View as View 
 import Elements
 import Tools
 import Components
-import Data
-import ComboEditor
-import ScopeEditor
-import EnsembleEditor
-import VoiceEditor
+import Defs.Data
+import Editor.Combo
+import Editor.Scope
+import Editor.Ensemble
+import Editor.Voice as VoiceEditor
 
 import Json.Decode as Decode
 

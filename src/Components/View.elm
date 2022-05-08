@@ -1,15 +1,15 @@
-module View exposing (..)
+module Components.View exposing (..)
 -- Html components specific to Synthony 
 
 import Html exposing (..)
 import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (..)
 
-import Components
+import Components.Components as Components
 
 import Array
-import Types as T
-import Data as D
+import Defs.Types as T
+import Defs.Data as D
 import String exposing (String(..))
 import Tools
 

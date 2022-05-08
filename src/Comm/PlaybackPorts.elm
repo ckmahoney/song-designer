@@ -1,4 +1,4 @@
-port module PlaybackPorts exposing (..)
+port module Comm.PlaybackPorts exposing (..)
 
 import Html exposing (text)
 
