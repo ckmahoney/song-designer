@@ -1,4 +1,4 @@
-module MiniMaker exposing (Model, view)
+module Designer.MiniMaker exposing (Model, view)
 -- Instance of a song maker with limited options
 
 import Browser exposing (element)
