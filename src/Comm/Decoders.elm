@@ -15,4 +15,11 @@ decodeTrack =
     (Decode.field "duration_seconds" Decode.float)
 
 
+decodeTrackResponse : Decode.Decoder TrackResponse
+decodeTrackResponse =
+  Decode.map2 TrackResponse
+    (Decode.field "track" decodeTrack)
+    (Decode.field "message" Decode.string)
+
+
 main = text ""
