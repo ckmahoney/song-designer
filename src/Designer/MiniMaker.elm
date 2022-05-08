@@ -1,4 +1,4 @@
-module MiniMaker exposing (Model, view)
+module Designer.MiniMaker exposing (Model, view)
 -- Instance of a song maker with limited options
 
 import Browser exposing (element)
@@ -16,7 +16,7 @@ import Json.Encode as Encode
 import Defs.Types exposing (GhostMember, SynthRole(..), ScoreMeta, TrackMeta, Template, Layout, Combo, SynthRole, Scope, Ensemble, Voice)
 import Defs.Data exposing (synthRoles)
 import Defs.Configs as Conf
-import Components
+import Components.Components as Components
 import Comm.Playback
 import Components.View as View
 import Tools
