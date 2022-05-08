@@ -1,15 +1,27 @@
 {
   "dependencies": {
+    "@babel/cli": "^7.16.8",
+    "@babel/core": "^7.16.12",
+    "@babel/plugin-transform-modules-amd": "^7.16.7",
+    "@babel/plugin-transform-runtime": "^7.16.10",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-modules": "^0.1.5",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^8.2.3",
+    "babel-polyfill": "^6.26.0",
     "bulma": "^0.9.3",
-    "wavesurfer.js": "^5.2.0"
+    "wavesurfer.js": "^5.2.0",
+    "webpack-cli": "^4.9.2",
+    "whatwg-fetch": "^3.6.2"
   },
   "scripts": {
+    "dev-build-js": "npm run make && webpack --mode development",
     "build": "babel assets/song-designer.js -d out && uglifyjs -c -m -o out/song-designer.min.js -- out/song-designer.js ",
     "dev": "elm-live src/*.elm --start-page=elm-dev.html -- --output=elm-dev-mode.js",
-    "make" : "elm make src/*.elm --output=assets/song-designer.js"
+    "make": "elm make src/Main.elm src/MiniMaker.elm src/Designer/Chart.elm --output=assets/song-designer.js"
   },
   "devDependencies": {
     "elm-live": "^4.0.2",
-    "uglify-js": "^3.14.5"
+    "uglify-js": "^3.15.4"
   }
 }
