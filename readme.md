@@ -1,9 +1,9 @@
 # Song Designer
 
-Hi, I'm your song designer! Use me to design the layout of your song. You can see me in action at [https://synthony.app] (https://synthony.app)
+Hi, I'm your song designer! Use me to design the layout of your song. 
 
+You can see me in action at https://synthony.app
 
-___ 
 
 
 ## Description
@@ -19,8 +19,6 @@ The Designer.MiniMaker module was the previous version, and will probably make a
 
 The Designer.Song module was the previous previous version. It provides the most control over design, allowing granular control over which voices go in which sections of the song, also adding controls for Density, Complexity, and Speed. This interface needs a re-visit before it can be deployed again. Or, more likely, it can be used as a reference for a future redesign of the Song Designer.
 
-___
-
 
 ## How You Can Help
 
@@ -34,18 +32,29 @@ If you can do both, then your pull requests are extremely welcome :)
 
 
 
-___
-
-
 ## How to Install
 
-To clone, install, and run:
+To  install : 
 
-
+```
 git clone https://github.com/ckmahoney/song-designer.git
 
-cd song-designer && npm install;
+cd song-designer;
 
+npm install;
+
+```
+
+
+Do this once to build the javascript which initializes the Elm application:
+
+```
 npm run dev-build-js; # this is to build the JavaScript that initialized the elm application 
+```
 
+
+Do this every time you want to edit the Elm code:
+
+```
 npm run dev; # this runs the hot reloader for developing the elm application 
+```
