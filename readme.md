@@ -58,3 +58,8 @@ Do this every time you want to edit the Elm code:
 ```
 npm run dev; # this runs the hot reloader for developing the elm application 
 ```
+
+
+### Small Note 
+
+A scrutinous eye may also notice that the commits are made under my alias, Naltroc. To producee the name Naltroc, take the name Cortland. Then reverse it, then remove the fisrt character. My alt GitHub repo (for music distribution) is at https://github.com/naltroc.
