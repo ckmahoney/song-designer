@@ -19,7 +19,7 @@ import Comm.Encoders as Encoders
 import Comm.Decoders as Decoders
 import Comm.Post
 import Http
-import Defs.Types exposing (WithMember, TrackResponse, GhostMember, TrackMeta)
+import Defs.Types exposing (WithMember, TrackResponse, GhostMember, PartialGhostMember, TrackMeta)
 import Components.Playlist as Playlist
 import Components.Player as Player
 import Comm.PlaybackPorts exposing (NodeId, AudioSrc, loadedTrack, finishedTrack)
@@ -150,14 +150,31 @@ isAnon member =
   member == Configs.anonMember
 
 
-init : Maybe GhostMember -> (Result Http.Error (List TrackMeta) -> msg) -> (WithMember Model, Cmd msg)
+init : Maybe PartialGhostMember -> (Result Http.Error (List TrackMeta) -> msg) -> (WithMember Model, Cmd msg)
 init flags loadTracks = 
   case flags of 
     Nothing -> 
       ((Configs.anonMember, newModel), Cmd.none)
     
-    Just member ->
-      ((member, newModel), Comm.Post.fetchSongs member.email member.uuid loadTracks)
+    Just { uuid, firstname, name, avatar_image, email, subscribed, paid, subscriptions }  ->
+      let 
+        memFrom = (\firstn n -> 
+          GhostMember uuid firstn n avatar_image email subscribed paid subscriptions)
+        load = (\member -> 
+          ((member, newModel), Comm.Post.fetchSongs member.email member.uuid loadTracks))
+      in
+       case (firstname, name) of 
+        (Nothing, Nothing) -> 
+          load <| memFrom "" ""
+
+        (Just theName, Nothing) ->  
+          load <| memFrom theName ""
+
+        (Nothing, Just theUsername) ->  
+          load <| memFrom "" theUsername
+
+        (Just theName, Just theUsername) ->
+          load <| memFrom theName theUsername 
 
 
 apply : ChartMsg -> WithMember Model -> Model
@@ -513,8 +530,8 @@ view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylis
     ]
 
 
-subscriptions : WithMember Model -> Sub ChartMsg
-subscriptions _ =
+subs : WithMember Model -> Sub ChartMsg
+subs _ =
   Sub.batch 
     [ loadedTrack (\tuple -> LoadedTrack tuple)
     , finishedTrack (\tuple -> FinishedTrack tuple)
@@ -525,5 +542,5 @@ main =
     { init = (\flags -> init flags GotTracks)
     , update = (\msg model -> update msg model GotTrack)
     , view = (\(member, model) -> view (member, model) UpdatePlaylist Download EditMeta UpdateMeta SaveMeta CloseMeta ViewArc EditArc UpdateArc SaveArc CloseArc CreateArc EditGroup ReqTrack ChangeTrack)
-    , subscriptions = subscriptions
+    , subscriptions = subs
     }
