@@ -21,9 +21,8 @@ type Msg
 
 
 id : Int -> String
-id index =
-  "player-" ++ String.fromInt index
-
+id dbId =
+  "player-" ++ String.fromInt dbId
 
 
 apply : Msg -> Model -> Model
@@ -31,16 +30,15 @@ apply msg (players, tracks) =
   case msg of 
     Add track ->  
       let 
-        index = List.length tracks 
-        player = Player.new (id index)
+        player = Player.new (id <| Debug.log "Adding a track with id" track.id)
       in 
-        (player :: players, track :: tracks)
+      (player :: players, track :: tracks)
 
     AddMany moreTracks -> 
       let 
         size = List.length tracks 
         morePlayers = List.indexedMap (\i track -> 
-          Player.new (id (i + size)) ) moreTracks
+          Player.new <| id track.id ) moreTracks
       in 
       (List.append players morePlayers, List.append tracks moreTracks)
 
@@ -148,7 +146,7 @@ card isAnon index state change ({filepath, title} as track) download =
           Components.button (change index <| Player.Load track) [] "Play"
     
     body = div []
-      [ div [ Attr.id (id index) ] [] 
+      [ div [ Attr.id (id track.id) ] [] 
       , case state of 
           Player.Loading _ -> 
             text "Loading your track"
