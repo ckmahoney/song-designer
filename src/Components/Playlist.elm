@@ -30,9 +30,9 @@ apply msg (players, tracks) =
   case msg of 
     Add track ->  
       let 
-        player = Player.new (id <| Debug.log "Adding a track with id" track.id)
+        player = Player.new (id track.id)
       in 
-      (player :: players, track :: tracks)
+      (List.append players [player], List.append tracks [track])
 
     AddMany moreTracks -> 
       let 
