@@ -82,6 +82,14 @@ findIndex x xs =
     y
 
 
+find : (a -> Bool) -> List a -> a -> a
+find search list default =
+  case List.head <| List.filter search list of
+    Nothing -> 
+      default
+
+    Just found ->
+      found
 
 
 remove : Maybe a -> List a -> List a
