@@ -339,8 +339,9 @@ update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplet
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
                 p = Playlist.apply (Playlist.Add  { track  | filepath = prefix ++ track.filepath }) playlist
+                scroll = scrollTo <| "#" ++ Playlist.id track.id
               in 
-              ((member, ({ store | playlist = p }, Viewing)), Cmd.none)
+              ((member, ({ store | playlist = p }, Viewing)), scroll)
 
            _ ->
             ((member, model), Cmd.none)
