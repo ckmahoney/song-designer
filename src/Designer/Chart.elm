@@ -435,7 +435,7 @@ allTheDetails =
 slowServerMessage : Html msg
 slowServerMessage = 
   div [ Attr.class "p-3" ] 
-    [ p [Attr.class "bg-info"] [ text "Notice - we are currently experiencing slow server responses for anonymous users. Please bear with us." ]
+    [ p [Attr.class "has-background-warning"] [ text "Notice - we are currently experiencing slow server responses for anonymous users. Please bear with us." ]
     , p [] [ text "If you are logged into your account, then your song requests will be backfilled." ]
     , p [] [ text "If you are using this site anonymously, results may vary." ]
     , p [ Attr.class "bg-info" ] [ text "We recommend logging for better song delivery." ]
@@ -445,7 +445,7 @@ slowServerMessage =
 welcome : Bool -> Html msg
 welcome anon = 
   div [ Attr.class "content" ]
-    [ p [] [ text "Hi! I'm your Layout Designer. You can use me to build the layout of your song." ]
+    [ p [ Attr.class "p-3" ] [ text "Hi! I'm your Layout Designer. You can use me to build the layout of your song." ]
     ]
 
 
@@ -519,7 +519,8 @@ editor anon isUsable playlist updatePlaylist download meta editMeta editGroup op
           if List.length arcs > 0 then 
             div [ Attr.class "is-block" ] 
               [ Components.button (doRequest meta arcs) [ Attr.class "mx-auto is-block mt-6 mb-3 is-large has-background-link has-text-light"] "Make a Song" ]
-            else p  [] [ text "When you have at least 1 Arc in your layout, you can press the \"Make a Song\" button to produce the new music." ]
+            else Components.box <| List.singleton <| 
+               p  [] [ text "When you have at least 1 Arc in your layout, you can press the \"Make a Song\" button to produce the new music." ]
         else text ""
       ]
 
