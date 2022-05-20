@@ -381,11 +381,16 @@ update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplet
       ((member, apply msg (member, model)), Cmd.none)
 
 
+detailAttrs : List (Html.Attribute msg)
+detailAttrs =
+  [ Attr.style "cursor" "pointer", Attr.class "my-6 is-size-4"]
+
+
 allTheDetails : Html msg
 allTheDetails =
   div [Attr.class "p-3 content" ] 
       [ details [] 
-          [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What are Song Details?"  ]
+          [ summary detailAttrs [ text "What are Song Details?"  ]
           , div [Attr.class "m-3" ]
               [ p [] [ text "No matter what, ALL music contains these two things in common: It moves through time, and occupies space! " ]
             , p [] [ text "To measure time we use Beats Per Minute. A higher number means the song will sound faster, while lower numbers sound slower." ]
@@ -395,14 +400,14 @@ allTheDetails =
             , p [] [ text "Making songs in a different keys is the fastest way to get a wide variety of results." ]
               ] ]
       , details [] 
-          [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What is a Layout?" ]
+          [ summary detailAttrs [ text "What is a Layout?" ]
           , div [Attr.class "m-3"]
             [ p [] [ text "Most music has a few distinct sections that get used over and over and over again. We call each of these sections an \"Arc.\" The sequence of Arcs, from beginning to end, is the Layout." ]
             , p [] [ text "Think about a song that has a verse-chorus-verse pattern. It might have all of these arcs in this order: intro, verse, chorus, verse, chorus, chorus, verse, outro. So it has four unique arcs: intro, verse, chorus, and outro." ]
             ] 
           ] 
       , details []
-          [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "Glossary" ]
+          [ summary detailAttrs [ text "Glossary" ]
           , div [ Attr.class "m-3" ]
             [  p [] [ text "The words we use to make songs, and what they mean." ]
             , h3 [] [ text "Song Details" ]
@@ -441,8 +446,6 @@ welcome : Bool -> Html msg
 welcome anon = 
   div [ Attr.class "content" ]
     [ p [] [ text "Hi! I'm your Layout Designer. You can use me to build the layout of your song." ]
-    , if anon then slowServerMessage
-      else text ""
     ]
 
 
@@ -502,11 +505,14 @@ editor anon isUsable playlist updatePlaylist download meta editMeta editGroup op
   in
     Components.boxWith  (if isUsable then "" else "overlay-disabled")
       [ label [Attr.class "is-size-3 is-block mt-3 mb-6"] [ text "Title, BPM and Color" ]
+      , p [ Attr.class "content" ] [ text "Edit the details of your song here." ] 
+
       , ScoreMeta.readonly nCycles meta editMeta
       , label [Attr.class "is-size-3 is-block my-6"] [ text "Layout" ]
-      , details [] [ summary [Attr.class "is-size-5"] [ text "Show Summary" ], arcSummary arcs ]
       , p [Attr.class "mt-3 mb-6" ] [ text "Use the buttons below to add, edit, remove, and position your Arcs." ]
+
       , showSequence arcs
+      , details [Attr.class "content" ] [ summary [Attr.class "is-size-5"] [ text "Show Summary" ], arcSummary arcs ]
       , Group.inserter editGroup Arc.empty (\i c -> Arc.stub c (openArc c))  arcs
       , sideScrollMessage
       , if isUsable then 
