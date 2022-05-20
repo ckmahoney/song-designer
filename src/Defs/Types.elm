@@ -150,6 +150,18 @@ type alias GhostMember =
   } 
 
 
+type alias PartialGhostMember =
+  { uuid : String
+  , firstname : Maybe String
+  , name : Maybe String
+  , avatar_image : String
+  , email : String
+  , subscribed : Bool
+  , paid : Bool
+  , subscriptions: List String
+  } 
+
+
 type alias WithMember a
   = (GhostMember, a)
 

@@ -19,7 +19,7 @@ import Comm.Encoders as Encoders
 import Comm.Decoders as Decoders
 import Comm.Post
 import Http
-import Defs.Types exposing (WithMember, TrackResponse, GhostMember, TrackMeta)
+import Defs.Types exposing (WithMember, TrackResponse, GhostMember, PartialGhostMember, TrackMeta)
 import Components.Playlist as Playlist
 import Components.Player as Player
 import Comm.PlaybackPorts exposing (NodeId, AudioSrc, loadedTrack, finishedTrack)
@@ -150,14 +150,31 @@ isAnon member =
   member == Configs.anonMember
 
 
-init : Maybe GhostMember -> (Result Http.Error (List TrackMeta) -> msg) -> (WithMember Model, Cmd msg)
+init : Maybe PartialGhostMember -> (Result Http.Error (List TrackMeta) -> msg) -> (WithMember Model, Cmd msg)
 init flags loadTracks = 
   case flags of 
     Nothing -> 
       ((Configs.anonMember, newModel), Cmd.none)
     
-    Just member ->
-      ((member, newModel), Comm.Post.fetchSongs member.email member.uuid loadTracks)
+    Just { uuid, firstname, name, avatar_image, email, subscribed, paid, subscriptions }  ->
+      let 
+        memFrom = (\firstn n -> 
+          GhostMember uuid firstn n avatar_image email subscribed paid subscriptions)
+        load = (\member -> 
+          ((member, newModel), Comm.Post.fetchSongs member.email member.uuid loadTracks))
+      in
+       case (firstname, name) of 
+        (Nothing, Nothing) -> 
+          load <| memFrom "" ""
+
+        (Just theName, Nothing) ->  
+          load <| memFrom theName ""
+
+        (Nothing, Just theUsername) ->  
+          load <| memFrom "" theUsername
+
+        (Just theName, Just theUsername) ->
+          load <| memFrom theName theUsername 
 
 
 apply : ChartMsg -> WithMember Model -> Model
@@ -322,8 +339,9 @@ update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplet
               let
                 prefix = if Configs.devMode == True then "http://localhost:3000" else ""
                 p = Playlist.apply (Playlist.Add  { track  | filepath = prefix ++ track.filepath }) playlist
+                scroll = scrollTo <| "#" ++ Playlist.id track.id
               in 
-              ((member, ({ store | playlist = p }, Viewing)), Cmd.none)
+              ((member, ({ store | playlist = p }, Viewing)), scroll)
 
            _ ->
             ((member, model), Cmd.none)
@@ -363,11 +381,16 @@ update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplet
       ((member, apply msg (member, model)), Cmd.none)
 
 
+detailAttrs : List (Html.Attribute msg)
+detailAttrs =
+  [ Attr.style "cursor" "pointer", Attr.class "my-6 is-size-4"]
 
-allTheDetails : List (Html msg)
+
+allTheDetails : Html msg
 allTheDetails =
-  [ details [] 
-          [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What are Song Details?"  ]
+  div [Attr.class "p-3 content" ] 
+      [ details [] 
+          [ summary detailAttrs [ text "What are Song Details?"  ]
           , div [Attr.class "m-3" ]
               [ p [] [ text "No matter what, ALL music contains these two things in common: It moves through time, and occupies space! " ]
             , p [] [ text "To measure time we use Beats Per Minute. A higher number means the song will sound faster, while lower numbers sound slower." ]
@@ -377,14 +400,14 @@ allTheDetails =
             , p [] [ text "Making songs in a different keys is the fastest way to get a wide variety of results." ]
               ] ]
       , details [] 
-          [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What is a Layout?" ]
+          [ summary detailAttrs [ text "What is a Layout?" ]
           , div [Attr.class "m-3"]
             [ p [] [ text "Most music has a few distinct sections that get used over and over and over again. We call each of these sections an \"Arc.\" The sequence of Arcs, from beginning to end, is the Layout." ]
             , p [] [ text "Think about a song that has a verse-chorus-verse pattern. It might have all of these arcs in this order: intro, verse, chorus, verse, chorus, chorus, verse, outro. So it has four unique arcs: intro, verse, chorus, and outro." ]
             ] 
           ] 
       , details []
-          [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "Glossary" ]
+          [ summary detailAttrs [ text "Glossary" ]
           , div [ Attr.class "m-3" ]
             [  p [] [ text "The words we use to make songs, and what they mean." ]
             , h3 [] [ text "Song Details" ]
@@ -408,11 +431,21 @@ allTheDetails =
        ]
   ]
 
-welcome : Html msg
-welcome = 
+
+slowServerMessage : Html msg
+slowServerMessage = 
+  div [ Attr.class "p-3" ] 
+    [ p [Attr.class "has-background-warning"] [ text "Notice - we are currently experiencing slow server responses for anonymous users. Please bear with us." ]
+    , p [] [ text "If you are logged into your account, then your song requests will be backfilled." ]
+    , p [] [ text "If you are using this site anonymously, results may vary." ]
+    , p [ Attr.class "bg-info" ] [ text "We recommend logging for better song delivery." ]
+    ]
+
+
+welcome : Bool -> Html msg
+welcome anon = 
   div [ Attr.class "content" ]
-    [ p [] [ text "Hi! I'm your Layout Designer. You can use me to build the layout of your song." ]
-    , div [Attr.class "p-3" ] allTheDetails
+    [ p [ Attr.class "p-3" ] [ text "Hi! I'm your Layout Designer. You can use me to build the layout of your song." ]
     ]
 
 
@@ -448,6 +481,12 @@ arcSummary arcs =
     ]
 
 
+sideScrollMessage : Html msg
+sideScrollMessage =
+  Components.mobileOnly 
+  <| p [ Attr.class "p-3" ] [ text "Swipe to scroll through your Arcs." ] 
+
+
 editor : Bool ->
   Bool ->
   Playlist.Model -> 
@@ -466,15 +505,21 @@ editor anon isUsable playlist updatePlaylist download meta editMeta editGroup op
   in
     Components.boxWith  (if isUsable then "" else "overlay-disabled")
       [ label [Attr.class "is-size-3 is-block mt-3 mb-6"] [ text "Title, BPM and Color" ]
+      , p [ Attr.class "content" ] [ text "Edit the details of your song here." ] 
+
       , ScoreMeta.readonly nCycles meta editMeta
       , label [Attr.class "is-size-3 is-block my-6"] [ text "Layout" ]
-      , details [] [ summary [Attr.class "is-size-5"] [ text "Show Summary" ], arcSummary arcs ]
       , p [Attr.class "mt-3 mb-6" ] [ text "Use the buttons below to add, edit, remove, and position your Arcs." ]
+
       , showSequence arcs
+      , details [Attr.class "content" ] [ summary [Attr.class "is-size-5"] [ text "Show Summary" ], arcSummary arcs ]
       , Group.inserter editGroup Arc.empty (\i c -> Arc.stub c (openArc c))  arcs
+      , sideScrollMessage
       , if isUsable then 
-          if List.length arcs > 0 && isUsable then Components.button (doRequest meta arcs) [Attr.class "mt-6 mb-3"] "Make a Song"
-        else p  [] [ text "When you have at least 1 Arc in your layout, you can press the \"Make a Song\" button to produce the new music." ]
+          if List.length arcs > 0 then 
+            div [ Attr.class "is-block" ] 
+              [ Components.button (doRequest meta arcs) [ Attr.class "mx-auto is-block mt-6 mb-3 is-large has-background-link has-text-light"] "Make a Song" ]
+            else p  [] [ text "When you have at least 1 Arc in your layout, you can press the \"Make a Song\" button to produce the new music." ]
         else text ""
       ]
 
@@ -483,15 +528,15 @@ editor anon isUsable playlist updatePlaylist download meta editMeta editGroup op
 view : WithMember Model -> (Playlist.Msg -> msg) -> (String -> msg) ->  msg ->  (ScoreMeta.Msg -> msg) ->  (ScoreMeta.Model -> msg) ->  msg -> (Arc.Model -> msg) -> (Arc.Model -> msg) -> (Arc.Msg -> msg) -> (Arc.Model -> msg) -> msg -> msg -> (Group.Msg Arc.Model -> msg) -> (ScoreMeta.Model -> (List Arc.Model) -> msg) -> (Int -> Player.Msg -> msg) -> Html msg
 view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylist download editMeta changeMeta saveMeta closeMeta openArc editArc change save cancel createArc editGroup doRequest changeTrack =
   div [] 
-    [ welcome
-    , h2 [Attr.class "is-size-2 my-6" ] [ text "Layout Designer"]
+    [ h2 [Attr.class "is-size-2 my-6" ] [ text "Layout Designer"]
+    , welcome (isAnon member)
     , case state of  
       Requesting ->
         div [] 
           [ editor (isAnon member) False playlist updatePlaylist download meta editMeta editGroup openArc (Tuple.second arcs) doRequest changeTrack
           , p [ Attr.id "req-message", Attr.class "p-3 bg-info" ] [ text "Writing a song for you!" ]
           , p [ Attr.class "p-3 bg-info" ] [ text "This can take up to one minute." ]
-          , p [ Attr.class "p-3 bg-info wait-a-minute" ] [ text "Looks like this song is taking longer; or maybe you lost network connection? Please try reloading the page, or contact us to report the issue." ]
+          , if (isAnon member) then div [ Attr.class "wait-a-minute" ] [ slowServerMessage ] else text ""
           ]
 
       Viewing ->      
@@ -510,11 +555,12 @@ view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylis
           _ ->
             text "How did you get here? Please tell us on the Contact page."
     , Playlist.view (isAnon member) playlist updatePlaylist download changeTrack
+    , allTheDetails
     ]
 
 
-subscriptions : WithMember Model -> Sub ChartMsg
-subscriptions _ =
+subs : WithMember Model -> Sub ChartMsg
+subs _ =
   Sub.batch 
     [ loadedTrack (\tuple -> LoadedTrack tuple)
     , finishedTrack (\tuple -> FinishedTrack tuple)
@@ -525,5 +571,5 @@ main =
     { init = (\flags -> init flags GotTracks)
     , update = (\msg model -> update msg model GotTrack)
     , view = (\(member, model) -> view (member, model) UpdatePlaylist Download EditMeta UpdateMeta SaveMeta CloseMeta ViewArc EditArc UpdateArc SaveArc CloseArc CreateArc EditGroup ReqTrack ChangeTrack)
-    , subscriptions = subscriptions
+    , subscriptions = subs
     }

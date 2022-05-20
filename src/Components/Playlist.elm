@@ -21,9 +21,8 @@ type Msg
 
 
 id : Int -> String
-id index =
-  "player-" ++ String.fromInt index
-
+id dbId =
+  "player-" ++ String.fromInt dbId
 
 
 apply : Msg -> Model -> Model
@@ -31,16 +30,15 @@ apply msg (players, tracks) =
   case msg of 
     Add track ->  
       let 
-        index = List.length tracks 
-        player = Player.new (id index)
+        player = Player.new (id track.id)
       in 
-        (player :: players, track :: tracks)
+      (List.append players [player], List.append tracks [track])
 
     AddMany moreTracks -> 
       let 
         size = List.length tracks 
         morePlayers = List.indexedMap (\i track -> 
-          Player.new (id (i + size)) ) moreTracks
+          Player.new <| id track.id ) moreTracks
       in 
       (List.append players morePlayers, List.append tracks moreTracks)
 
@@ -67,6 +65,7 @@ new =
   ([], [])
 
 
+
 listing : Bool -> Model -> (Msg -> msg)-> TrackMeta -> (String -> msg) -> Html msg
 listing isAnon ((state, tracks) as model) do track download = 
   let 
@@ -86,7 +85,11 @@ listing isAnon ((state, tracks) as model) do track download =
 
 regCta : Html msg
 regCta = 
-  Html.p [Attr.class " mb-3"] [ text "To download these songs and keep them as your own, log into your account. Every song you make while logged is yours. You can anything you want with it! We do not claim any rights, license, or ownership over the songs you make." ]
+  div  [Attr.class "mb-3"]
+    [ Html.p [] [ text "To download these songs and keep them as your own, log into your account." ]
+    , Html.p [] [ text "Every song you make while logged is yours. You can anything you want with it! We do not claim any rights, license, or ownership over the songs you make." ]
+    ]
+
 
 
 termsCta : Html msg
@@ -97,9 +100,15 @@ termsCta =
 playlist : Bool -> Model -> (String -> msg) -> Html msg
 playlist isAnon model download =
   Components.box
-   [ Html.h2 [Attr.class "title mt-6"] [text "My Music"] 
-   , if isAnon then regCta else text ""
-   , if isAnon then termsCta else text ""
+   [ Html.h2 [Attr.class "title my-6"] [text "My Music"] 
+   , Components.mobileOnly 
+     <| Html.p [ Attr.class "p-3 has-background-warning"] [ text "On mobile? Make sure your mute switch is off and the volume is up." ]
+   , if isAnon then 
+       div [ Attr.class "mt-3 p-3" ]
+         [ regCta 
+         , termsCta 
+         ]
+     else text ""
    ]
 
 
@@ -148,7 +157,7 @@ card isAnon index state change ({filepath, title} as track) download =
           Components.button (change index <| Player.Load track) [] "Play"
     
     body = div []
-      [ div [ Attr.id (id index) ] [] 
+      [ div [ Attr.id (id track.id) ] [] 
       , case state of 
           Player.Loading _ -> 
             text "Loading your track"
@@ -177,12 +186,13 @@ view isAnon ((players, tracks) as model) updatePlaylist download do =
 
     div [] <|
       [ Components.cols [ Components.col1 <| playlist isAnon model download ]
-      , Html.p [Attr.class "show-on-mobile"] [ text "On mobile? Make sure your mute switch is off and the volume is up." ]
       , Components.colsMulti <| List.indexedMap (\i (state, track) -> card isAnon i (Tuple.second state) do track download) pairs
       ]
 
   else   
-    p [] [ text "Make a song to start your collection." ]
+     Components.box 
+       <| List.singleton 
+       <| p [] [ text "Make a song to start your collection." ]
 
 
 main = Html.text ""
