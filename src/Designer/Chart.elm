@@ -381,10 +381,10 @@ update msg (member, ({playlist, meta, arcs} as store, state) as model) onComplet
       ((member, apply msg (member, model)), Cmd.none)
 
 
-
-allTheDetails : List (Html msg)
+allTheDetails : Html msg
 allTheDetails =
-  [ details [] 
+  div [Attr.class "p-3 content" ] 
+      [ details [] 
           [ summary [Attr.style "cursor" "pointer", Attr.class "is-size-4"] [ text "What are Song Details?"  ]
           , div [Attr.class "m-3" ]
               [ p [] [ text "No matter what, ALL music contains these two things in common: It moves through time, and occupies space! " ]
@@ -429,9 +429,11 @@ allTheDetails =
 
 slowServerMessage : Html msg
 slowServerMessage = 
-  div [] 
+  div [ Attr.class "p-3" ] 
     [ p [Attr.class "bg-info"] [ text "Notice - we are currently experiencing slow server responses for anonymous users. Please bear with us." ]
-    , p [Attr.class "bg-info"] [ text "If you are logged into your account, then your song requests will be backfilled. If you are using this site anonymously, results may vary. We recommend logging for better song delivery." ]
+    , p [] [ text "If you are logged into your account, then your song requests will be backfilled." ]
+    , p [] [ text "If you are using this site anonymously, results may vary." ]
+    , p [ Attr.class "bg-info" ] [ text "We recommend logging for better song delivery." ]
     ]
 
 
@@ -441,7 +443,6 @@ welcome anon =
     [ p [] [ text "Hi! I'm your Layout Designer. You can use me to build the layout of your song." ]
     , if anon then slowServerMessage
       else text ""
-    , div [Attr.class "p-3" ] allTheDetails
     ]
 
 
@@ -477,6 +478,12 @@ arcSummary arcs =
     ]
 
 
+sideScrollMessage : Html msg
+sideScrollMessage =
+  Components.mobileOnly 
+  <| p [ Attr.class "p-3" ] [ text "Swipe to scroll through your Arcs." ] 
+
+
 editor : Bool ->
   Bool ->
   Playlist.Model -> 
@@ -501,9 +508,12 @@ editor anon isUsable playlist updatePlaylist download meta editMeta editGroup op
       , p [Attr.class "mt-3 mb-6" ] [ text "Use the buttons below to add, edit, remove, and position your Arcs." ]
       , showSequence arcs
       , Group.inserter editGroup Arc.empty (\i c -> Arc.stub c (openArc c))  arcs
+      , sideScrollMessage
       , if isUsable then 
-          if List.length arcs > 0 && isUsable then Components.button (doRequest meta arcs) [Attr.class "mt-6 mb-3"] "Make a Song"
-        else p  [] [ text "When you have at least 1 Arc in your layout, you can press the \"Make a Song\" button to produce the new music." ]
+          if List.length arcs > 0 then 
+            div [ Attr.class "is-block" ] 
+              [ Components.button (doRequest meta arcs) [ Attr.class "mx-auto is-block mt-6 mb-3 is-large has-background-link has-text-light"] "Make a Song" ]
+            else p  [] [ text "When you have at least 1 Arc in your layout, you can press the \"Make a Song\" button to produce the new music." ]
         else text ""
       ]
 
@@ -512,15 +522,15 @@ editor anon isUsable playlist updatePlaylist download meta editMeta editGroup op
 view : WithMember Model -> (Playlist.Msg -> msg) -> (String -> msg) ->  msg ->  (ScoreMeta.Msg -> msg) ->  (ScoreMeta.Model -> msg) ->  msg -> (Arc.Model -> msg) -> (Arc.Model -> msg) -> (Arc.Msg -> msg) -> (Arc.Model -> msg) -> msg -> msg -> (Group.Msg Arc.Model -> msg) -> (ScoreMeta.Model -> (List Arc.Model) -> msg) -> (Int -> Player.Msg -> msg) -> Html msg
 view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylist download editMeta changeMeta saveMeta closeMeta openArc editArc change save cancel createArc editGroup doRequest changeTrack =
   div [] 
-    [ welcome (isAnon member)
-    , h2 [Attr.class "is-size-2 my-6" ] [ text "Layout Designer"]
+    [ h2 [Attr.class "is-size-2 my-6" ] [ text "Layout Designer"]
+    , welcome (isAnon member)
     , case state of  
       Requesting ->
         div [] 
           [ editor (isAnon member) False playlist updatePlaylist download meta editMeta editGroup openArc (Tuple.second arcs) doRequest changeTrack
           , p [ Attr.id "req-message", Attr.class "p-3 bg-info" ] [ text "Writing a song for you!" ]
           , p [ Attr.class "p-3 bg-info" ] [ text "This can take up to one minute." ]
-          , if (isAnon member) then div [ Attr.class "p-3 wait-a-minute" ] [ slowServerMessage ] else text ""
+          , if (isAnon member) then div [ Attr.class "wait-a-minute" ] [ slowServerMessage ] else text ""
           ]
 
       Viewing ->      
@@ -539,6 +549,7 @@ view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylis
           _ ->
             text "How did you get here? Please tell us on the Contact page."
     , Playlist.view (isAnon member) playlist updatePlaylist download changeTrack
+    , allTheDetails
     ]
 
 
