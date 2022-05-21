@@ -644,12 +644,13 @@ testMember =
 
 anonMember : GhostMember
 anonMember = 
-  GhostMember "f6bc137f-218b-42c7-8a6f-ae445103d96c" "anon" "test-user mike" "" "anon@synthony.app" False False []
+  GhostMember "a5d4a5d0-f18c-460b-8353-bc874e7ef5a9" "anon" "test-user mike" "" "anon2@synthony.app" False False []
+  -- GhostMember "f6bc137f-218b-42c7-8a6f-ae445103d96c" "anon" "test-user mike" "" "anon@synthony.app" False False []
 
 
 partialMember : PartialGhostMember
 partialMember = 
-  PartialGhostMember "f6bc137f-218b-42c7-8a6f-ae445103d96c" Nothing Nothing "" "anon@synthony.app" False False []
+  PartialGhostMember "a5d4a5d0-f18c-460b-8353-bc874e7ef5a9" Nothing Nothing "" "anon2@synthony.app" False False []
 
 
 scopes1 : List Scope
