@@ -536,7 +536,7 @@ view (member, (({playlist, meta, arcs} as store, state) as model)) updatePlaylis
           [ editor (isAnon member) False playlist updatePlaylist download meta editMeta editGroup openArc (Tuple.second arcs) doRequest changeTrack
           , p [ Attr.id "req-message", Attr.class "p-3 bg-info" ] [ text "Writing a song for you!" ]
           , p [ Attr.class "p-3 bg-info" ] [ text "This can take up to one minute." ]
-          , if (isAnon member) then div [ Attr.class "wait-a-minute" ] [ slowServerMessage ] else text ""
+          -- , if (isAnon member) then div [ Attr.class "wait-a-minute" ] [ slowServerMessage ] else text ""
           ]
 
       Viewing ->      
