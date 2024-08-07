@@ -2,9 +2,6 @@
 
 Hi, I'm your song designer! Use me to design the layout of your song. 
 
-You can see me in action at https://synthony.app
-
-
 
 ## Description
 
